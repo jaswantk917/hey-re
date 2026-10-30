@@ -13,7 +13,7 @@ class ListeningSkill(val listeningInfo: ListeningInfo, data: StandardRecognizerD
     StandardRecognizerSkill<Listening>(listeningInfo, data) {
 
     override suspend fun generateOutput(ctx: SkillContext, inputData: Listening): SkillOutput {
-        if (listeningInfo.dataStore.data.first().wakeDevice == WakeDevice.WAKE_DEVICE_NOTHING) {
+        if (listeningInfo.dataStore.data.first().wakeDevice != WakeDevice.WAKE_DEVICE_OWW) {
             return ListeningOutput(false, false, false)
         }
 

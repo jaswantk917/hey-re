@@ -129,9 +129,10 @@ class WakeDeviceWrapperImpl(
 
     private fun buildInputDevice(setting: DataStoreWakeDevice): WakeDevice? {
         return when (setting) {
+            WAKE_DEVICE_OWW -> OpenWakeWordDevice(appContext, okHttpClient)
+            // the wake word is opt-in in Hey re
             UNRECOGNIZED,
             WAKE_DEVICE_UNSET,
-            WAKE_DEVICE_OWW -> OpenWakeWordDevice(appContext, okHttpClient)
             WAKE_DEVICE_NOTHING -> null
         }
     }

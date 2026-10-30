@@ -140,17 +140,8 @@ class ListSetting<T>(
             modifier = Modifier.clickable { dialogOpen = true },
             title = title,
             icon = icon,
-            description = if (description == null) {
-                currentValueName
-            } else if (currentValueName == null) {
-                description
-            } else {
-                stringResource(
-                    R.string.settings_description_with_value,
-                    description,
-                    currentValueName
-                )
-            },
+            // like Android's Settings, the row says what is set; the explanation is in the dialog
+            description = currentValueName ?: description,
         )
 
         if (dialogOpen) {
@@ -181,6 +172,17 @@ class ListSetting<T>(
                         .fillMaxWidth()
                         .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp),
                 )
+                if (description != null) {
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 24.dp, end = 24.dp, bottom = 8.dp),
+                    )
+                }
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -295,17 +297,7 @@ class StringSetting(
             modifier = Modifier.clickable { dialogOpen = true },
             title = title,
             icon = icon,
-            description = if (value.isEmpty()) {
-                descriptionWhenEmpty ?: description
-            } else if (description == null) {
-                value
-            } else {
-                stringResource(
-                    R.string.settings_description_with_value,
-                    description,
-                    value
-                )
-            },
+            description = value.ifEmpty { descriptionWhenEmpty ?: description },
         )
 
         if (dialogOpen) {

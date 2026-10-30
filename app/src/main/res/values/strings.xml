@@ -78,7 +78,7 @@
     <string name="pref_language">Language</string>
     <string name="pref_language_summary">What language should Hey re use to listen to you and provide answers?</string>
     <string name="pref_language_system">Use system language</string>
-    <string name="pref_input_method">Input method</string>
+    <string name="pref_input_method">Speech recognition</string>
     <string name="pref_input_method_summary">Choose the service to use to talk to Hey re</string>
     <string name="pref_input_method_text">Only text box</string>
     <string name="pref_input_method_vosk">Vosk offline speech recognition</string>
@@ -91,13 +91,13 @@
     <string name="pref_tts_voice_sample">Hi, I\'m Hey re. What\'s up?</string>
     <string name="pref_listening">Listening</string>
     <string name="pref_speaking">Speaking</string>
-    <string name="pref_speech_output_method">Speech output method</string>
+    <string name="pref_speech_output_method">Speech output</string>
     <string name="pref_speech_output_method_summary">Choose the service Hey re should use to talk to you</string>
     <string name="pref_speech_output_method_android">Android text to speech engine</string>
     <string name="pref_speech_output_method_toast">Toast (popup message)</string>
     <string name="pref_speech_output_method_snackbar">Snackbar (message at the bottom)</string>
     <string name="pref_speech_output_method_nothing">Nothing</string>
-    <string name="pref_wake_method">Wake word recognition method</string>
+    <string name="pref_wake_method">Wake word</string>
     <string name="pref_wake_method_summary">Choose the service to use to listen for the \"Hey Dicio\" wakeup word in the background</string>
     <string name="pref_wake_method_disabled">Disabled</string>
     <string name="pref_wake_method_openwakeword">OpenWakeWord offline audio processing</string>
@@ -113,14 +113,14 @@
     <string name="pref_search_engine_duckduckgo" translatable="false">DuckDuckGo</string>
     <string name="pref_weather_default_city">Default city</string>
     <string name="pref_weather_default_city_using_ip_info">Set the city to use for weather when you do not explicitly say one. The current behaviour is to get the location from IP info.</string>
-    <string name="pref_stt_silence_duration_title">Maximum silence before start of speech</string>
+    <string name="pref_stt_silence_duration_title">Silence before giving up</string>
     <string name="pref_stt_silence_duration_description">Give up listening after %1$d silent intervals</string>
-    <string name="pref_stt_auto_finish_title">Directly send result of speech to text popup</string>
+    <string name="pref_stt_auto_finish_title">Send voice typing right away</string>
     <string name="pref_stt_auto_finish_summary_on">Automatically send speech result to requesting app when listening finishes</string>
     <string name="pref_stt_auto_finish_summary_off">Wait for manual confirmation before sending speech result to requesting app</string>
-    <string name="pref_dynamic_colors_title">Dynamic colors</string>
-    <string name="pref_dynamic_colors_summary">Use the Material You dynamic colors provided by the system</string>
-    <string name="pref_stt_play_sound_title">Play sound when starting to listen</string>
+    <string name="pref_dynamic_colors_title">Wallpaper colors</string>
+    <string name="pref_dynamic_colors_summary">Match the colors of your wallpaper</string>
+    <string name="pref_stt_play_sound_title">Listening sound</string>
     <string name="pref_stt_play_sound_summary">Choose whether to play a sound when your voice starts being recognized, and select the audio channel to play the sound on</string>
     <string name="pref_stt_play_sound_notification">Notification channel</string>
     <string name="pref_stt_play_sound_alarm">Alarm channel</string>

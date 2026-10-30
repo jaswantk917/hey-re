@@ -2,10 +2,18 @@ set:
   - timer|(ping me in) .duration.
   - (set up?)|setup|start|create a? (.duration. time<r|rs?>)|(time<r|rs?> (for|of .duration.)? (called|named|(with the name) .name.)?)
 
+  # Hinglish: "5 minute ka timer laga do", "10 minute baad batana"
+  - .duration. (ka|ki|ke liye)? timer (laga do|laga de|lagao|laga|set karo|set kar do|start karo|chalu karo)?
+  - timer (laga do|lagao|set karo|start karo) .duration. (ka|ki|ke liye)?
+  - .duration. (baad|me|mein) (bata|batana|bata dena|yaad dila|yaad dilana|bula|bulana)
+
 cancel:
   - cancel|stop|disable|end|terminate the? (.name.? time<r|rs?>)|(time<r|rs?> called|named|(with the name) .name.)
   - silence|(shut|turn off)|quiet|mute the? (.name.? time<r|rs?>|bell|alert|sound|ringtone)|(time<r|rs?>|bell|alert|sound|ringtone called|named|(with the name) .name.)
 
+  - .name.? timer (band|cancel|stop|hatao|hata do) (karo|kar do|kar de)?
+
 query:
   - how long|(much time) is left? on the? (.name.? time<r|rs?>)|(time<r|rs?> called|named|(with the name) .name.)
   - when will|is the? (.name.? time<r|rs?>)|(time<r|rs?> called|named|(with the name) .name.) (going to)? expire
+  - (timer (me|mein))? kitna (time|samay) (bacha|baaki|baki) (hai)?

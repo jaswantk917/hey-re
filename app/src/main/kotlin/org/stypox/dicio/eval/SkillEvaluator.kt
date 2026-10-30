@@ -26,6 +26,7 @@ import org.stypox.dicio.ui.home.Interaction
 import org.stypox.dicio.ui.home.InteractionLog
 import org.stypox.dicio.ui.home.PendingQuestion
 import org.stypox.dicio.ui.home.QuestionAnswer
+import org.stypox.dicio.util.HinglishNumbers
 import javax.inject.Singleton
 import org.dicio.skill.standard.util.MatchHelper
 
@@ -182,8 +183,11 @@ class SkillEvaluatorImpl(
 
     private fun findBestMatch(utterances: List<String>): Pair<String, SkillWithResult<*>>? =
         utterances.firstNotNullOfOrNull { input: String ->
-            skillContext.standardMatchHelper = MatchHelper(skillContext.parserFormatter, input)
-            skillRanker.getBest(skillContext, input)?.let { skillWithResult ->
+            // "paanch minute" -> "5 minute" for the English number parser; the user still sees
+            // exactly what they said
+            val normalized = HinglishNumbers.normalize(input)
+            skillContext.standardMatchHelper = MatchHelper(skillContext.parserFormatter, normalized)
+            skillRanker.getBest(skillContext, normalized)?.let { skillWithResult ->
                 Pair(input, skillWithResult)
             }
         }

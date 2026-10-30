@@ -77,7 +77,7 @@ fun Welcome(seen: MutableSet<Any>, modifier: Modifier = Modifier) {
 
 // the skills most worth trying first; the rest live in the skills sheet
 private val featuredSkillIds = listOf(
-    "telephone", "timer", "current_time", "weather", "flashlight", "media", "calculator", "joke",
+    "telephone", "timer", "alarm", "current_time", "weather", "flashlight", "media", "calculator", "joke",
 )
 
 /** A two-column grid of colorful tiles with what Hey re can do; tapping one asks it right away. */

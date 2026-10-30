@@ -1,0 +1,12 @@
+set:
+  - (set|create|put) (me|an|a)? alarm (at|for) .time.
+  - wake me up? (at|for) .time.
+  - alarm (at|for) .time.
+  # Hinglish: "6 baje ka alarm laga do", "subah 7 baje utha dena"
+  - .time. (ka|ki|ke|pe|par)? alarm (laga do|laga de|lagao|laga|lagana|set karo|set kar do|set kar de)?
+  - alarm (laga do|lagao|set karo|set kar do) .time. (ka|ki|pe|par)?
+  - .time. (utha|jaga) (dena|do|de|dijiye)
+
+show:
+  - (show|open|check) (my|the)? alarms
+  - (mere|saare)? alarms (dikhao|dikha do|kholo|batao)

@@ -91,6 +91,15 @@ skills:
           - id: who
             type: string
 
+  - id: alarm
+    specificity: high
+    sentences:
+      - id: set
+        captures:
+          - id: time
+            type: string
+      - id: show
+
   - id: timer
     specificity: high
     sentences:

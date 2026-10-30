@@ -11,6 +11,12 @@
         <intent>
             <action android:name="android.intent.action.SHOW_TIMERS" />
         </intent>
+        <intent>
+            <action android:name="android.intent.action.SET_ALARM" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SHOW_ALARMS" />
+        </intent>
         <package android:name="com.google.android.apps.weather" />
     </queries>
     <uses-permission android:name="android.permission.INTERNET" />

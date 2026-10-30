@@ -160,6 +160,13 @@
     <string name="skill_name_telephone">Telephone</string>
     <string name="skill_sentence_example_telephone">Call Tom</string>
     <string name="skill_name_timer">Timer</string>
+    <string name="skill_name_alarm">Alarm</string>
+    <string name="skill_sentence_example_alarm">Wake me up at 6:30</string>
+    <string name="skill_alarm_set">Alarm set for %1$s</string>
+    <string name="skill_alarm_in_clock">In your Clock app</string>
+    <string name="skill_alarm_shown">Here are your alarms</string>
+    <string name="skill_alarm_no_time">What time should the alarm ring?</string>
+    <string name="skill_alarm_no_clock">There\'s no clock app to set the alarm in</string>
     <string name="skill_sentence_example_timer">Set a timer for five minutes</string>
     <string name="skill_name_current_time">Current time</string>
     <string name="skill_sentence_example_current_time">What time is it?</string>

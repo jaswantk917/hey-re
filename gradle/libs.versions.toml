@@ -8,6 +8,7 @@ coilCompose = "2.7.0"
 # the beta BOM: Compose UI 1.13 (progressive blur) + Material 3 1.5 (the full Expressive set)
 composeBom = "2026.10.00"
 graphicsShapes = "1.0.1"
+mlkitGenaiPrompt = "1.0.0-beta4"
 datastore = "1.1.7"
 desugarJdkLibs = "2.1.5"
 # used in settings.gradle.kts for git dependencies
@@ -59,6 +60,7 @@ compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 compose-material3 = { module = "androidx.compose.material3:material3" }
 graphics-shapes = { module = "androidx.graphics:graphics-shapes", version.ref = "graphicsShapes" }
+mlkit-genai-prompt = { module = "com.google.mlkit:genai-prompt", version.ref = "mlkitGenaiPrompt" }
 compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
 debug-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }

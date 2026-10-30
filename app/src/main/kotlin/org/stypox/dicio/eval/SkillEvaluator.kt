@@ -19,6 +19,9 @@ import org.stypox.dicio.di.SttInputDeviceWrapper
 import org.stypox.dicio.io.graphical.ErrorSkillOutput
 import org.stypox.dicio.io.graphical.MissingPermissionsSkillOutput
 import org.stypox.dicio.io.input.InputEvent
+import org.stypox.dicio.skills.localbrain.LocalBrain
+import org.stypox.dicio.skills.localbrain.LocalBrainInfo
+import org.stypox.dicio.skills.localbrain.LocalBrainSkill
 import org.stypox.dicio.ui.home.Interaction
 import org.stypox.dicio.ui.home.InteractionLog
 import org.stypox.dicio.ui.home.PendingQuestion
@@ -38,6 +41,7 @@ class SkillEvaluatorImpl(
     private val skillContext: SkillContextInternal,
     private val skillHandler: SkillHandler,
     private val sttInputDevice: SttInputDeviceWrapper,
+    private val localBrain: LocalBrain,
 ) : SkillEvaluator {
 
     private val scope = CoroutineScope(Dispatchers.Default)
@@ -97,12 +101,9 @@ class SkillEvaluatorImpl(
 
     private suspend fun evaluateMatchingSkill(utterances: List<String>) {
         val (chosenInput, chosenSkill) = try {
-            utterances.firstNotNullOfOrNull { input: String ->
-                skillContext.standardMatchHelper = MatchHelper(skillContext.parserFormatter, input)
-                skillRanker.getBest(skillContext, input)?.let { skillWithResult ->
-                    Pair(input, skillWithResult)
-                }
-            } ?: Pair(utterances[0], skillRanker.getFallbackSkill(skillContext, utterances[0]))
+            findBestMatch(utterances)
+                ?: askLocalBrain(utterances[0])
+                ?: Pair(utterances[0], skillRanker.getFallbackSkill(skillContext, utterances[0]))
         } catch (throwable: Throwable) {
             addErrorInteractionFromPending(throwable)
             return
@@ -179,6 +180,31 @@ class SkillEvaluatorImpl(
         }
     }
 
+    private fun findBestMatch(utterances: List<String>): Pair<String, SkillWithResult<*>>? =
+        utterances.firstNotNullOfOrNull { input: String ->
+            skillContext.standardMatchHelper = MatchHelper(skillContext.parserFormatter, input)
+            skillRanker.getBest(skillContext, input)?.let { skillWithResult ->
+                Pair(input, skillWithResult)
+            }
+        }
+
+    /**
+     * Nothing matched: let the on-device model restate the request as a command some skill knows
+     * (the user still sees what they actually said), and if that doesn't land, answer it itself.
+     */
+    private suspend fun askLocalBrain(input: String): Pair<String, SkillWithResult<*>>? {
+        if (!localBrain.isReady()) return null
+        _state.value = _state.value.copy(
+            pendingQuestion = _state.value.pendingQuestion?.copy(skillBeingEvaluated = LocalBrainInfo)
+        )
+        val commands = skillHandler.enabledSkillsInfo.value.orEmpty()
+            .map { it.sentenceExample(skillContext.android) }
+            .filter { it.isNotBlank() }
+        val rewritten = localBrain.rewriteAsCommand(input, commands)
+        val match = rewritten?.let { findBestMatch(listOf(it)) }
+        return Pair(input, match?.second ?: LocalBrainSkill(localBrain).scoreAndWrapResult(skillContext, input))
+    }
+
     private fun addErrorInteractionFromPending(throwable: Throwable) {
         Log.e(TAG, "Error while evaluating skills", throwable)
         addInteractionFromPending(ErrorSkillOutput(throwable, true))
@@ -226,7 +252,8 @@ class SkillEvaluatorModule {
         skillContext: SkillContextInternal,
         skillHandler: SkillHandler,
         sttInputDevice: SttInputDeviceWrapper,
+        localBrain: LocalBrain,
     ): SkillEvaluator {
-        return SkillEvaluatorImpl(skillContext, skillHandler, sttInputDevice)
+        return SkillEvaluatorImpl(skillContext, skillHandler, sttInputDevice, localBrain)
     }
 }

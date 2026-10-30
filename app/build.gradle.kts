@@ -37,9 +37,18 @@ android {
         testInstrumentationRunner = "org.stypox.dicio.CustomTestRunner"
 
         vectorDrawables.useSupportLibrary = true
+    }
 
-        ndk {
-            abiFilters += arrayOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+    // the key lives outside the repo; F-Droid signs its own builds
+    val releaseKeystore = providers.gradleProperty("HEYRE_KEYSTORE").orNull
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storePassword = providers.gradleProperty("HEYRE_KEYSTORE_PASSWORD").get()
+                keyAlias = providers.gradleProperty("HEYRE_KEY_ALIAS").get()
+                keyPassword = providers.gradleProperty("HEYRE_KEY_PASSWORD").get()
+            }
         }
     }
 
@@ -56,8 +65,24 @@ android {
             }
         }
         release {
-            isMinifyEnabled = false
+            signingConfig = signingConfigs.findByName("release")
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+    }
+
+    // "pixel" may use Google's proprietary on-device AI (Gemini Nano); "foss" is what F-Droid builds
+    flavorDimensions += "distribution"
+    productFlavors {
+        create("pixel") {
+            dimension = "distribution"
+            // Pixels with Gemini Nano are all arm64; skipping the other ABIs saves ~30 MB of Vosk
+            ndk { abiFilters += "arm64-v8a" }
+        }
+        create("foss") {
+            dimension = "distribution"
+            ndk { abiFilters += arrayOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64") }
         }
     }
 
@@ -137,6 +162,9 @@ dependencies {
     // Dicio own libraries
     implementation(libs.dicio.numbers)
     implementation(project(":skill"))
+
+    // Gemini Nano through AICore, Pixel build only
+    "pixelImplementation"(libs.mlkit.genai.prompt)
 
     // Android
     implementation(libs.appcompat)

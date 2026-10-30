@@ -2,6 +2,7 @@ package org.stypox.dicio.io.input.ondevice
 
 import android.content.Context
 import android.content.Intent
+import android.icu.util.ULocale
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -120,15 +121,19 @@ class OnDeviceSttInputDevice(
         }
     }
 
-    private fun isIndian() = locale.language == "hi" || locale.country.equals("IN", ignoreCase = true)
+    private fun isIndian() = languageTag().endsWith("-IN")
 
-    private fun languageTag(): String = when {
-        locale.language == "hi" -> "hi-IN"
-        locale.country.isNotEmpty() -> locale.toLanguageTag()
-        // the recognizer wants a country; pick the most common one for the language
-        else -> Locale.getAvailableLocales()
-            .firstOrNull { it.language == locale.language && it.country.isNotEmpty() }
-            ?.toLanguageTag() ?: locale.toLanguageTag()
+    // the recognizer only has packs per region (en-IN, en-US...), while the app's language is
+    // often just "en": take the phone's own region for it, else the language's most likely one
+    private fun languageTag(): String {
+        val country = when {
+            locale.language == "hi" -> "IN"
+            locale.country.isNotEmpty() -> locale.country
+            Locale.getDefault().language == locale.language && Locale.getDefault().country.isNotEmpty() ->
+                Locale.getDefault().country
+            else -> ULocale.addLikelySubtags(ULocale.forLocale(locale)).country
+        }
+        return if (country.isEmpty()) locale.language else "${locale.language}-$country"
     }
 
     private fun downloadLanguage() {
@@ -216,8 +221,11 @@ class OnDeviceSttInputDevice(
                     _uiState.value = SttState.NotDownloaded
                     listener?.invoke(InputEvent.None)
                 }
-                SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> {
-                    // a stale session; start fresh next time
+                SpeechRecognizer.ERROR_RECOGNIZER_BUSY,
+                SpeechRecognizer.ERROR_TOO_MANY_REQUESTS,
+                SpeechRecognizer.ERROR_SERVER_DISCONNECTED -> {
+                    // a stale session, e.g. the mic reopening right after an answer; start fresh
+                    // next time instead of showing an error the user can do nothing about
                     recognizer?.destroy()
                     recognizer = null
                     _uiState.value = SttState.Loaded

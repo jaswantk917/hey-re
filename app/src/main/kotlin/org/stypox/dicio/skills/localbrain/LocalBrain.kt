@@ -1,0 +1,82 @@
+package org.stypox.dicio.skills.localbrain
+
+import android.content.Context
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import org.dicio.skill.context.SkillContext
+import org.dicio.skill.skill.Skill
+import org.dicio.skill.skill.SkillInfo
+import org.dicio.skill.skill.SkillOutput
+import org.stypox.dicio.util.RecognizeEverythingSkill
+import org.stypox.dicio.R
+import org.stypox.dicio.io.graphical.HeadlineSpeechSkillOutput
+import org.stypox.dicio.skills.fallback.text.TextFallbackOutput
+
+/**
+ * An on-device language model that steps in when no skill understood the user: first to restate
+ * the request as a command a skill does understand, then to answer by itself. The Pixel build
+ * backs this with Gemini Nano; the FOSS build has none.
+ */
+interface LocalBrain {
+    /** Whether a model is ready right now; may start fetching it in the background otherwise. */
+    suspend fun isReady(): Boolean
+
+    /**
+     * Restates [input] as one command in the style of [commands] (keeping names, numbers and
+     * places), or returns null when none of them fits.
+     */
+    suspend fun rewriteAsCommand(input: String, commands: List<String>): String?
+
+    /** A short answer to [input] meant to be read out loud, or null if the model can't give one. */
+    suspend fun answer(input: String): String?
+}
+
+object NoLocalBrain : LocalBrain {
+    override suspend fun isReady() = false
+    override suspend fun rewriteAsCommand(input: String, commands: List<String>): String? = null
+    override suspend fun answer(input: String): String? = null
+}
+
+/** Only used to label the model's own answers; it is never in the list of selectable skills. */
+object LocalBrainInfo : SkillInfo("local_brain") {
+    override fun name(context: Context) = context.getString(R.string.skill_name_local_brain)
+
+    override fun sentenceExample(context: Context) = ""
+
+    @Composable
+    override fun icon() = rememberVectorPainter(Icons.Default.AutoAwesome)
+
+    override fun build(ctx: SkillContext): Skill<*>? = null
+}
+
+class LocalBrainSkill(private val brain: LocalBrain) : RecognizeEverythingSkill(LocalBrainInfo) {
+    override suspend fun generateOutput(ctx: SkillContext, inputData: String): SkillOutput {
+        val answer = brain.answer(inputData)
+        return if (answer.isNullOrBlank()) {
+            TextFallbackOutput(askToRepeat = (ctx.previousOutput as? TextFallbackOutput)?.let { !it.askToRepeat } ?: true)
+        } else {
+            LocalBrainOutput(answer)
+        }
+    }
+}
+
+class LocalBrainOutput(private val answer: String) : HeadlineSpeechSkillOutput {
+    override fun getSpeechOutput(ctx: SkillContext): String = answer
+
+    // up to two sentences, too long to read comfortably at headline size
+    @Composable
+    override fun GraphicalOutput(ctx: SkillContext) {
+        Text(
+            text = answer,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
+        )
+    }
+}

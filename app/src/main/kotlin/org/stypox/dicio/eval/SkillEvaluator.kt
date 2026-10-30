@@ -200,10 +200,20 @@ class SkillEvaluatorImpl(
         val commands = skillHandler.enabledSkillsInfo.value.orEmpty()
             .map { it.sentenceExample(skillContext.android) }
             .filter { it.isNotBlank() }
-        val rewritten = localBrain.rewriteAsCommand(input, commands)
+        val recent = recentTurns()
+        val rewritten = localBrain.rewriteAsCommand(input, commands, recent)
         val match = rewritten?.let { findBestMatch(listOf(it)) }
-        return Pair(input, match?.second ?: LocalBrainSkill(localBrain).scoreAndWrapResult(skillContext, input))
+        return Pair(input, match?.second ?: LocalBrainSkill(localBrain, recent).scoreAndWrapResult(skillContext, input))
     }
+
+    private fun recentTurns(): List<LocalBrain.Turn> = _state.value.interactions
+        .flatMap { it.questionsAnswers }
+        .takeLast(RECENT_TURNS)
+        .mapNotNull { qa ->
+            val question = qa.question ?: return@mapNotNull null
+            val answer = runCatching { qa.answer.getSpeechOutput(skillContext) }.getOrNull()
+            answer?.takeIf { it.isNotBlank() }?.let { LocalBrain.Turn(question, it) }
+        }
 
     private fun addErrorInteractionFromPending(throwable: Throwable) {
         Log.e(TAG, "Error while evaluating skills", throwable)
@@ -240,6 +250,8 @@ class SkillEvaluatorImpl(
 
     companion object {
         val TAG = SkillEvaluator::class.simpleName
+        // enough for "should I call Maa?" -> "haan karo", short enough for Nano's small context
+        private const val RECENT_TURNS = 3
     }
 }
 

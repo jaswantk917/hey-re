@@ -45,7 +45,7 @@ class GeminiNanoBrain : LocalBrain {
         return status == FeatureStatus.AVAILABLE
     }
 
-    override suspend fun rewriteAsCommand(input: String, commands: List<String>): String? {
+    override suspend fun rewriteAsCommand(input: String, commands: List<String>, recent: List<LocalBrain.Turn>): String? {
         val reply = generate(
             system = """
                 You turn what someone said to a voice assistant into one of the commands it knows.
@@ -53,16 +53,18 @@ class GeminiNanoBrain : LocalBrain {
                 ${commands.joinToString("\n") { "- $it" }}
                 Reply with exactly one command phrased like those, in English, keeping the person's
                 own details (numbers, durations, places, names, apps). Translate Hindi or Hinglish.
+                Use the conversation so far to fill in what the person leaves out: after
+                "Should I call Maa?", "haan karo" means "call Maa".
                 If none of them fits, reply with exactly NONE.
             """.trimIndent(),
-            prompt = input,
+            prompt = withHistory(input, recent),
             temperature = 0f,
             maxTokens = REWRITE_TOKENS,
         ) ?: return null
         return parseCommandReply(reply)
     }
 
-    override suspend fun answer(input: String): String? = generate(
+    override suspend fun answer(input: String, recent: List<LocalBrain.Turn>): String? = generate(
         system = """
             You are Hey re, a friendly voice assistant running fully offline on a phone.
             Answer in at most two short sentences of plain text, no lists or markdown, since the
@@ -72,7 +74,7 @@ class GeminiNanoBrain : LocalBrain {
             You have no internet: if the question needs live information like news, prices,
             scores or today's weather, say briefly that you can't check that offline.
         """.trimIndent(),
-        prompt = input,
+        prompt = withHistory(input, recent),
         temperature = ANSWER_TEMPERATURE,
         maxTokens = ANSWER_TOKENS,
     )?.trim()?.takeIf { it.isNotEmpty() }
@@ -99,6 +101,17 @@ class GeminiNanoBrain : LocalBrain {
         private const val TOP_K = 16
     }
 }
+
+/** The last few exchanges as plain lines before the new message; Nano has no chat history API. */
+internal fun withHistory(input: String, recent: List<LocalBrain.Turn>): String =
+    if (recent.isEmpty()) input else buildString {
+        appendLine("Conversation so far:")
+        for (turn in recent) {
+            appendLine("Person: ${turn.user}")
+            appendLine("You: ${turn.assistant}")
+        }
+        append("Person now says: ").append(input)
+    }
 
 /** The model's first line without the quotes or bullet it sometimes adds; null for NONE. */
 internal fun parseCommandReply(reply: String): String? =

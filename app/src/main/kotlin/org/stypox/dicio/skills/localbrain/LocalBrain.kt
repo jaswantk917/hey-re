@@ -30,18 +30,22 @@ interface LocalBrain {
 
     /**
      * Restates [input] as one command in the style of [commands] (keeping names, numbers and
-     * places), or returns null when none of them fits.
+     * places, and filling in what [recent] makes clear, e.g. who "haan karo" means), or returns
+     * null when none of them fits.
      */
-    suspend fun rewriteAsCommand(input: String, commands: List<String>): String?
+    suspend fun rewriteAsCommand(input: String, commands: List<String>, recent: List<Turn>): String?
 
     /** A short answer to [input] meant to be read out loud, or null if the model can't give one. */
-    suspend fun answer(input: String): String?
+    suspend fun answer(input: String, recent: List<Turn>): String?
+
+    /** One earlier exchange, oldest first, so follow-ups make sense. */
+    data class Turn(val user: String, val assistant: String)
 }
 
 object NoLocalBrain : LocalBrain {
     override suspend fun isReady() = false
-    override suspend fun rewriteAsCommand(input: String, commands: List<String>): String? = null
-    override suspend fun answer(input: String): String? = null
+    override suspend fun rewriteAsCommand(input: String, commands: List<String>, recent: List<LocalBrain.Turn>): String? = null
+    override suspend fun answer(input: String, recent: List<LocalBrain.Turn>): String? = null
 }
 
 /** Only used to label the model's own answers; it is never in the list of selectable skills. */
@@ -56,9 +60,12 @@ object LocalBrainInfo : SkillInfo("local_brain") {
     override fun build(ctx: SkillContext): Skill<*>? = null
 }
 
-class LocalBrainSkill(private val brain: LocalBrain) : RecognizeEverythingSkill(LocalBrainInfo) {
+class LocalBrainSkill(
+    private val brain: LocalBrain,
+    private val recent: List<LocalBrain.Turn>,
+) : RecognizeEverythingSkill(LocalBrainInfo) {
     override suspend fun generateOutput(ctx: SkillContext, inputData: String): SkillOutput {
-        val answer = brain.answer(inputData)
+        val answer = brain.answer(inputData, recent)
         return if (answer.isNullOrBlank()) {
             TextFallbackOutput(askToRepeat = (ctx.previousOutput as? TextFallbackOutput)?.let { !it.askToRepeat } ?: true)
         } else {

@@ -1,6 +1,10 @@
 package org.stypox.dicio.skills.weather
 
+import android.content.Intent
 import kotlinx.coroutines.flow.first
+import org.stypox.dicio.R
+import org.stypox.dicio.io.graphical.HeadlineSpeechSkillOutput
+import org.stypox.dicio.util.getString
 import org.dicio.skill.context.SkillContext
 import org.dicio.skill.skill.SkillInfo
 import org.dicio.skill.skill.SkillOutput
@@ -18,6 +22,12 @@ class WeatherSkill(correspondingSkillInfo: SkillInfo, data: StandardRecognizerDa
     StandardRecognizerSkill<Weather>(correspondingSkillInfo, data) {
 
     override suspend fun generateOutput(ctx: SkillContext, inputData: Weather): SkillOutput {
+        // the phone's own weather app is better than anything we could fetch, and works without
+        // an API key; there's no way to read its data, so show it instead
+        ctx.android.packageManager.getLaunchIntentForPackage(PIXEL_WEATHER)?.let { intent ->
+            ctx.android.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            return OpenedWeatherAppOutput
+        }
         val prefs = ctx.android.weatherDataStore.data.first()
         val city = getCity(prefs, inputData) ?: return WeatherOutput.Failed(city = "")
 
@@ -82,4 +92,10 @@ class WeatherSkill(correspondingSkillInfo: SkillInfo, data: StandardRecognizerDa
         private const val ICON_BASE_URL = "https://openweathermap.org/img/wn/"
         private const val ICON_FORMAT = "@2x.png"
     }
+}
+
+private const val PIXEL_WEATHER = "com.google.android.apps.weather"
+
+private object OpenedWeatherAppOutput : HeadlineSpeechSkillOutput {
+    override fun getSpeechOutput(ctx: SkillContext): String = ctx.getString(R.string.skill_weather_opening_app)
 }

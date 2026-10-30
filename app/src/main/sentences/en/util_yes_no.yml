@@ -1,5 +1,10 @@
 yes:
-  - yes|(for sure)|certainly|(go for it)|affirmative|proceed|continue|(lets|(let s) go)
+  - yes|yeah|yep|yup|sure|ok|okay|(for sure)|certainly|(go for it)|affirmative|proceed|continue|(lets|(let s) go)
+  # Hinglish
+  - haan|haa|ha|han|haanji|hanji|ji|hmm|hm|hmmm|mhm|acha|achha|accha|bilkul|(haan haan)|(ha ha)|(theek hai)|(thik hai)|(kar do)|(kar de)|karo|kardo|(laga do)|lagao|(call karo)
+  - (haan|ha|ji) (karo|kar do|lagao|laga do|call karo)
 
 no:
-  - no|dont|(don t)|(do not)|stop|quit|negative
+  - no|nope|nah|dont|(don t)|(do not)|stop|quit|negative|cancel
+  # Hinglish
+  - nahi|nahin|nai|na|mat|(mat karo)|(rehne do)|(rehnde)|(chhodo)|(chodo)|(abhi nahi)

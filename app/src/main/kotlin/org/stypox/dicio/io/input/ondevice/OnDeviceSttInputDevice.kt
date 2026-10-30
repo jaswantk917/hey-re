@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.speech.ModelDownloadListener
 import android.speech.RecognitionListener
 import android.speech.RecognitionSupport
@@ -50,6 +51,11 @@ class OnDeviceSttInputDevice(
     // the recognizer sometimes shows words while listening, then ends with an empty result or a
     // "no match": the user saw what they said, so that's what gets used
     private var lastPartial: String? = null
+    // the recognizer gives up ~2s after opening if nobody spoke, too soon to answer "should I
+    // call?"; it is quietly restarted until the user speaks, stops it, or MAX_WAIT_MILLIS pass
+    private var waitingSince = 0L
+    private var speechBegan = false
+    private var stopRequested = false
     private var locale: Locale
     // the offline language packs on the phone, null until asked (or if the phone can't tell)
     private var installedLanguages: Set<String>? = null
@@ -79,13 +85,19 @@ class OnDeviceSttInputDevice(
     }
 
     override fun stopListening() {
-        mainHandler.post { recognizer?.stopListening() }
+        mainHandler.post {
+            stopRequested = true
+            recognizer?.stopListening()
+        }
     }
 
     override fun onClick(eventListener: (InputEvent) -> Unit) {
         mainHandler.post {
             when (_uiState.value) {
-                SttState.Listening -> recognizer?.stopListening()
+                SttState.Listening -> {
+                    stopRequested = true
+                    recognizer?.stopListening()
+                }
                 SttState.NotDownloaded, is SttState.ErrorDownloading -> downloadLanguage()
                 is SttState.Downloading -> {}
                 else -> startListening(eventListener)
@@ -105,6 +117,9 @@ class OnDeviceSttInputDevice(
     private fun startListening(eventListener: (InputEvent) -> Unit) {
         listener = eventListener
         lastPartial = null
+        speechBegan = false
+        stopRequested = false
+        waitingSince = SystemClock.elapsedRealtime()
         val recognizer = recognizer
             ?: SpeechRecognizer.createOnDeviceSpeechRecognizer(context).also {
                 it.setRecognitionListener(recognitionListener)
@@ -244,6 +259,7 @@ class OnDeviceSttInputDevice(
 
         override fun onBeginningOfSpeech() {
             Log.i(TAG, "Speech began")
+            speechBegan = true
         }
 
         override fun onRmsChanged(rmsdB: Float) {}
@@ -288,6 +304,12 @@ class OnDeviceSttInputDevice(
             Log.w(TAG, "Recognition error $error")
             val heardNoWords = error == SpeechRecognizer.ERROR_NO_MATCH ||
                     error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT
+            if (heardNoWords && lastPartial == null && !speechBegan && !stopRequested &&
+                SystemClock.elapsedRealtime() - waitingSince < MAX_WAIT_MILLIS
+            ) {
+                recognizer?.startListening(recognizerIntent())
+                return
+            }
             if (heardNoWords && lastPartial != null) {
                 _uiState.value = SttState.Loaded
                 finishWithLastPartialOr(InputEvent.None)
@@ -340,6 +362,7 @@ class OnDeviceSttInputDevice(
         private const val MAX_RESULTS = 5
         private const val SILENCE_UNIT_MILLIS = 1000
         private const val HEARD_NOTHING_MILLIS = 2500L
+        private const val MAX_WAIT_MILLIS = 8000L
         private const val HINDI = "hi-IN"
         private val HINGLISH_LANGUAGES = listOf("hi-in", "en-in")
 

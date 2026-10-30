@@ -30,4 +30,20 @@ class GeminiNanoBrainTest : StringSpec({
         parseCommandReply("") shouldBe null
         parseCommandReply(" \n ") shouldBe null
     }
+
+    "history goes before the new message, oldest first" {
+        withHistory(
+            "haan karo",
+            listOf(LocalBrain.Turn("mummy ko call karo", "Should I call Maa?")),
+        ) shouldBe """
+            Conversation so far:
+            Person: mummy ko call karo
+            You: Should I call Maa?
+            Person now says: haan karo
+        """.trimIndent()
+    }
+
+    "no history leaves the message as it is" {
+        withHistory("what time is it", listOf()) shouldBe "what time is it"
+    }
 })

@@ -289,6 +289,7 @@ private fun DockStatus(sttState: SttState?) {
         is SttState.ErrorLoading -> stringResource(R.string.error_loading)
         SttState.Listening -> stringResource(R.string.listening)
         SttState.WaitingForResult -> stringResource(R.string.thinking)
+        SttState.HeardNothing -> stringResource(R.string.heard_nothing)
     }
     val progress = when (sttState) {
         is SttState.Downloading -> sttState.progress
@@ -535,6 +536,7 @@ fun badgeColors(): List<Pair<Color, Color>> {
 
 private fun SttState?.hasVoiceModel() = this == SttState.NotLoaded || this is SttState.Loading ||
         this is SttState.Loaded || this == SttState.Listening || this == SttState.WaitingForResult ||
+        this == SttState.HeardNothing ||
         this is SttState.ErrorLoading || this == SttState.NoMicrophonePermission
 
 private val SideButtonSize = 60.dp

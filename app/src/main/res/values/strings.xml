@@ -294,6 +294,7 @@
     <string name="try_saying">Try saying</string>
     <string name="see_all_skills">See all</string>
     <string name="tap_to_talk">Tap to talk</string>
+    <string name="heard_nothing">Didn\'t catch that, tap to try again</string>
     <string name="thinking">Thinking…</string>
     <string name="type_instead">Type instead</string>
     <string name="speak_instead">Speak instead</string>

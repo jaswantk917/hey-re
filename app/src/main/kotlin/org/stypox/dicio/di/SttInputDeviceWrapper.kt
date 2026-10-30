@@ -158,6 +158,7 @@ class SttInputDeviceWrapperImpl(
             .build()
         val mediaPlayer = MediaPlayer.create(appContext, resid, attributes, 0)
         mediaPlayer.setVolume(0.75f, 0.75f)
+        mediaPlayer.setOnCompletionListener { it.release() }
         mediaPlayer.start()
     }
 

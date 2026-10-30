@@ -104,4 +104,9 @@ sealed interface SttState {
      * instead of "Listening..." to not confuse the user.
      */
     data object WaitingForResult : SttState
+
+    /**
+     * Like [Loaded], but the last time it listened it heard no words; the UI says so briefly.
+     */
+    data object HeardNothing : SttState
 }

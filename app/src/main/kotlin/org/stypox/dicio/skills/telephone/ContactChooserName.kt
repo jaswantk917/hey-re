@@ -9,7 +9,6 @@ import org.dicio.skill.skill.SkillOutput
 import org.dicio.skill.skill.Specificity
 import org.dicio.skill.standard.StandardRecognizerData
 import org.stypox.dicio.sentences.Sentences
-import org.stypox.dicio.util.StringUtils
 
 class ContactChooserName internal constructor(
     private val contacts: List<Pair<String, String>>,
@@ -25,14 +24,10 @@ class ContactChooserName internal constructor(
         val trimmedInput = input.trim { it <= ' ' }
 
         val bestContact = contacts
-            .map { nameNumberPair ->
-                Pair(
-                    nameNumberPair,
-                    StringUtils.contactStringDistance(trimmedInput, nameNumberPair.first)
-                )
+            .mapNotNull { nameNumberPair ->
+                ContactMatcher.score(trimmedInput, nameNumberPair.first)?.let { Pair(nameNumberPair, it) }
             }
-            .filter { pair -> pair.second < -7 }
-            .minByOrNull { a -> a.second }
+            .maxByOrNull { it.second }
             ?.first
 
         return Pair(

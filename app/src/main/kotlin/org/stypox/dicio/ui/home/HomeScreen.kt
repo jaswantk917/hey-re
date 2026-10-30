@@ -340,6 +340,9 @@ internal fun SttHaptics(sttState: SttState?) {
         val before = previous
         previous = sttState
         when {
+            // checked first: giving up while listening is a "no", not just the mic closing
+            sttState == SttState.HeardNothing && before != SttState.HeardNothing ->
+                haptics.play(Haptic.Nope)
             sttState == SttState.Listening && before != SttState.Listening ->
                 haptics.play(Haptic.ListenStart)
             before == SttState.Listening && sttState != SttState.Listening ->
@@ -357,11 +360,12 @@ private fun SttState?.isError() = this is SttState.ErrorDownloading ||
         this is SttState.ErrorUnzipping || this is SttState.ErrorLoading
 
 private fun SttState?.isUsable() = this == SttState.NotLoaded || this is SttState.Loading ||
-        this is SttState.Loaded
+        this is SttState.Loaded || this == SttState.HeardNothing
 
 internal fun orbMood(sttState: SttState?, hasPendingQuestion: Boolean, isHappy: Boolean): OrbMood =
     when {
         sttState == SttState.Listening -> OrbMood.Listening
+        sttState == SttState.HeardNothing -> OrbMood.Sad
         sttState == SttState.WaitingForResult || hasPendingQuestion -> OrbMood.Thinking
         sttState is SttState.Loading && sttState.thenStartListening -> OrbMood.Thinking
         sttState.isError() -> OrbMood.Sad

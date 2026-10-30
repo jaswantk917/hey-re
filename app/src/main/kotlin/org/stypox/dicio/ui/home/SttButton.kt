@@ -43,6 +43,7 @@ import org.stypox.dicio.io.input.SttState.ErrorDownloading
 import org.stypox.dicio.io.input.SttState.ErrorLoading
 import org.stypox.dicio.io.input.SttState.ErrorUnzipping
 import org.stypox.dicio.io.input.SttState.Listening
+import org.stypox.dicio.io.input.SttState.HeardNothing
 import org.stypox.dicio.io.input.SttState.Loaded
 import org.stypox.dicio.io.input.SttState.Loading
 import org.stypox.dicio.io.input.SttState.NoMicrophonePermission
@@ -131,6 +132,7 @@ private fun sttFabText(state: SttState): String {
         is Loaded -> ""
         is Listening -> stringResource(R.string.listening)
         is WaitingForResult -> stringResource(R.string.waiting)
+        is HeardNothing -> stringResource(R.string.heard_nothing)
     }
 }
 
@@ -155,6 +157,7 @@ private fun SttFabIcon(state: SttState, contentDescription: String) {
         is Loaded -> Icon(Icons.Default.MicNone, stringResource(R.string.start_listening))
         is Listening -> Icon(Icons.Default.Mic, contentDescription)
         is WaitingForResult -> SmallCircularProgressIndicator()
+        is HeardNothing -> Icon(Icons.Default.MicNone, stringResource(R.string.start_listening))
     }
 }
 

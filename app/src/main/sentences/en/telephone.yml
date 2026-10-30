@@ -1,3 +1,6 @@
 dial:
   - (call up?)|(ring up)|phone|dial|contact .who.
   - call|ring .who. up
+  # Hinglish: "mummy ko call karo", "papa ko phone lagao"
+  - .who. ko call|phone|fone|ring (karo|kar|kardo|karde|lagao|lagado|lagana|milao)|(kar do)|(kar de)|(laga do)|(mila do)?
+  - call|phone|fone (karo|lagao)|(laga do) .who. ko

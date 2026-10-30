@@ -26,6 +26,8 @@ enum class Haptic {
     ToggleOn,
     /** a switch turned off */
     ToggleOff,
+    /** heard nothing: two crisp knocks, like a "na-huh" head shake */
+    Nope,
     /** the microphone opens: a quick swell, like taking a breath */
     ListenStart,
     /** the microphone closes with something heard */
@@ -91,6 +93,10 @@ class Haptics(private val view: View) {
             Step(Composition.PRIMITIVE_CLICK, 0.6f, 20),
         )
         Haptic.ToggleOff -> listOf(Step(Composition.PRIMITIVE_QUICK_FALL, 0.4f))
+        Haptic.Nope -> listOf(
+            Step(Composition.PRIMITIVE_CLICK, 1f),
+            Step(Composition.PRIMITIVE_CLICK, 0.85f, 70),
+        )
         Haptic.ListenStart -> listOf(
             Step(Composition.PRIMITIVE_QUICK_RISE, 0.6f),
             Step(Composition.PRIMITIVE_CLICK, 0.8f, 30),
@@ -135,7 +141,7 @@ class Haptics(private val view: View) {
         Haptic.Answer -> HapticFeedbackConstants.CLOCK_TICK
         Haptic.Success -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
             HapticFeedbackConstants.CONFIRM else HapticFeedbackConstants.LONG_PRESS
-        Haptic.Error -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+        Haptic.Error, Haptic.Nope -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
             HapticFeedbackConstants.REJECT else HapticFeedbackConstants.LONG_PRESS
         Haptic.Spin -> HapticFeedbackConstants.CONTEXT_CLICK
         Haptic.Segment -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE)

@@ -3,10 +3,10 @@ package org.stypox.dicio.skills.telephone
 import android.content.ContentResolver
 import android.provider.ContactsContract
 import android.util.Log
-import org.stypox.dicio.util.StringUtils
 import java.util.regex.Pattern
 
-class Contact(val name: String, val distance: Int, private val id: String) {
+/** [score] is how well the name fits what the user said, see [ContactMatcher]; higher is better. */
+class Contact(val name: String, val score: Int, private val id: String) {
     fun getNumbers(contentResolver: ContentResolver): List<String> {
         val numbers: MutableList<String> = ArrayList()
         try {
@@ -53,18 +53,18 @@ class Contact(val name: String, val distance: Int, private val id: String) {
                     contactCursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
                 val contactIdColumnIndex =
                     contactCursor.getColumnIndex(ContactsContract.Contacts._ID)
+                val starredColumnIndex =
+                    contactCursor.getColumnIndex(ContactsContract.Contacts.STARRED)
                 while (contactCursor.moveToNext()) {
-                    val name = contactCursor.getString(contactNameColumnIndex)
+                    val name = contactCursor.getString(contactNameColumnIndex) ?: continue
                     val id = contactCursor.getString(contactIdColumnIndex)
-                    if (name != null) {
-                        val distance = StringUtils.contactStringDistance(name, userContactName)
-                        if (distance < 0) {
-                            contacts.add(Contact(name, distance, id))
-                        }
+                    val starred = starredColumnIndex >= 0 && contactCursor.getInt(starredColumnIndex) == 1
+                    ContactMatcher.score(userContactName, name, starred)?.let {
+                        contacts.add(Contact(name, it, id))
                     }
                 }
             }
-            contacts.sortWith { c1, c2 -> c1.distance.compareTo(c2.distance) }
+            contacts.sortByDescending { it.score }
             return contacts
         }
     }

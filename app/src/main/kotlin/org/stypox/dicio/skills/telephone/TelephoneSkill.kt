@@ -34,10 +34,10 @@ class TelephoneSkill(
                 continue
             }
             if (validContacts.isEmpty()
-                && contact.distance < 3
+                && contact.score >= ContactMatcher.CLEAR_MATCH
                 && numbers.size == 1 // it has just one number
-                && (contacts.size <= i + 1 // the next contact has a distance higher by 3+
-                        || contacts[i + 1].distance - 2 > contact.distance)
+                && (contacts.size <= i + 1 // and clearly beats the next one
+                        || contact.score - contacts[i + 1].score >= ContactMatcher.CLEAR_LEAD)
             ) {
                 // very close match with just one number and without distance ties: call it directly
                 return ConfirmCallOutput(contact.name, numbers[0], yesNoData)

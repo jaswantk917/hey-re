@@ -9,6 +9,8 @@ import android.os.Handler
 import android.os.Looper
 import android.speech.ModelDownloadListener
 import android.speech.RecognitionListener
+import android.speech.RecognitionSupport
+import android.speech.RecognitionSupportCallback
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
@@ -46,6 +48,8 @@ class OnDeviceSttInputDevice(
     private var recognizer: SpeechRecognizer? = null
     private var listener: ((InputEvent) -> Unit)? = null
     private var locale: Locale
+    // the offline language packs on the phone, null until asked (or if the phone can't tell)
+    private var installedLanguages: Set<String>? = null
 
     private val _uiState = MutableStateFlow<SttState>(SttState.Loaded)
     override val uiState: StateFlow<SttState> = _uiState
@@ -53,6 +57,9 @@ class OnDeviceSttInputDevice(
     init {
         val (firstLocale, nextLocaleFlow) = localeManager.locale.distinctUntilChangedBlockingFirst()
         locale = firstLocale
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            mainHandler.post { checkInstalledLanguages() }
+        }
         scope.launch {
             nextLocaleFlow.collect {
                 locale = it
@@ -100,12 +107,69 @@ class OnDeviceSttInputDevice(
                 this.recognizer = it
             }
         _uiState.value = SttState.WaitingForResult
-        recognizer.startListening(recognizerIntent())
+        val intent = recognizerIntent()
+        Log.i(TAG, "Listening in ${intent.getStringExtra(RecognizerIntent.EXTRA_LANGUAGE)}, " +
+                "switch=${intent.getStringArrayListExtra(RecognizerIntent.EXTRA_LANGUAGE_SWITCH_ALLOWED_LANGUAGES)}")
+        recognizer.startListening(intent)
     }
 
-    private fun recognizerIntent() = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+    // switching between Hindi and English needs both offline packs; until they're known to be
+    // on the phone, listen in one language only. Uses its own recognizer so it never holds up
+    // (or collides with) listening
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun checkInstalledLanguages() {
+        val checker = SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
+        checker.checkRecognitionSupport(
+            recognizerIntent(),
+            context.mainExecutor,
+            object : RecognitionSupportCallback {
+                override fun onSupportResult(support: RecognitionSupport) {
+                    Log.i(TAG, "Offline languages: installed=${support.installedOnDeviceLanguages}, " +
+                            "pending=${support.pendingOnDeviceLanguages}")
+                    installedLanguages = support.installedOnDeviceLanguages.map { it.lowercase() }.toSet()
+                    if (isIndian() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+                        HINDI.lowercase() !in installedLanguages.orEmpty() &&
+                        support.pendingOnDeviceLanguages.none { it.equals(HINDI, ignoreCase = true) }
+                    ) {
+                        downloadHindiQuietly(checker)
+                    } else {
+                        checker.destroy()
+                    }
+                }
+
+                override fun onError(error: Int) {
+                    Log.w(TAG, "Could not check offline languages: $error")
+                    checker.destroy()
+                }
+            },
+        )
+    }
+
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    private fun downloadHindiQuietly(recognizer: SpeechRecognizer) {
+        recognizer.triggerModelDownload(
+            recognizerIntent(HINDI),
+            context.mainExecutor,
+            object : ModelDownloadListener {
+                override fun onProgress(completedPercent: Int) {}
+                override fun onScheduled() {}
+
+                override fun onSuccess() {
+                    installedLanguages = installedLanguages.orEmpty() + HINDI.lowercase()
+                    recognizer.destroy()
+                }
+
+                override fun onError(error: Int) {
+                    Log.w(TAG, "Hindi pack download failed: $error")
+                    recognizer.destroy()
+                }
+            },
+        )
+    }
+
+    private fun recognizerIntent(language: String = languageTag()) = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
         putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-        putExtra(RecognizerIntent.EXTRA_LANGUAGE, languageTag())
+        putExtra(RecognizerIntent.EXTRA_LANGUAGE, language)
         putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
         putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, MAX_RESULTS)
         putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
@@ -113,9 +177,10 @@ class OnDeviceSttInputDevice(
             RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,
             silencesBeforeStop.value * SILENCE_UNIT_MILLIS,
         )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && isIndian()) {
+        val hinglishInstalled = installedLanguages?.containsAll(HINGLISH_LANGUAGES) == true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && isIndian() && hinglishInstalled) {
             // Hinglish: let the model hop between Hindi and Indian English within one sentence
-            val languages = arrayListOf("hi-IN", "en-IN")
+            val languages = arrayListOf(HINDI, "en-IN")
             putExtra(RecognizerIntent.EXTRA_ENABLE_LANGUAGE_SWITCH, RecognizerIntent.LANGUAGE_SWITCH_BALANCED)
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_SWITCH_ALLOWED_LANGUAGES, languages)
         }
@@ -169,16 +234,20 @@ class OnDeviceSttInputDevice(
 
     private val recognitionListener = object : RecognitionListener {
         override fun onReadyForSpeech(params: Bundle?) {
+            Log.i(TAG, "Ready for speech")
             _uiState.value = SttState.Listening
         }
 
-        override fun onBeginningOfSpeech() {}
+        override fun onBeginningOfSpeech() {
+            Log.i(TAG, "Speech began")
+        }
 
         override fun onRmsChanged(rmsdB: Float) {}
 
         override fun onBufferReceived(buffer: ByteArray?) {}
 
         override fun onEndOfSpeech() {
+            Log.i(TAG, "Speech ended")
             _uiState.value = SttState.WaitingForResult
         }
 
@@ -196,6 +265,7 @@ class OnDeviceSttInputDevice(
                 listener?.invoke(InputEvent.None)
                 return
             }
+            Log.i(TAG, "Heard ${texts.size} alternatives")
             val scores = results.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES)
             listener?.invoke(
                 InputEvent.Final(
@@ -212,8 +282,11 @@ class OnDeviceSttInputDevice(
             Log.w(TAG, "Recognition error $error")
             when (error) {
                 SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> {
-                    _uiState.value = SttState.Loaded
+                    _uiState.value = SttState.HeardNothing
                     listener?.invoke(InputEvent.None)
+                    mainHandler.postDelayed({
+                        if (_uiState.value == SttState.HeardNothing) _uiState.value = SttState.Loaded
+                    }, HEARD_NOTHING_MILLIS)
                 }
                 SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED,
                 SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE -> {
@@ -247,6 +320,9 @@ class OnDeviceSttInputDevice(
         private val TAG = OnDeviceSttInputDevice::class.simpleName
         private const val MAX_RESULTS = 5
         private const val SILENCE_UNIT_MILLIS = 1000
+        private const val HEARD_NOTHING_MILLIS = 2500L
+        private const val HINDI = "hi-IN"
+        private val HINGLISH_LANGUAGES = listOf("hi-in", "en-in")
 
         fun isAvailable(context: Context): Boolean =
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&

@@ -40,7 +40,7 @@ class TelephoneSkill(
                         || contact.score - contacts[i + 1].score >= ContactMatcher.CLEAR_LEAD)
             ) {
                 // very close match with just one number and without distance ties: call it directly
-                return ConfirmCallOutput(contact.name, numbers[0], yesNoData)
+                return ConfirmCallOutput(contact.name, numbers[0], yesNoData, confident = true)
             }
             validContacts.add(Pair(contact.name, numbers))
             ++i
@@ -52,9 +52,9 @@ class TelephoneSkill(
             // anyway
             && (validContacts[0].second.size == 1 || ctx.parserFormatter == null)
         ) {
-            // not a good enough match, but since we have only this, call it directly
+            // the only candidate, but a loose match: wait for a tap or a "haan" before calling
             val contact = validContacts[0]
-            return ConfirmCallOutput(contact.first, contact.second[0], yesNoData)
+            return ConfirmCallOutput(contact.first, contact.second[0], yesNoData, confident = false)
         }
 
         // this point will not be reached if a very close match was found

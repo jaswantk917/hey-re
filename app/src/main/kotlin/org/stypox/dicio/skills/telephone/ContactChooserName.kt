@@ -38,7 +38,7 @@ class ContactChooserName internal constructor(
 
     override suspend fun generateOutput(ctx: SkillContext, inputData: Pair<String, String>?): SkillOutput {
         return inputData?.let {
-            ConfirmCallOutput(it.first, it.second, yesNoData)
+            ConfirmCallOutput(it.first, it.second, yesNoData, confident = true)
         }
             // impossible situation
             ?: ConfirmedCallOutput(null, null)

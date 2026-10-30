@@ -26,6 +26,6 @@ class HinglishNumbersTest : StringSpec({
     }
 
     "English is left alone" {
-        normalize("Set a timer for five minutes") shouldBe "set a timer for five minutes"
+        normalize("Set a timer for five minutes") shouldBe "Set a timer for five minutes"
     }
 })

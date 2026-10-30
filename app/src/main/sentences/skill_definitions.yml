@@ -91,6 +91,26 @@ skills:
           - id: who
             type: string
 
+  - id: message
+    specificity: high
+    sentences:
+      - id: send
+        captures:
+          - id: who
+            type: string
+          - id: message
+            type: string
+      - id: ask
+        captures:
+          - id: who
+            type: string
+      - id: slack
+        captures:
+          - id: who
+            type: string
+          - id: message
+            type: string
+
   - id: alarm
     specificity: high
     sentences:

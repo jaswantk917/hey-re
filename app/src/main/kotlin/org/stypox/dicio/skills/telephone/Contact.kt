@@ -34,7 +34,25 @@ class Contact(val name: String, val score: Int, private val id: String) {
         return numbers
     }
 
+    /** The number WhatsApp knows this contact by, from the row WhatsApp adds to contacts. */
+    fun getWhatsAppNumber(contentResolver: ContentResolver): String? = try {
+        contentResolver.query(
+            ContactsContract.Data.CONTENT_URI,
+            arrayOf(ContactsContract.Data.DATA1),
+            "${ContactsContract.Data.CONTACT_ID} = ? AND ${ContactsContract.Data.MIMETYPE} = ?",
+            arrayOf(id, WHATSAPP_PROFILE_MIMETYPE),
+            null,
+        )?.use { cursor ->
+            // "919876543210@s.whatsapp.net"
+            if (cursor.moveToFirst()) cursor.getString(0)?.substringBefore('@') else null
+        }
+    } catch (e: Exception) {
+        Log.w(TAG, "Could not get WhatsApp number for contact $name", e)
+        null
+    }
+
     companion object {
+        private const val WHATSAPP_PROFILE_MIMETYPE = "vnd.android.cursor.item/vnd.com.whatsapp.profile"
         private val TAG = Contact::class.java.simpleName
         private const val NUMBERS_QUERY = (ContactsContract.CommonDataKinds.Phone.NUMBER
                 + " IS NOT NULL AND " + ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?")

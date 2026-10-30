@@ -1,0 +1,17 @@
+send:
+  - send? (a|an)? message|text|msg|sms|whatsapp to? .who. saying|that|ki .message.
+  - tell .who. that .message.
+  # Hinglish: "Maa ko message bhejo ki main late hoon", "Rahul ko bolo ki 5 minute me aa raha"
+  - .who. ko message|msg|text|whatsapp|sms (karo|kar|kardo|karde|bhejo|bhej|send)? (do|de|karo)? ki|ke .message.
+  - .who. ko bolo|bol|batao|bata|kaho|keh (do|de)? ki|ke? .message.
+
+ask:
+  - send? (a|an)? message|text|msg|sms|whatsapp to? .who.
+  - .who. ko message|msg|text|whatsapp|sms (karo|kar|kardo|karde|bhejo|bhej|send)? (do|de|karo)?
+
+slack:
+  - slack .who. saying|that .message.
+  - send? (a|an)? message|text|msg to? .who. on|in slack saying|that .message.
+  - tell .who. on slack that .message.
+  - slack pe|par .who. ko message|msg|bolo|bol|batao|kaho (karo|kar|bhejo|do|de)? ki|ke? .message.
+  - .who. ko slack pe|par|on? message|msg|bolo|bol|batao|kaho (karo|kar|bhejo|do|de)? ki|ke? .message.

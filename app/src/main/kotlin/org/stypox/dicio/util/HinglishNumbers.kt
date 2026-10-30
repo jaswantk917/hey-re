@@ -3,19 +3,20 @@ package org.stypox.dicio.util
 /**
  * Rewrites Hindi number words that come with a time unit into digits ("paanch minute" ->
  * "5 minute", "aadha ghanta" -> "30 minutes"), so the English number parser understands
- * Hinglish timers and alarms. Number words elsewhere are left alone: "do" is also "laga do".
+ * Hinglish timers and alarms. Number words elsewhere are left alone: "do" is also "laga do". Case is
+ * kept, since captured text such as a message is sent as it was said.
  */
 object HinglishNumbers {
     fun normalize(text: String): String {
-        var result = " ${text.lowercase()} "
+        var result = " $text "
         for ((phrase, replacement) in FRACTIONS) {
-            result = result.replace(Regex("\\b$phrase\\b"), replacement)
+            result = result.replace(Regex("\\b$phrase\\b", RegexOption.IGNORE_CASE), replacement)
         }
         result = NUMBER_BEFORE_UNIT.replace(result) { match ->
-            "${NUMBERS.getValue(match.groupValues[1])} ${match.groupValues[2]}"
+            "${NUMBERS.getValue(match.groupValues[1].lowercase())} ${match.groupValues[2]}"
         }
         result = HOURS.replace(result) { match ->
-            if (match.groupValues[1] == "ghanta") "hour" else "hours"
+            if (match.groupValues[1].equals("ghanta", ignoreCase = true)) "hour" else "hours"
         }
         return result.trim().replace(Regex("\\s+"), " ")
     }
@@ -32,9 +33,9 @@ object HinglishNumbers {
             "second|seconds|sec|secs|baje"
 
     private val NUMBER_BEFORE_UNIT =
-        Regex("\\b(${NUMBERS.keys.joinToString("|")})\\s+($UNITS)\\b")
+        Regex("\\b(${NUMBERS.keys.joinToString("|")})\\s+($UNITS)\\b", RegexOption.IGNORE_CASE)
 
-    private val HOURS = Regex("\\b(ghanta|ghante|ghanton)\\b")
+    private val HOURS = Regex("\\b(ghanta|ghante|ghanton)\\b", RegexOption.IGNORE_CASE)
 
     // "aadha ghanta" is a duration on its own, without a number
     private val FRACTIONS = listOf(

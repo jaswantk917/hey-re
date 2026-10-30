@@ -1,0 +1,25 @@
+turn_on:
+  - turn|switch on (the|my)? .what.
+  - turn|switch (the|my)? .what. on
+  # Hinglish: "bedroom ki light jala do", "cooler chalu karo", "hall light on kar do"
+  - .what. on (karo|kar|kardo|karde|dena)|(kar do)|(kar de)|(kar dena)?
+  - .what. chalu|chalao|jalao|jala|start (karo|kar|kardo|do|de|dena)|(kar do)|(kar de)|(kar dena)?
+
+turn_off:
+  - turn|switch off (the|my)? .what.
+  - turn|switch (the|my)? .what. off
+  - .what. off (karo|kar|kardo|karde|dena)|(kar do)|(kar de)|(kar dena)?
+  - .what. band|bujhao|bujha|stop (karo|kar|kardo|do|de|dena)|(kar do)|(kar de)|(kar dena)?
+
+# "1 ghanta baad cooler band kar dena", "turn off the cooler in an hour"
+turn_on_later:
+  - (in|after) .delay. turn|switch on (the|my)? .what.
+  - turn|switch on (the|my)? .what. (in|after) .delay.
+  - .delay. (baad|mein|me|main) .what. on|chalu|chalao|jalao|jala|start (karo|kar|kardo|do|de|dena)|(kar do)|(kar de)|(kar dena)?
+  - .what. .delay. (baad|mein|me|main) on|chalu|chalao|jalao|jala|start (karo|kar|kardo|do|de|dena)|(kar do)|(kar de)|(kar dena)?
+
+turn_off_later:
+  - (in|after) .delay. turn|switch off (the|my)? .what.
+  - turn|switch off (the|my)? .what. (in|after) .delay.
+  - .delay. (baad|mein|me|main) .what. off|band|bujhao|bujha|stop (karo|kar|kardo|do|de|dena)|(kar do)|(kar de)|(kar dena)?
+  - .what. .delay. (baad|mein|me|main) off|band|bujhao|bujha|stop (karo|kar|kardo|do|de|dena)|(kar do)|(kar de)|(kar dena)?

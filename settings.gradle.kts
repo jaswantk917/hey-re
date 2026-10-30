@@ -36,6 +36,15 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // Google Home APIs: a sign-in-gated download, not on Google's Maven yet. Unzip
+        // home.android.sdk_*.zip from developers.home.google.com/apis/android/sdk here
+        maven {
+            url = uri("home-sdk")
+            content {
+                includeModule("com.google.android.gms", "play-services-home")
+                includeModule("com.google.android.gms", "play-services-home-types")
+            }
+        }
     }
 }
 

@@ -29,6 +29,7 @@ import org.stypox.dicio.ui.home.Interaction
 import org.stypox.dicio.ui.home.InteractionLog
 import org.stypox.dicio.ui.home.PendingQuestion
 import org.stypox.dicio.ui.home.QuestionAnswer
+import org.stypox.dicio.util.Hinglish
 import org.stypox.dicio.util.HinglishNumbers
 import org.stypox.dicio.util.RecognizeEverythingSkill
 import org.dicio.skill.context.SkillContext
@@ -189,9 +190,9 @@ class SkillEvaluatorImpl(
 
     private fun findBestMatch(utterances: List<String>): Pair<String, SkillWithResult<*>>? =
         utterances.firstNotNullOfOrNull { input: String ->
-            // "paanch minute" -> "5 minute" for the English number parser; the user still sees
-            // exactly what they said
-            val normalized = HinglishNumbers.normalize(input)
+            // "बंद करो" -> "band karo" for the grammars and "paanch minute" -> "5 minute" for the
+            // English number parser; the user still sees exactly what they said
+            val normalized = HinglishNumbers.normalize(Hinglish.romanize(input))
             skillContext.standardMatchHelper = MatchHelper(skillContext.parserFormatter, normalized)
             skillRanker.getBest(skillContext, normalized)?.let { skillWithResult ->
                 Pair(input, skillWithResult)
@@ -223,9 +224,10 @@ class SkillEvaluatorImpl(
      */
     private suspend fun askAboutScreen(input: String): Pair<String, SkillWithResult<*>>? {
         val screen = ScreenContext.snapshot.value ?: return null
-        if (!SCREEN_QUESTION.containsMatchIn(input)) return null
+        val roman = Hinglish.romanize(input)
+        if (!SCREEN_QUESTION.containsMatchIn(roman)) return null
         val ready = (ScreenContext.summary.value as? ScreenSummary.Ready)?.text
-        val skill = if (ready != null && SUMMARY_REQUEST.containsMatchIn(input)) {
+        val skill = if (ready != null && SUMMARY_REQUEST.containsMatchIn(roman)) {
             object : RecognizeEverythingSkill(LocalBrainInfo) {
                 override suspend fun generateOutput(ctx: SkillContext, inputData: String) = LocalBrainOutput(ready)
             }

@@ -91,6 +91,30 @@ skills:
           - id: who
             type: string
 
+  - id: smart_home
+    specificity: high
+    sentences:
+      - id: turn_on
+        captures:
+          - id: what
+            type: string
+      - id: turn_off
+        captures:
+          - id: what
+            type: string
+      - id: turn_on_later
+        captures:
+          - id: what
+            type: string
+          - id: delay
+            type: duration
+      - id: turn_off_later
+        captures:
+          - id: what
+            type: string
+          - id: delay
+            type: duration
+
   - id: message
     specificity: high
     sentences:

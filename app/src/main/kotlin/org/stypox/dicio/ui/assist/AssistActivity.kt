@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import org.stypox.dicio.MainActivity
 import org.stypox.dicio.di.SttInputDeviceWrapper
 import org.stypox.dicio.eval.SkillEvaluator
+import org.stypox.dicio.skills.home.HomeControl
 import org.stypox.dicio.io.assist.ScreenContext
 import org.stypox.dicio.io.assist.ScreenSummary
 import org.stypox.dicio.io.graphical.Countdown
@@ -39,6 +40,9 @@ class AssistActivity : BaseActivity() {
     @Inject
     lateinit var localBrain: LocalBrain
 
+    @Inject
+    lateinit var homeControl: HomeControl
+
     private var nextAssistAllowed = Instant.MIN
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,6 +66,7 @@ class AssistActivity : BaseActivity() {
             finish()
             return
         }
+        homeControl.register(this)
         if (savedInstanceState == null) {
             startListening()
         }

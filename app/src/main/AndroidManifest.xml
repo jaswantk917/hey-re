@@ -28,6 +28,11 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- "cooler band in an hour" goes off on time even in Doze; Hey re isn't on the Play Store -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission
+        android:name="android.permission.SCHEDULE_EXACT_ALARM"
+        android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -118,6 +123,10 @@
             android:name=".io.assist.HeyReSessionService"
             android:exported="true"
             android:permission="android.permission.BIND_VOICE_INTERACTION" />
+
+        <receiver
+            android:name=".skills.home.HomeSwitchReceiver"
+            android:exported="false" />
 
         <activity
             android:name=".error.ErrorActivity"

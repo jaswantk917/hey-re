@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import org.stypox.dicio.di.SttInputDeviceWrapper
 import org.stypox.dicio.di.WakeDeviceWrapper
 import org.stypox.dicio.eval.SkillEvaluator
+import org.stypox.dicio.skills.home.HomeControl
 import org.stypox.dicio.io.graphical.Countdown
 import org.stypox.dicio.io.wake.WakeService
 import org.stypox.dicio.io.wake.WakeState.Loaded
@@ -44,6 +45,8 @@ class MainActivity : BaseActivity() {
     lateinit var sttInputDevice: SttInputDeviceWrapper
     @Inject
     lateinit var wakeDevice: WakeDeviceWrapper
+    @Inject
+    lateinit var homeControl: HomeControl
 
     private var sttPermissionJob: Job? = null
     private var wakeServiceJob: Job? = null
@@ -110,6 +113,8 @@ class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         isCreated += 1
+        // Google's consent screens for Google Home start from here, before the activity starts
+        homeControl.register(this)
 
         handleWakeWordTurnOnScreen(intent)
         if (isAssistIntent(intent)) {

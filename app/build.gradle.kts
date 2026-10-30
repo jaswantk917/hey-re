@@ -165,6 +165,9 @@ dependencies {
 
     // Gemini Nano through AICore, Pixel build only
     "pixelImplementation"(libs.mlkit.genai.prompt)
+    implementation(libs.play.services.home)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.play.services.home.types)
 
     // Android
     implementation(libs.appcompat)

@@ -1,7 +1,10 @@
 turn_on:
-  - (switch on)|(turn on)|activate|enable the? flashlight|torch|flash|light
-  - switch|turn? the? flashlight|torch|flash|light on
+  - (switch on)|(turn on)|activate|enable the? flashlight|torch|flash
+  - switch|turn? the? flashlight|torch|flash on
+  # Hinglish: "torch jala do", "torch on karo"
+  - torch|flashlight jala|jalao|chalu|on (karo|kar|kardo|do|de|dena)|(kar do)|(kar de)|(kar dena)?
 
 turn_off:
-  - (switch off)|(turn off)|deactivate|disable the? flashlight|torch|flash|light
-  - switch|turn? the? flashlight|torch|flash|light off
+  - (switch off)|(turn off)|deactivate|disable the? flashlight|torch|flash
+  - switch|turn? the? flashlight|torch|flash off
+  - torch|flashlight band|bujha|bujhao|off (karo|kar|kardo|do|de|dena)|(kar do)|(kar de)|(kar dena)?

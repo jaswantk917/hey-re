@@ -9,6 +9,9 @@ coilCompose = "2.7.0"
 composeBom = "2026.10.00"
 graphicsShapes = "1.0.1"
 mlkitGenaiPrompt = "1.0.0-beta4"
+playServicesHome = "17.1.0" # local, see settings.gradle.kts
+# the Home SDK calls Mutex.unlock$default as it is laid out from 1.11 on
+kotlinxCoroutines = "1.11.0"
 datastore = "1.1.7"
 desugarJdkLibs = "2.1.5"
 # used in settings.gradle.kts for git dependencies
@@ -61,6 +64,9 @@ compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview"
 compose-material3 = { module = "androidx.compose.material3:material3" }
 graphics-shapes = { module = "androidx.graphics:graphics-shapes", version.ref = "graphicsShapes" }
 mlkit-genai-prompt = { module = "com.google.mlkit:genai-prompt", version.ref = "mlkitGenaiPrompt" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
+play-services-home = { module = "com.google.android.gms:play-services-home", version.ref = "playServicesHome" }
+play-services-home-types = { module = "com.google.android.gms:play-services-home-types", version.ref = "playServicesHome" }
 compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
 debug-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }

@@ -19,6 +19,7 @@ import org.stypox.dicio.settings.datastore.UserSettingsModule
 import org.stypox.dicio.skills.alarm.AlarmInfo
 import org.stypox.dicio.skills.message.MessageInfo
 import org.stypox.dicio.skills.home.HomeInfo
+import org.stypox.dicio.skills.sound.SoundModeInfo
 import org.stypox.dicio.skills.calculator.CalculatorInfo
 import org.stypox.dicio.skills.current_time.CurrentTimeInfo
 import org.stypox.dicio.skills.fallback.text.TextFallbackInfo
@@ -54,6 +55,7 @@ class SkillHandler @Inject constructor(
         TelephoneInfo,
         MessageInfo,
         HomeInfo,
+        SoundModeInfo,
         TimerInfo,
         AlarmInfo,
         CurrentTimeInfo,

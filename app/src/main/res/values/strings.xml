@@ -160,6 +160,15 @@
     <string name="skill_name_telephone">Telephone</string>
     <string name="skill_sentence_example_telephone">Call Tom</string>
     <string name="skill_name_timer">Timer</string>
+    <string name="skill_name_sound_mode">Silent &amp; DND</string>
+    <string name="skill_sentence_example_sound_mode">Phone silent kar do</string>
+    <string name="skill_sound_silent">Phone is on silent</string>
+    <string name="skill_sound_vibrate">Phone is on vibrate</string>
+    <string name="skill_sound_ring">Ringer is back on</string>
+    <string name="skill_sound_dnd_on">Do Not Disturb is on</string>
+    <string name="skill_sound_dnd_off">Do Not Disturb is off</string>
+    <string name="skill_sound_needs_access">Allow Hey re to change Do Not Disturb first</string>
+    <string name="skill_sound_allow">Allow</string>
     <string name="skill_name_smart_home">Google Home</string>
     <string name="skill_sentence_example_smart_home">Cooler band karo</string>
     <string name="skill_home_on_one">%1$s is on</string>

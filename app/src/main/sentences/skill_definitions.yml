@@ -91,6 +91,15 @@ skills:
           - id: who
             type: string
 
+  - id: sound_mode
+    specificity: high
+    sentences:
+      - id: silent
+      - id: vibrate
+      - id: ring
+      - id: dnd_on
+      - id: dnd_off
+
   - id: smart_home
     specificity: high
     sentences:

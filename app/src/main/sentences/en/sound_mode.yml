@@ -1,0 +1,26 @@
+silent:
+  - (put|set|make|turn|keep) (the|my)? phone (on|to|in)? silent (mode)?
+  - (silent mode)|(silent) on
+  - mute (the|my)? phone
+  # Hinglish: "phone silent kar do", "silent pe daal do"
+  - (phone|mobile)? silent (pe|par|mein|me|mode)? (kar|karo|kardo|daal|daalo|dal|dalo|rakh|rakho|karde)|(kar do)|(kar de)|(daal do)|(rakh do)?
+
+vibrate:
+  - (put|set|make|turn|keep) (the|my)? phone (on|to|in)? vibrate|vibration (mode)?
+  - (vibrate|vibration mode)|vibrate on
+  - (phone|mobile)? vibrate|vibration (pe|par|mein|me|mode)? (kar|karo|kardo|daal|daalo|dal|dalo|rakh|rakho|karde)|(kar do)|(kar de)|(daal do)|(rakh do)?
+
+ring:
+  - unmute|unsilence (the|my)? phone
+  - (turn|put)? (the|my)? ringer|sound back? on
+  - (put|set|turn) (the|my)? phone (on|to|back to)? ring|normal|general (mode)?
+  - (phone|mobile)? ring|ringer|normal|general (pe|par|mein|me|mode)? (kar|karo|kardo|daal|daalo|rakh|rakho|karde)|(kar do)|(kar de)|(daal do)|(rakh do)?
+  - silent (mode)? off|hatao|hata|band (karo|kar|do|de)|(kar do)|(kar de)|(hata do)?
+
+dnd_on:
+  - (turn|switch) on (do not disturb)|dnd
+  - (do not disturb)|dnd on|chalu|laga|lagao (karo|kar|do|de)|(kar do)|(kar de)|(laga do)?
+
+dnd_off:
+  - (turn|switch) off (do not disturb)|dnd
+  - (do not disturb)|dnd off|band|hatao|hata (karo|kar|do|de)|(kar do)|(kar de)|(hata do)?

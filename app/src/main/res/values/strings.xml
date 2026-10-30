@@ -85,6 +85,12 @@
     <string name="pref_input_method_vosk_summary">Downloads and runs a Vosk SpeechToText model offline inside Hey re</string>
     <string name="pref_input_method_external_popup">External SpeechToText popup</string>
     <string name="pref_input_method_external_popup_summary">Opens the UI of another app through ACTION\u200B_\u200BRECOGNIZE\u200B_\u200BSPEECH, for example whisperIME, Kõnele, Futo Voice Input</string>
+    <string name="pref_tts_voice">Voice</string>
+    <string name="pref_tts_voice_summary">Tap one to hear it</string>
+    <string name="pref_tts_voice_automatic">Automatic</string>
+    <string name="pref_tts_voice_sample">Hi, I\'m Hey re. What\'s up?</string>
+    <string name="pref_listening">Listening</string>
+    <string name="pref_speaking">Speaking</string>
     <string name="pref_speech_output_method">Speech output method</string>
     <string name="pref_speech_output_method_summary">Choose the service Hey re should use to talk to you</string>
     <string name="pref_speech_output_method_android">Android text to speech engine</string>

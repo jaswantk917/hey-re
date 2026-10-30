@@ -42,10 +42,10 @@ class SpeechOutputDeviceWrapper @Inject constructor(
         scope.launch {
             dataStore.data
                 .combine(localeManager.locale) { userSettings, locale ->
-                    Pair(userSettings.speechOutputDevice, locale)
+                    Triple(userSettings.speechOutputDevice, locale, userSettings.ttsVoice)
                 }
                 .distinctUntilChanged()
-                .collect { (setting, locale) ->
+                .collect { (setting, locale, voiceName) ->
                     // TODO avoid using locale here, but delegate listening to locale changes to
                     //  AndroidTtsSpeechDevice, or in alternative make it so that
                     //  SttInputDeviceWrapper works the same way
@@ -54,7 +54,7 @@ class SpeechOutputDeviceWrapper @Inject constructor(
                         null,
                         UNRECOGNIZED,
                         SPEECH_OUTPUT_DEVICE_UNSET,
-                        SPEECH_OUTPUT_DEVICE_ANDROID_TTS -> AndroidTtsSpeechDevice(context, locale)
+                        SPEECH_OUTPUT_DEVICE_ANDROID_TTS -> AndroidTtsSpeechDevice(context, locale, voiceName)
                         SPEECH_OUTPUT_DEVICE_NOTHING -> NothingSpeechDevice()
                         SPEECH_OUTPUT_DEVICE_TOAST -> ToastSpeechDevice(context)
                         SPEECH_OUTPUT_DEVICE_SNACKBAR -> snackbarSpeechDevice

@@ -69,7 +69,6 @@ import org.stypox.dicio.util.getNonGrantedSecurePermissions
 fun HomeScreen(
     onSettingsClick: () -> Unit,
     onAboutClick: () -> Unit,
-    onSttPopupClick: () -> Unit,
 ) {
     val channel = remember { Channel<Boolean>() }
     val coroutineScope = rememberCoroutineScope()
@@ -131,7 +130,6 @@ fun HomeScreen(
         },
         onSettingsClick = onSettingsClick,
         onAboutClick = onAboutClick,
-        onSttPopupClick = onSttPopupClick,
         snackbarHost = {
             SnackbarHost(hostState = viewModel.snackbarHostState)
         },
@@ -154,7 +152,6 @@ fun HomeScreen(
     onManualUserInput: (String) -> Unit,
     onSettingsClick: () -> Unit,
     onAboutClick: () -> Unit,
-    onSttPopupClick: () -> Unit,
     snackbarHost: @Composable () -> Unit,
 ) {
     // null while talking, the text being typed while in typing mode
@@ -255,8 +252,7 @@ fun HomeScreen(
             showTitle = interactionCount > 0 || interactionLog.pendingQuestion != null,
             onSettingsClick = onSettingsClick,
             onAboutClick = onAboutClick,
-            onSttPopupClick = onSttPopupClick,
-        )
+            )
 
         HomeDock(
             sttState = sttState,
@@ -421,7 +417,6 @@ private fun HomeScreenPreview(@PreviewParameter(InteractionLogPreviews::class) i
             onManualUserInput = {},
             onSettingsClick = {},
             onAboutClick = {},
-            onSttPopupClick = {},
             snackbarHost = {},
         )
     }

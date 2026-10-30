@@ -22,6 +22,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -42,23 +47,31 @@ import org.stypox.dicio.settings.datastore.SttPlaySound
 import org.stypox.dicio.settings.datastore.Theme
 import org.stypox.dicio.settings.datastore.UserSettingsModule.Companion.newDataStoreForPreviews
 import org.stypox.dicio.settings.datastore.WakeDevice
-import org.stypox.dicio.settings.ui.SettingsCategoryTitle
+import org.stypox.dicio.settings.ui.SettingsGroup
 import org.stypox.dicio.settings.ui.SettingsItem
 import org.stypox.dicio.ui.theme.AppTheme
 
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MainSettingsScreen(
     navigationIcon: @Composable () -> Unit,
     navigateToSkillSettings: () -> Unit,
     viewModel: MainSettingsViewModel = hiltViewModel(),
 ) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            @OptIn(ExperimentalMaterial3Api::class)
-            TopAppBar(
+            LargeFlexibleTopAppBar(
                 title = { Text(stringResource(R.string.settings)) },
-                navigationIcon = navigationIcon
+                navigationIcon = navigationIcon,
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                ),
             )
         }
     ) {
@@ -83,132 +96,137 @@ private fun MainSettingsScreen(
         }
     }
 
-    LazyColumn(modifier) {
-        /* GENERAL SETTINGS */
-        item { SettingsCategoryTitle(stringResource(R.string.pref_general), topPadding = 4.dp) }
+    val context = LocalContext.current
+    val wakeDevice = when (val device = settings.wakeDevice) {
+        WakeDevice.UNRECOGNIZED,
+        WakeDevice.WAKE_DEVICE_UNSET -> WakeDevice.WAKE_DEVICE_NOTHING
+        else -> device
+    }
+    val speechOutput = when (val speechOutputDevice = settings.speechOutputDevice) {
+        SpeechOutputDevice.UNRECOGNIZED,
+        SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_UNSET ->
+            SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_ANDROID_TTS
+        else -> speechOutputDevice
+    }
+    val isHeyDicio by viewModel.isHeyDicio.collectAsState(true)
+
+    LazyColumn(modifier, contentPadding = PaddingValues(bottom = 24.dp)) {
         item {
-            languageSetting().Render(
-                when (val language = settings.language) {
-                    Language.UNRECOGNIZED -> Language.LANGUAGE_SYSTEM
-                    else -> language
-                },
-                viewModel::setLanguage,
+            SettingsGroup(
+                title = stringResource(R.string.pref_appearance),
+                rows = listOfNotNull(
+                    {
+                        themeSetting().Render(
+                            when (val theme = settings.theme) {
+                                Theme.UNRECOGNIZED -> Theme.THEME_SYSTEM
+                                else -> theme
+                            },
+                            viewModel::setTheme,
+                        )
+                    },
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        { dynamicColors().Render(settings.useDynamicColors, viewModel::setDynamicColors) }
+                    } else null,
+                    {
+                        languageSetting().Render(
+                            when (val language = settings.language) {
+                                Language.UNRECOGNIZED -> Language.LANGUAGE_SYSTEM
+                                else -> language
+                            },
+                            viewModel::setLanguage,
+                        )
+                    },
+                ),
             )
         }
+
         item {
-            themeSetting().Render(
-                when (val theme = settings.theme) {
-                    Theme.UNRECOGNIZED -> Theme.THEME_SYSTEM
-                    else -> theme
-                },
-                viewModel::setTheme,
+            SettingsGroup(
+                title = stringResource(R.string.pref_listening),
+                rows = listOfNotNull(
+                    {
+                        inputDevice().Render(
+                            when (val inputDevice = settings.inputDevice) {
+                                InputDevice.UNRECOGNIZED,
+                                InputDevice.INPUT_DEVICE_UNSET ->
+                                    if (OnDeviceSttInputDevice.isAvailable(context))
+                                        InputDevice.INPUT_DEVICE_ON_DEVICE
+                                    else
+                                        InputDevice.INPUT_DEVICE_VOSK
+                                else -> inputDevice
+                            },
+                            viewModel::setInputDevice,
+                        )
+                    },
+                    { wakeDevice().Render(wakeDevice, viewModel::setWakeDevice) },
+                    if (wakeDevice == WakeDevice.WAKE_DEVICE_OWW) {
+                        {
+                            if (isHeyDicio) {
+                                // the wake word is "Hey Dicio", so there is no custom model at the moment
+                                SettingsItem(
+                                    modifier = Modifier.clickable { importLauncher.launch(arrayOf("*/*")) },
+                                    title = stringResource(R.string.pref_wake_custom_import),
+                                    icon = Icons.Default.UploadFile,
+                                    description = stringResource(R.string.pref_wake_custom_import_summary_oww),
+                                )
+                            } else {
+                                // a custom model is currently set, give the option to remove it
+                                SettingsItem(
+                                    modifier = Modifier.clickable { viewModel.removeOwwUserWakeFile() },
+                                    title = stringResource(R.string.pref_wake_custom_delete),
+                                    icon = Icons.Default.DeleteSweep,
+                                    description = stringResource(R.string.pref_wake_custom_delete_summary),
+                                )
+                            }
+                        }
+                    } else null,
+                    {
+                        sttPlaySound().Render(
+                            when (val sttPlaySound = settings.sttPlaySound) {
+                                SttPlaySound.UNRECOGNIZED,
+                                SttPlaySound.STT_PLAY_SOUND_UNSET -> SttPlaySound.STT_PLAY_SOUND_NOTIFICATION
+                                else -> sttPlaySound
+                            },
+                            viewModel::setSttPlaySound
+                        )
+                    },
+                    {
+                        sttSilenceDuration().Render(
+                            SttInputDevice.getSttSilenceDurationOrDefault(settings),
+                            viewModel::setSttSilenceDuration
+                        )
+                    },
+                    { sttAutoFinish().Render(settings.autoFinishSttPopup, viewModel::setAutoFinishSttPopup) },
+                ),
             )
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            item {
-                dynamicColors().Render(
-                    settings.useDynamicColors,
-                    viewModel::setDynamicColors
-                )
-            }
-        }
+
         item {
-            SettingsItem(
+            SettingsGroup(
+                title = stringResource(R.string.pref_speaking),
+                rows = listOfNotNull(
+                    { speechOutputDevice().Render(speechOutput, viewModel::setSpeechOutputDevice) },
+                    if (speechOutput == SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_ANDROID_TTS) {
+                        { TtsVoiceSetting(settings.ttsVoice, viewModel::setTtsVoice) }
+                    } else null,
+                ),
+            )
+        }
+
+        item {
+            SettingsGroup(
                 title = stringResource(R.string.pref_skills_title),
-                icon = Icons.Default.Extension,
-                description = stringResource(R.string.pref_skills_summary),
-                modifier = Modifier
-                    .clickable(onClick = navigateToSkillSettings)
-                    .testTag("skill_settings_item")
-            )
-        }
-
-        /* INPUT AND OUTPUT METHODS */
-        item { SettingsCategoryTitle(stringResource(R.string.pref_io)) }
-        item {
-            inputDevice().Render(
-                when (val inputDevice = settings.inputDevice) {
-                    InputDevice.UNRECOGNIZED,
-                    InputDevice.INPUT_DEVICE_UNSET ->
-                        if (OnDeviceSttInputDevice.isAvailable(LocalContext.current))
-                            InputDevice.INPUT_DEVICE_ON_DEVICE
-                        else
-                            InputDevice.INPUT_DEVICE_VOSK
-                    else -> inputDevice
-                },
-                viewModel::setInputDevice,
-            )
-        }
-        val wakeDevice = when (val device = settings.wakeDevice) {
-            WakeDevice.UNRECOGNIZED,
-            WakeDevice.WAKE_DEVICE_UNSET -> WakeDevice.WAKE_DEVICE_NOTHING
-            else -> device
-        }
-        item {
-            wakeDevice().Render(
-                wakeDevice,
-                viewModel::setWakeDevice,
-            )
-        }
-        if (wakeDevice == WakeDevice.WAKE_DEVICE_OWW) {
-            /* OpenWakeWord-specific settings */
-            item {
-                val isHeyDicio by viewModel.isHeyDicio.collectAsState(true)
-                if (isHeyDicio) {
-                    // the wake word is "Hey Dicio", so there is no custom model at the moment
+                rows = listOf {
                     SettingsItem(
-                        modifier = Modifier.clickable { importLauncher.launch(arrayOf("*/*")) },
-                        title = stringResource(R.string.pref_wake_custom_import),
-                        icon = Icons.Default.UploadFile,
-                        description = stringResource(R.string.pref_wake_custom_import_summary_oww),
+                        title = stringResource(R.string.pref_skills_title),
+                        icon = Icons.Default.Extension,
+                        description = stringResource(R.string.pref_skills_summary),
+                        modifier = Modifier
+                            .clickable(onClick = navigateToSkillSettings)
+                            .testTag("skill_settings_item")
                     )
-                } else {
-                    // a custom model is currently set, give the option to remove it
-                    SettingsItem(
-                        modifier = Modifier.clickable { viewModel.removeOwwUserWakeFile() },
-                        title = stringResource(R.string.pref_wake_custom_delete),
-                        icon = Icons.Default.DeleteSweep,
-                        description = stringResource(R.string.pref_wake_custom_delete_summary),
-                    )
-                }
-            }
-        }
-        item {
-            speechOutputDevice().Render(
-                when (val speechOutputDevice = settings.speechOutputDevice) {
-                    SpeechOutputDevice.UNRECOGNIZED,
-                    SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_UNSET ->
-                        SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_ANDROID_TTS
-                    else -> speechOutputDevice
                 },
-                viewModel::setSpeechOutputDevice,
             )
-        }
-        item {
-            sttPlaySound().Render(
-                when (val sttPlaySound = settings.sttPlaySound) {
-                    SttPlaySound.UNRECOGNIZED,
-                    SttPlaySound.STT_PLAY_SOUND_UNSET -> SttPlaySound.STT_PLAY_SOUND_NOTIFICATION
-                    else -> sttPlaySound
-                },
-                viewModel::setSttPlaySound
-            )
-        }
-        item {
-            sttSilenceDuration().Render(
-                SttInputDevice.getSttSilenceDurationOrDefault(settings),
-                viewModel::setSttSilenceDuration
-            )
-        }
-        item {
-            sttAutoFinish().Render(
-                settings.autoFinishSttPopup,
-                viewModel::setAutoFinishSttPopup
-            )
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }

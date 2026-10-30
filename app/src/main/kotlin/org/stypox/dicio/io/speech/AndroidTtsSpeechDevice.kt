@@ -11,7 +11,12 @@ import org.dicio.skill.context.SpeechOutputDevice
 import org.stypox.dicio.R
 import java.util.Locale
 
-class AndroidTtsSpeechDevice(private var context: Context, private val locale: Locale) : SpeechOutputDevice {
+class AndroidTtsSpeechDevice(
+    private var context: Context,
+    private val locale: Locale,
+    // chosen in settings; empty means automatic
+    private val voiceName: String = "",
+) : SpeechOutputDevice {
     private var textToSpeech: TextToSpeech? = null
     private var initializedCorrectly = false
     private val runnablesWhenFinished: MutableList<Runnable> = ArrayList()
@@ -24,7 +29,7 @@ class AndroidTtsSpeechDevice(private var context: Context, private val locale: L
                     val errorCode = setLanguage(locale)
                     if (errorCode >= 0) { // errors are -1 or -2
                         initializedCorrectly = true
-                        bestVoice(this, locale)?.let { voice = it }
+                        chosenVoice(this)?.let { voice = it }
                         setOnUtteranceProgressListener(object :
                             UtteranceProgressListener() {
                             override fun onStart(utteranceId: String) {}
@@ -97,8 +102,12 @@ class AndroidTtsSpeechDevice(private var context: Context, private val locale: L
     private fun voiceFor(tts: TextToSpeech, text: String): Voice? {
         if (locale.language != "hi") return null
         val hasDevanagari = text.any { Character.UnicodeBlock.of(it) == Character.UnicodeBlock.DEVANAGARI }
-        return bestVoice(tts, if (hasDevanagari) Locale("hi", "IN") else Locale("en", "IN"))
+        return if (hasDevanagari) bestVoice(tts, Locale("hi", "IN")) else chosenVoice(tts)
     }
+
+    private fun chosenVoice(tts: TextToSpeech): Voice? =
+        tts.voices.orEmpty().firstOrNull { it.name == voiceName && isUsable(it) }
+            ?: bestVoice(tts, if (locale.language == "hi") Locale("en", "IN") else locale)
 
     private fun handleInitializationError(@StringRes errorString: Int) {
         Toast.makeText(context, errorString, Toast.LENGTH_SHORT).show()
@@ -117,9 +126,20 @@ class AndroidTtsSpeechDevice(private var context: Context, private val locale: L
                 .filter {
                     it.locale.language == target.language &&
                             (target.country.isEmpty() || it.locale.country == target.country) &&
-                            !it.isNetworkConnectionRequired &&
-                            TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED !in it.features
+                            isUsable(it)
                 }
-                .maxWithOrNull(compareBy<Voice> { it.quality }.thenByDescending { it.latency })
+                // all of Google's voices claim the top quality, so without a region in the app's
+                // language the accent was a coin toss: prefer the most common one
+                .maxWithOrNull(
+                    compareBy<Voice> { it.quality }
+                        .thenBy { PREFERRED_COUNTRIES.size - PREFERRED_COUNTRIES.indexOf(it.locale.country).let { i -> if (i < 0) PREFERRED_COUNTRIES.size else i } }
+                        .thenByDescending { it.latency }
+                )
+
+        /** Offline voices whose data is on the phone; the voice picker lists these. */
+        fun isUsable(voice: Voice) = !voice.isNetworkConnectionRequired &&
+                TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED !in voice.features
+
+        private val PREFERRED_COUNTRIES = listOf("US", "GB")
     }
 }

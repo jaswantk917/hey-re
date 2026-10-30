@@ -37,11 +37,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.outlined.RecordVoiceOver
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
@@ -90,7 +86,6 @@ fun HomeTopBar(
     showTitle: Boolean,
     onSettingsClick: () -> Unit,
     onAboutClick: () -> Unit,
-    onSttPopupClick: () -> Unit,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -118,27 +113,8 @@ fun HomeTopBar(
         IconButton(onClick = onSettingsClick, shapes = IconButtonDefaults.shapes()) {
             Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.settings))
         }
-        var menuOpen by remember { mutableStateOf(false) }
-        Box {
-            IconButton(onClick = { menuOpen = true }, shapes = IconButtonDefaults.shapes()) {
-                Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.more_options))
-            }
-            DropdownMenu(
-                expanded = menuOpen,
-                onDismissRequest = { menuOpen = false },
-                shape = MaterialTheme.shapes.large,
-            ) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.stt_popup)) },
-                    leadingIcon = { Icon(Icons.Outlined.RecordVoiceOver, contentDescription = null) },
-                    onClick = { menuOpen = false; onSttPopupClick() },
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.about)) },
-                    leadingIcon = { Icon(Icons.Outlined.Info, contentDescription = null) },
-                    onClick = { menuOpen = false; onAboutClick() },
-                )
-            }
+        IconButton(onClick = onAboutClick, shapes = IconButtonDefaults.shapes()) {
+            Icon(Icons.Outlined.Info, contentDescription = stringResource(R.string.about))
         }
     }
 }

@@ -1,7 +1,11 @@
 package org.stypox.dicio.settings.ui
 
 import android.graphics.Color
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
@@ -42,16 +45,25 @@ fun SettingsItem(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(horizontal = 16.dp, vertical = 14.dp)
             .semantics(mergeDescendants = true) {},
     ) {
         if (icon != null) {
-            Icon(
-                imageVector = icon,
-                // no content description here as it would be duplicate with the text below
-                contentDescription = null,
-            )
-            Spacer(modifier = Modifier.width(24.dp))
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
+            ) {
+                Icon(
+                    imageVector = icon,
+                    // no content description here as it would be duplicate with the text below
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
         }
         Column(
             modifier = Modifier
@@ -60,15 +72,14 @@ fun SettingsItem(
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                lineHeight = MaterialTheme.typography.bodyMedium.lineHeight,
-                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.titleMedium,
             )
             if (description != null) {
-                Spacer(modifier = Modifier.height(3.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             if (innerContent != null) {

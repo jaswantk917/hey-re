@@ -1,4 +1,3 @@
-import org.eclipse.jgit.api.Git
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.stypox.dicio.unicodeCldrPlugin.UnicodeCldrLanguagesTask
 
@@ -14,7 +13,6 @@ buildscript {
 
 plugins {
     alias(libs.plugins.com.android.application)
-    alias(libs.plugins.org.jetbrains.kotlin.android)
     alias(libs.plugins.org.jetbrains.kotlin.plugin.compose)
     alias(libs.plugins.org.jetbrains.kotlin.plugin.parcelize)
     alias(libs.plugins.org.jetbrains.kotlin.plugin.serialization)
@@ -30,11 +28,11 @@ android {
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "org.stypox.dicio"
+        applicationId = "io.github.jaswantk917.heyre"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 19
-        versionName = "4.2"
+        versionCode = 1
+        versionName = "0.1.0"
         testInstrumentationRunner = "org.stypox.dicio.CustomTestRunner"
 
         vectorDrawables.useSupportLibrary = true
@@ -46,15 +44,14 @@ android {
 
     buildTypes {
         debug {
-            var normalizedGitBranch = gitBranch().replaceFirst("^[^A-Za-z]+", "").replace(Regex("[^0-9A-Za-z]+"), "")
-            applicationIdSuffix = ".$normalizedGitBranch"
-            versionNameSuffix = "-$normalizedGitBranch"
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
 
             val isScreenshotTest = (project.findProperty("android.testInstrumentationRunnerArguments.class") as? String)
                 ?.contains("creenshot") == true
             if (!isScreenshotTest) {
                 // only change the app name if we are not taking screenshots
-                resValue("string", "app_name", "Dicio-${gitBranch()}")
+                resValue("string", "app_name", "Hey re debug")
             }
         }
         release {
@@ -83,6 +80,7 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+        resValues = true
         compose = true
     }
 }
@@ -149,6 +147,7 @@ dependencies {
     implementation(libs.compose.ui.graphics)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
+    implementation(libs.graphics.shapes)
     implementation(libs.compose.material.icons.extended)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.test.android.compose.ui.test.junit4)
@@ -214,8 +213,4 @@ configurations.configureEach {
     resolutionStrategy {
         force(libs.test.core)
     }
-}
-
-fun gitBranch(): String {
-    return Git.open(rootDir).use { it.repository.branch }
 }

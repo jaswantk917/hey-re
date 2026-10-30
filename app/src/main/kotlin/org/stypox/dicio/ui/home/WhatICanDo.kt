@@ -49,14 +49,27 @@ import java.time.LocalTime
 @Composable
 fun Welcome(seen: MutableSet<Any>, modifier: Modifier = Modifier) {
     val hour = remember { LocalTime.now().hour }
-    val greeting = stringResource(
-        when (hour) {
-            in 5..11 -> R.string.greeting_morning
-            in 12..16 -> R.string.greeting_afternoon
-            in 17..21 -> R.string.greeting_evening
-            else -> R.string.greeting_night
-        }
-    )
+    val name = rememberPhoneProfile()?.firstName
+    val greeting = if (name == null) {
+        stringResource(
+            when (hour) {
+                in 5..11 -> R.string.greeting_morning
+                in 12..16 -> R.string.greeting_afternoon
+                in 17..21 -> R.string.greeting_evening
+                else -> R.string.greeting_night
+            }
+        )
+    } else {
+        stringResource(
+            when (hour) {
+                in 5..11 -> R.string.greeting_morning_named
+                in 12..16 -> R.string.greeting_afternoon_named
+                in 17..21 -> R.string.greeting_evening_named
+                else -> R.string.greeting_night_named
+            },
+            name,
+        )
+    }
     Column(modifier = modifier.padding(horizontal = 24.dp)) {
         AppearOnce(key = "greeting", seen = seen) {
             Text(

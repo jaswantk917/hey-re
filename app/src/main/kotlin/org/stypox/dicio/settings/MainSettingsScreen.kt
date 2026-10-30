@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.UploadFile
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,6 +31,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -57,6 +59,7 @@ import org.stypox.dicio.ui.theme.AppTheme
 fun MainSettingsScreen(
     navigationIcon: @Composable () -> Unit,
     navigateToSkillSettings: () -> Unit,
+    navigateToAbout: () -> Unit,
     viewModel: MainSettingsViewModel = hiltViewModel(),
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -77,6 +80,7 @@ fun MainSettingsScreen(
     ) {
         MainSettingsScreen(
             navigateToSkillSettings = navigateToSkillSettings,
+            navigateToAbout = navigateToAbout,
             viewModel = viewModel,
             modifier = Modifier.padding(it),
         )
@@ -86,6 +90,7 @@ fun MainSettingsScreen(
 @Composable
 private fun MainSettingsScreen(
     navigateToSkillSettings: () -> Unit,
+    navigateToAbout: () -> Unit,
     viewModel: MainSettingsViewModel,
     modifier: Modifier = Modifier,
 ) {
@@ -110,9 +115,23 @@ private fun MainSettingsScreen(
     }
     val isHeyDicio by viewModel.isHeyDicio.collectAsState(true)
 
+    val seen = remember { mutableSetOf<Any>() }
+    val access = accessRows()
+
     LazyColumn(modifier, contentPadding = PaddingValues(bottom = 24.dp)) {
         item {
             SettingsGroup(
+                title = stringResource(R.string.pref_access),
+                rows = access,
+                seen = seen,
+                index = 0,
+            )
+        }
+
+        item {
+            SettingsGroup(
+                seen = seen,
+                index = 1,
                 title = stringResource(R.string.pref_appearance),
                 rows = listOfNotNull(
                     {
@@ -142,6 +161,8 @@ private fun MainSettingsScreen(
 
         item {
             SettingsGroup(
+                seen = seen,
+                index = 2,
                 title = stringResource(R.string.pref_listening),
                 rows = listOfNotNull(
                     {
@@ -203,6 +224,8 @@ private fun MainSettingsScreen(
 
         item {
             SettingsGroup(
+                seen = seen,
+                index = 3,
                 title = stringResource(R.string.pref_speaking),
                 rows = listOfNotNull(
                     { speechOutputDevice().Render(speechOutput, viewModel::setSpeechOutputDevice) },
@@ -215,6 +238,8 @@ private fun MainSettingsScreen(
 
         item {
             SettingsGroup(
+                seen = seen,
+                index = 4,
                 title = stringResource(R.string.pref_skills_title),
                 rows = listOf {
                     SettingsItem(
@@ -224,6 +249,22 @@ private fun MainSettingsScreen(
                         modifier = Modifier
                             .clickable(onClick = navigateToSkillSettings)
                             .testTag("skill_settings_item")
+                    )
+                },
+            )
+        }
+
+        item {
+            SettingsGroup(
+                seen = seen,
+                index = 5,
+                title = stringResource(R.string.about),
+                rows = listOf {
+                    SettingsItem(
+                        title = stringResource(R.string.about),
+                        icon = Icons.Outlined.Info,
+                        description = stringResource(R.string.pref_about_summary),
+                        modifier = Modifier.clickable(onClick = navigateToAbout),
                     )
                 },
             )
@@ -240,6 +281,7 @@ private fun MainSettingsScreenPreview() {
         ) {
             MainSettingsScreen(
                 navigateToSkillSettings = {},
+                navigateToAbout = {},
                 viewModel = MainSettingsViewModel(
                     application = Application(),
                     wakeDeviceWrapper = null,
@@ -267,6 +309,7 @@ private fun MainSettingsScreenWithTopBarPreview() {
                     }
                 },
                 navigateToSkillSettings = {},
+                navigateToAbout = {},
                 viewModel = MainSettingsViewModel(
                     application = Application(),
                     wakeDeviceWrapper = null,

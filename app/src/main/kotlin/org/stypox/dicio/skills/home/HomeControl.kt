@@ -66,6 +66,10 @@ class HomeControl @Inject constructor(@ApplicationContext private val context: C
         client.registerActivityResultCallerForPermissions(activity)
     }
 
+    suspend fun isConnected(): Boolean =
+        client.hasPermissions().first { it != PermissionsState.PERMISSIONS_STATE_UNINITIALIZED } ==
+                PermissionsState.GRANTED
+
     /** Whether Hey re may control the home, asking the user the first time. */
     suspend fun connect(): Boolean {
         val state = client.hasPermissions().first { it != PermissionsState.PERMISSIONS_STATE_UNINITIALIZED }

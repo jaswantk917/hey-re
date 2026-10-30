@@ -1,6 +1,19 @@
 package org.stypox.dicio.ui.home
 
 import android.Manifest
+import android.content.ActivityNotFoundException
+import android.util.Log
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import org.stypox.dicio.ui.util.Haptic
+import org.stypox.dicio.ui.util.rememberHaptics
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
@@ -34,7 +47,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.outlined.Settings
@@ -85,7 +97,6 @@ import org.stypox.dicio.ui.util.loadingProgressString
 fun HomeTopBar(
     showTitle: Boolean,
     onSettingsClick: () -> Unit,
-    onAboutClick: () -> Unit,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -113,8 +124,57 @@ fun HomeTopBar(
         IconButton(onClick = onSettingsClick, shapes = IconButtonDefaults.shapes()) {
             Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.settings))
         }
-        IconButton(onClick = onAboutClick, shapes = IconButtonDefaults.shapes()) {
-            Icon(Icons.Outlined.Info, contentDescription = stringResource(R.string.about))
+        ProfileButton()
+    }
+}
+
+/** The phone owner's photo (or initial), which pops in once read; a tap opens their own card. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ProfileButton() {
+    val profile = rememberPhoneProfile() ?: return
+    val context = LocalContext.current
+    val haptics = rememberHaptics()
+    val pop = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        pop.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow))
+    }
+    IconButton(
+        onClick = {
+            haptics.play(Haptic.Tap)
+            try {
+                context.startActivity(PhoneProfile.openIntent())
+            } catch (e: ActivityNotFoundException) {
+                Log.w("ProfileButton", "No app shows the profile", e)
+            }
+        },
+        shapes = IconButtonDefaults.shapes(),
+        modifier = Modifier.graphicsLayer {
+            scaleX = pop.value
+            scaleY = pop.value
+            alpha = pop.value.coerceIn(0f, 1f)
+        },
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primaryContainer),
+        ) {
+            Text(
+                text = profile.firstName.take(1).uppercase(),
+                style = MaterialTheme.typography.titleMediumEmphasized,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+            if (profile.photo != null) {
+                AsyncImage(
+                    model = profile.photo,
+                    contentDescription = profile.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.matchParentSize(),
+                )
+            }
         }
     }
 }

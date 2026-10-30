@@ -59,7 +59,6 @@ fun Navigation() {
         composable<Home> {
             HomeScreen(
                 onSettingsClick = { navController.navigate(MainSettings) },
-                onAboutClick = { navController.navigate(About) },
             )
         }
 
@@ -67,6 +66,7 @@ fun Navigation() {
             MainSettingsScreen(
                 navigationIcon = backIcon,
                 navigateToSkillSettings = { navController.navigate(SkillSettings) },
+                navigateToAbout = { navController.navigate(About) },
             )
         }
 

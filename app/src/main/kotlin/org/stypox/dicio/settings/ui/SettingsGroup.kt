@@ -11,14 +11,34 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import org.stypox.dicio.ui.home.AppearOnce
 import org.stypox.dicio.ui.home.groupedItemShape
 
 /**
  * A titled block of settings drawn as one rounded card split into rows, like Android's own
- * Settings: big corners on the outside of the group, tight ones where rows meet.
+ * Settings: big corners on the outside of the group, tight ones where rows meet. With [seen], it
+ * rises in once per visit, [index] beats after the first group.
  */
 @Composable
-fun SettingsGroup(title: String, rows: List<@Composable () -> Unit>) {
+fun SettingsGroup(
+    title: String,
+    rows: List<@Composable () -> Unit>,
+    seen: MutableSet<Any>? = null,
+    index: Int = 0,
+) {
+    if (seen == null) {
+        GroupContent(title, rows)
+    } else {
+        AppearOnce(key = title, seen = seen, delayMillis = index * STAGGER_MILLIS) {
+            GroupContent(title, rows)
+        }
+    }
+}
+
+private const val STAGGER_MILLIS = 45
+
+@Composable
+private fun GroupContent(title: String, rows: List<@Composable () -> Unit>) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
             text = title,

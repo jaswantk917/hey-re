@@ -152,7 +152,7 @@ class HomeSwitchReceiver : BroadcastReceiver() {
         manager.notify(
             switch.id,
             NotificationCompat.Builder(context, CHANNEL)
-                .setSmallIcon(R.drawable.ic_hearing_white)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(text)
                 .setAutoCancel(true)
                 .build(),

@@ -2,6 +2,32 @@ package org.stypox.dicio.settings
 
 import android.app.Application
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.toShape
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.style.TextOverflow
+import org.stypox.dicio.ui.home.AppearOnce
+import org.stypox.dicio.ui.home.groupedItemShape
+import org.stypox.dicio.ui.util.Haptic
+import org.stypox.dicio.ui.util.rememberHaptics
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,7 +42,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -64,17 +90,26 @@ import org.stypox.dicio.util.requestAnyPermission
 
 const val DICIO_NUMBERS_LINK = "https://github.com/Stypox/dicio-numbers"
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SkillSettingsScreen(
     navigationIcon: @Composable () -> Unit,
     viewModel: SkillSettingsViewModel = hiltViewModel(),
 ) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            @OptIn(ExperimentalMaterial3Api::class)
-            TopAppBar(
+            LargeFlexibleTopAppBar(
                 title = { Text(stringResource(R.string.pref_skills_title)) },
-                navigationIcon = navigationIcon
+                subtitle = { Text(stringResource(R.string.pref_skills_screen_subtitle)) },
+                navigationIcon = navigationIcon,
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                ),
             )
         }
     ) {
@@ -89,16 +124,18 @@ fun SkillSettingsScreen(
 ) {
     val skills = viewModel.skills
     val enabledSkills by viewModel.enabledSkills.collectAsState()
+    val seen = remember { mutableSetOf<Any>() }
 
     LazyColumn(
-        contentPadding = PaddingValues(top = 4.dp, bottom = 4.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
         modifier = modifier,
     ) {
         if (viewModel.numberLibraryNotAvailable) {
             item {
                 val context = LocalContext.current
                 Card(
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    modifier = Modifier.padding(bottom = 12.dp),
                     onClick = { ShareUtils.openUrlInBrowser(context, DICIO_NUMBERS_LINK) },
                 ) {
                     Text(
@@ -112,16 +149,19 @@ fun SkillSettingsScreen(
                 }
             }
         }
-        items(skills) { skill ->
+        itemsIndexed(skills, key = { _, skill -> skill.id }) { index, skill ->
             // Note: calling build() here is slightly wasteful as it constructs a skill object
             // just to check availability, but it ensures correct results regardless of whether
             // the skill is enabled or disabled by the user.
-            SkillSettingsItem(
-                skill = skill,
-                isAvailable = skill.build(viewModel.skillContext) != null,
-                enabled = enabledSkills.getOrDefault(skill.id, true),
-                setEnabled = { enabled -> viewModel.setSkillEnabled(skill.id, enabled) }
-            )
+            AppearOnce(key = skill.id, seen = seen, delayMillis = minOf(index, 8) * 30) {
+                SkillSettingsItem(
+                    skill = skill,
+                    isAvailable = skill.build(viewModel.skillContext) != null,
+                    enabled = enabledSkills.getOrDefault(skill.id, true),
+                    setEnabled = { enabled -> viewModel.setSkillEnabled(skill.id, enabled) },
+                    shape = groupedItemShape(index, skills.size),
+                )
+            }
         }
     }
 }
@@ -132,6 +172,7 @@ fun SkillSettingsItem(
     isAvailable: Boolean,
     enabled: Boolean,
     setEnabled: (Boolean) -> Unit,
+    shape: Shape = MaterialTheme.shapes.large,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     SkillSettingsItem(
@@ -141,6 +182,7 @@ fun SkillSettingsItem(
         setEnabled = setEnabled,
         expanded = expanded,
         toggleExpanded = { expanded = !expanded },
+        shape = shape,
     )
 }
 
@@ -152,51 +194,56 @@ fun SkillSettingsItem(
     setEnabled: (Boolean) -> Unit,
     expanded: Boolean,
     toggleExpanded: () -> Unit,
+    shape: Shape = MaterialTheme.shapes.large,
 ) {
     val canExpand = isAvailable && (
         skill.renderSettings != null || skill.neededPermissions.isNotEmpty()
     )
 
-    Card(
+    Surface(
+        shape = shape,
+        color = MaterialTheme.colorScheme.surfaceBright,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
             .animateContentSize()
     ) {
-        SkillSettingsItemHeader(
-            expanded = expanded,
-            toggleExpanded = if (canExpand) toggleExpanded else null,
-            skill = skill,
-            enabled = enabled && isAvailable,
-            setEnabled = setEnabled,
-            isAvailable = isAvailable,
-        )
-
-        if (!isAvailable) {
-            Text(
-                text = stringResource(R.string.pref_skill_not_available),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+        Column {
+            SkillSettingsItemHeader(
+                expanded = expanded,
+                toggleExpanded = if (canExpand) toggleExpanded else null,
+                skill = skill,
+                enabled = enabled && isAvailable,
+                setEnabled = setEnabled,
+                isAvailable = isAvailable,
             )
 
-        } else if (expanded) {
-            if (skill.neededPermissions.isNotEmpty()) {
-                SkillSettingsItemPermissionLine(
-                    skill = skill,
+            if (!isAvailable) {
+                Text(
+                    text = stringResource(R.string.pref_skill_not_available),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                        .padding(start = 72.dp, end = 16.dp, bottom = 14.dp),
                 )
-            }
 
-            skill.renderSettings?.invoke()
+            } else if (expanded) {
+                if (skill.neededPermissions.isNotEmpty()) {
+                    SkillSettingsItemPermissionLine(
+                        skill = skill,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 72.dp, end = 16.dp, bottom = 14.dp),
+                    )
+                }
+
+                skill.renderSettings?.invoke()
+            }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun SkillSettingsItemHeader(
     expanded: Boolean,
@@ -206,10 +253,21 @@ private fun SkillSettingsItemHeader(
     setEnabled: (Boolean) -> Unit,
     isAvailable: Boolean,
 ) {
-    val expandedAnimation by animateFloatAsState(
+    val haptics = rememberHaptics()
+    val turn by animateFloatAsState(
         label = "skill ${skill.id} card expanded",
         targetValue = if (expanded) 180f else 0f
     )
+    val iconContainer by animateColorAsState(
+        if (enabled) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest,
+        label = "skill ${skill.id} icon",
+    )
+    val toggle = { wanted: Boolean ->
+        haptics.play(if (wanted) Haptic.ToggleOn else Haptic.ToggleOff)
+        setEnabled(wanted)
+    }
+    val context = LocalContext.current
+    val example = skill.sentenceExample(context).takeIf { it.isNotBlank() }
 
     Row(
         modifier = Modifier
@@ -220,50 +278,78 @@ private fun SkillSettingsItemHeader(
                     // still group items together for better accessibility
                     it.semantics(mergeDescendants = true) {}
             }
-            .padding(4.dp),
+            .padding(start = 16.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        val maybeDisabledColor = if (isAvailable) {
-            LocalContentColor.current
-        } else {
-            LocalContentColor.current.copy(alpha = 0.8f)
-        }
-        Icon(
-            painter = skill.icon(),
-            // no content description here as it would be duplicate with the text below
-            contentDescription = null,
+        Box(
+            contentAlignment = Alignment.Center,
             modifier = Modifier
-                .padding(start = 12.dp)
-                .size(24.dp),
-            tint = maybeDisabledColor,
-        )
-        Checkbox(
-            checked = enabled,
-            onCheckedChange = setEnabled,
-            enabled = isAvailable,
-        )
-        Text(
-            text = skill.name(LocalContext.current),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Medium,
-            maxLines = 1,
-            modifier = Modifier.weight(1.0f),
-            color = maybeDisabledColor,
-        )
-        if (toggleExpanded != null) {
-            IconButton(
-                onClick = toggleExpanded,
-                modifier = Modifier.testTag("expand_skill_settings_handle"),
-            ) {
-                Icon(
-                    modifier = Modifier.rotate(expandedAnimation),
-                    imageVector = Icons.Default.ArrowDropDown,
-                    contentDescription = stringResource(
-                        if (expanded) R.string.reduce else R.string.expand
+                .size(40.dp)
+                .background(iconContainer, MaterialShapes.Cookie6Sided.toShape()),
+        ) {
+            Icon(
+                painter = skill.icon(),
+                // no content description here as it would be duplicate with the text below
+                contentDescription = null,
+                modifier = Modifier.size(22.dp),
+                tint = if (enabled) MaterialTheme.colorScheme.onSecondaryContainer
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Column(
+            modifier = Modifier
+                .weight(1.0f)
+                .padding(horizontal = 16.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = skill.name(context),
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    color = if (isAvailable) MaterialTheme.colorScheme.onSurface
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                if (toggleExpanded != null) {
+                    Icon(
+                        modifier = Modifier
+                            .padding(start = 4.dp)
+                            .size(20.dp)
+                            .rotate(turn)
+                            .testTag("expand_skill_settings_handle"),
+                        imageVector = Icons.Default.ExpandMore,
+                        contentDescription = stringResource(
+                            if (expanded) R.string.reduce else R.string.expand
+                        ),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+            }
+            if (example != null) {
+                Text(
+                    text = "\u201C$example\u201D",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
+        Switch(
+            checked = enabled,
+            onCheckedChange = toggle,
+            enabled = isAvailable,
+            thumbContent = {
+                AnimatedVisibility(visible = enabled, enter = scaleIn(), exit = scaleOut()) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(SwitchDefaults.IconSize),
+                    )
+                }
+            },
+        )
     }
 }
 
@@ -286,7 +372,8 @@ fun SkillSettingsItemPermissionLine(
     if (nonGrantedPermissions.isEmpty()) {
         Text(
             text = needingPermissionsString,
-            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = modifier,
         )
 
@@ -300,14 +387,15 @@ fun SkillSettingsItemPermissionLine(
         ) {
             Text(
                 text = needingPermissionsString,
-                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1.0f)
                     .padding(end = 8.dp),
             )
 
-            ElevatedButton(
+            FilledTonalButton(
                 onClick = { requestAnyPermission(launcher, context, nonGrantedPermissions) },
             ) {
                 Text(text = stringResource(R.string.pref_skill_grant_permissions))

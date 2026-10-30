@@ -158,7 +158,7 @@ class WakeService : Service() {
         }
 
         val notification = NotificationCompat.Builder(this, FOREGROUND_NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_hearing_white)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(
                 getString(
                     if (isHeyDicio) R.string.wake_service_foreground_notification
@@ -263,7 +263,7 @@ class WakeService : Service() {
             )
 
             val notification = NotificationCompat.Builder(this, TRIGGERED_NOTIFICATION_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_hearing_white)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(getString(R.string.wake_service_triggered_notification))
                 .setStyle(NotificationCompat.BigTextStyle().bigText(
                     getString(R.string.wake_service_triggered_notification_summary)))
@@ -304,7 +304,7 @@ class WakeService : Service() {
             )
 
             val notification = NotificationCompat.Builder(context, START_NOTIFICATION_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_hearing_white)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(context.getString(R.string.wake_service_start_notification))
                 .setStyle(NotificationCompat.BigTextStyle().bigText(
                     context.getString(R.string.wake_service_start_notification_summary)))

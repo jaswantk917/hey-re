@@ -63,6 +63,17 @@
     <!-- settings_header -->
     <string name="pref_io">Input and output methods</string>
     <string name="pref_general">General</string>
+    <string name="pref_skills_screen_subtitle">What Hey re can do, and what to say</string>
+    <string name="pref_access">Assistant &amp; access</string>
+    <string name="pref_access_assistant">Phone\'s assistant</string>
+    <string name="pref_access_assistant_ok">Hey re answers the gesture and can read the screen</string>
+    <string name="pref_access_assistant_fix">Not set: tap and pick Hey re as the digital assistant</string>
+    <string name="pref_access_home_ok">Connected: lights and switches by voice</string>
+    <string name="pref_access_home_fix">Not connected: tap to connect</string>
+    <string name="pref_access_home_connecting">Connecting…</string>
+    <string name="pref_access_dnd">Do Not Disturb access</string>
+    <string name="pref_access_dnd_ok">Allowed: silent and DND by voice</string>
+    <string name="pref_access_dnd_fix">Not allowed: tap to allow, for silent and DND by voice</string>
     <string name="pref_appearance">Appearance</string>
     <string name="pref_skills_title">Skills</string>
     <string name="pref_skills_summary">Enable/disable skills and tune their behavior</string>
@@ -330,7 +341,9 @@
     <string name="about">About</string>
     <string name="about_version">%1$s (%2$d)</string>
     <string name="about_version_copy">Copy version info</string>
-    <string name="about_description">Multilanguage, local and libre voice assistant</string>
+    <string name="about_description">Your Hinglish voice assistant, running on your phone</string>
+    <string name="about_version_copied">Copied</string>
+    <string name="about_dicio_group">Built on Dicio</string>
     <string name="about_repository_title">Source code repository</string>
     <string name="about_repository_description">Hey re is free and open source, licensed under GPLv3, and built on Dicio by Stypox and its contributors</string>
     <string name="about_repository_link" translatable="false">https://github.com/jaswantk917/hey-re</string>
@@ -350,6 +363,11 @@
     <string name="greeting_afternoon">Good afternoon</string>
     <string name="greeting_evening">Good evening</string>
     <string name="greeting_night">Up late?</string>
+    <string name="greeting_morning_named">Good morning, %1$s</string>
+    <string name="greeting_afternoon_named">Good afternoon, %1$s</string>
+    <string name="greeting_evening_named">Good evening, %1$s</string>
+    <string name="greeting_night_named">Up late, %1$s?</string>
+    <string name="pref_about_summary">Version, source code and privacy</string>
     <string name="home_prompt">What\'s up?</string>
     <string name="try_saying">Try saying</string>
     <string name="see_all_skills">See all</string>

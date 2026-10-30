@@ -1,6 +1,27 @@
 package org.stypox.dicio.settings.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.Shape
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import org.stypox.dicio.ui.home.groupedItemShape
+import org.stypox.dicio.ui.util.Haptic
+import org.stypox.dicio.ui.util.rememberHaptics
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -67,15 +88,29 @@ class BooleanSetting(
         value: Boolean,
         onValueChange: (Boolean) -> Unit,
     ) {
+        val haptics = rememberHaptics()
+        val toggle = { wanted: Boolean ->
+            haptics.play(if (wanted) Haptic.ToggleOn else Haptic.ToggleOff)
+            onValueChange(wanted)
+        }
         SettingsItem(
-            modifier = Modifier.clickable { onValueChange(!value) },
+            modifier = Modifier.clickable { toggle(!value) },
             title = title,
             icon = icon,
             description = if (value) descriptionOn else descriptionOff,
             content = {
                 Switch(
                     checked = value,
-                    onCheckedChange = onValueChange,
+                    onCheckedChange = toggle,
+                    thumbContent = {
+                        AnimatedVisibility(visible = value, enter = scaleIn(), exit = scaleOut()) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        }
+                    },
                 )
             },
         )
@@ -103,9 +138,14 @@ class IntSetting(
             icon = icon,
             description = description?.invoke(value),
             innerContent = {
+                val haptics = rememberHaptics()
                 Slider(
                     value = value.toFloat(),
-                    onValueChange = { onValueChange(it.roundToInt()) },
+                    onValueChange = {
+                        // a light tick per step, like a dial clicking
+                        if (it.roundToInt() != value) haptics.play(Haptic.Segment)
+                        onValueChange(it.roundToInt())
+                    },
                     steps = maximum - minimum - 1,
                     valueRange = minimum.toFloat()..maximum.toFloat()
                 )
@@ -153,63 +193,68 @@ class ListSetting<T>(
         }
     }
 
+    /**
+     * The choices in a bottom sheet, like Android's own pickers: the current one highlighted, and
+     * a pick shows itself selected for a moment before the sheet goes.
+     */
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun ChooserDialog(
         value: T,
         onValueChange: (T) -> Unit,
         onDismissRequest: () -> Unit,
     ) {
-        Dialog(onDismissRequest = onDismissRequest) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.extraLarge,
-            ) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        val scope = rememberCoroutineScope()
+        val haptics = rememberHaptics()
+        var picked by remember { mutableStateOf(value) }
+        ModalBottomSheet(
+            onDismissRequest = onDismissRequest,
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 4.dp),
+            )
+            if (description != null) {
                 Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp),
+                    text = description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 8.dp),
                 )
-                if (description != null) {
-                    Text(
-                        text = description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 24.dp, end = 24.dp, bottom = 8.dp),
-                    )
-                }
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                ) {
-                    items(possibleValues) {
-                        ListSettingChooserDialogItem(
-                            name = it.name,
-                            description = it.description,
-                            icon = it.icon,
-                            selected = it.value == value,
-                            onClick = {
-                                onValueChange(it.value)
+            }
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
+            ) {
+                itemsIndexed(possibleValues) { index, option ->
+                    ListSettingChooserDialogItem(
+                        name = option.name,
+                        description = option.description,
+                        icon = option.icon,
+                        selected = option.value == picked,
+                        shape = groupedItemShape(index, possibleValues.size),
+                        onClick = {
+                            haptics.play(Haptic.Tap)
+                            picked = option.value
+                            onValueChange(option.value)
+                            scope.launch {
+                                delay(PICK_LINGER_MILLIS)
+                                sheetState.hide()
                                 onDismissRequest()
                             }
-                        )
-                    }
-                }
-                TextButton(
-                    onClick = onDismissRequest,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Text(stringResource(android.R.string.cancel))
+                        },
+                    )
                 }
             }
         }
+    }
+
+    companion object {
+        private const val PICK_LINGER_MILLIS = 220L
     }
 }
 
@@ -220,41 +265,49 @@ fun ListSettingChooserDialogItem(
     icon: ImageVector?,
     selected: Boolean,
     onClick: () -> Unit,
+    shape: Shape = MaterialTheme.shapes.large,
 ) {
-    Row(
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    val container by animateColorAsState(
+        if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceBright,
+        label = "choiceContainer",
+    )
+    Surface(
+        onClick = onClick,
+        shape = shape,
+        color = container,
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        RadioButton(
-            selected = selected,
-            onClick = null,
-        )
-        Column(
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-            modifier = Modifier.weight(1.0f)
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = name,
-                style = MaterialTheme.typography.bodyMedium,
-                lineHeight = MaterialTheme.typography.bodyMedium.fontSize * 1.1,
-                modifier = Modifier.fillMaxWidth()
-            )
-            if (description != null) {
+            if (icon != null) {
+                Icon(imageVector = icon, contentDescription = null)
+            }
+            Column(
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+                modifier = Modifier.weight(1.0f)
+            ) {
                 Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
-                    modifier = Modifier.fillMaxWidth(),
+                    text = name,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                if (description != null) {
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            AnimatedVisibility(visible = selected, enter = scaleIn() + fadeIn(), exit = scaleOut() + fadeOut()) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
                 )
             }
-        }
-        if (icon != null) {
-            Icon(
-                imageVector = icon,
-                contentDescription = name,
-            )
         }
     }
 }

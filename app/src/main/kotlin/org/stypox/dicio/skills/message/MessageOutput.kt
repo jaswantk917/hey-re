@@ -1,5 +1,9 @@
 package org.stypox.dicio.skills.message
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -30,6 +34,7 @@ import org.stypox.dicio.R
 import org.stypox.dicio.io.graphical.Countdown
 import org.stypox.dicio.io.graphical.CountdownBar
 import org.stypox.dicio.io.graphical.Headline
+import org.stypox.dicio.io.shell.Shell
 import org.stypox.dicio.io.graphical.HeadlineSpeechSkillOutput
 import org.stypox.dicio.sentences.Sentences
 import org.stypox.dicio.skills.telephone.ContactHeader
@@ -39,7 +44,8 @@ import org.stypox.dicio.util.getString
 
 /**
  * "Sending to Maa in 4" over the contact and the message as a chat bubble; once the countdown ends
- * the chat opens with the text typed in. A loose contact match waits for a tap instead.
+ * the chat opens with the text typed in, and with Shizuku it is sent too. A loose contact match
+ * waits for a tap instead.
  */
 class SendMessageOutput(
     private val recipient: Recipient,
@@ -48,6 +54,8 @@ class SendMessageOutput(
 ) : SkillOutput {
     private val countdown = Countdown(auto = recipient.confident)
     private val opened = mutableStateOf(true)
+    // with Shizuku, WhatsApp's send button is pressed for the user
+    private val sent = mutableStateOf<Boolean?>(null)
 
     override fun getSpeechOutput(ctx: SkillContext): String = when {
         countdown.state == Countdown.State.Waiting ->
@@ -57,7 +65,12 @@ class SendMessageOutput(
     }
 
     override fun getInteractionPlan(ctx: SkillContext): InteractionPlan {
-        countdown.start(ctx.android) { opened.value = Messenger.open(ctx.android, recipient, text) }
+        countdown.start(ctx.android) {
+            opened.value = Messenger.open(ctx.android, recipient, text)
+            if (opened.value && recipient.app == MessageApp.WhatsApp && Shell.status.value == Shell.Status.Ready) {
+                sendScope.launch { sent.value = WhatsAppSender.pressSend() }
+            }
+        }
         if (recipient.app == MessageApp.Slack) {
             // nothing to count down to: the person is still picked in Slack
             countdown.confirm(ctx.android)
@@ -88,8 +101,11 @@ class SendMessageOutput(
         Column {
             when (state) {
                 Countdown.State.Done -> Headline(
-                    text = if (opened.value) stringResource(recipient.app.ready, recipient.name)
-                    else stringResource(R.string.skill_message_no_app, stringResource(recipient.app.label))
+                    text = when {
+                        !opened.value -> stringResource(R.string.skill_message_no_app, stringResource(recipient.app.label))
+                        sent.value == true -> stringResource(R.string.skill_message_sent, recipient.name)
+                        else -> stringResource(recipient.app.ready, recipient.name)
+                    }
                 )
                 Countdown.State.Cancelled -> Headline(text = stringResource(R.string.skill_message_not_sending))
                 else -> {}
@@ -115,6 +131,9 @@ class SendMessageOutput(
         }
     }
 }
+
+// outlives the screen: WhatsApp is in front while the send button is found and pressed
+private val sendScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
 sealed interface MessageOutput : SkillOutput {
     class NoContact(private val name: String) : MessageOutput, HeadlineSpeechSkillOutput {

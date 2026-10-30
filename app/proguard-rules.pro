@@ -16,3 +16,6 @@
 -keep class com.google.mlkit.** { *; }
 -keep class com.google.android.gms.internal.mlkit_genai_** { *; }
 -keep class com.google.android.datatransport.** { *; }
+
+# Shell.run reaches Shizuku.newProcess by reflection
+-keep class rikka.shizuku.** { *; }

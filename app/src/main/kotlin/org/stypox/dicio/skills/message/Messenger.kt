@@ -36,6 +36,7 @@ data class Recipient(
 /**
  * Opens the chat with the text already typed, leaving the final send to the user: neither WhatsApp
  * nor Slack let another app send for them, and SMS goes the same way so all three feel alike.
+ * With Shizuku, [WhatsAppSender] presses WhatsApp's send button afterwards.
  */
 object Messenger {
     const val WHATSAPP = "com.whatsapp"

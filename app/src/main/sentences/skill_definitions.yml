@@ -1,4 +1,24 @@
 skills:
+  - id: phone_toggle
+    specificity: high
+    sentences:
+      - id: wifi_on
+      - id: wifi_off
+      - id: bluetooth_on
+      - id: bluetooth_off
+      - id: mobile_data_on
+      - id: mobile_data_off
+      - id: hotspot_on
+      - id: hotspot_off
+      - id: airplane_on
+      - id: airplane_off
+      - id: battery_saver_on
+      - id: battery_saver_off
+      - id: dark_mode_on
+      - id: dark_mode_off
+      - id: location_on
+      - id: location_off
+
   - id: check_in
     specificity: medium
     sentences:

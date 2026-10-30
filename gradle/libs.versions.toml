@@ -11,7 +11,8 @@ graphicsShapes = "1.0.1"
 mlkitGenaiPrompt = "1.0.0-beta4"
 healthConnect = "1.1.0"
 playServicesAuth = "21.6.0"
-playServicesHome = "17.1.0" # local, see settings.gradle.kts
+playServicesHome = "17.1.0"
+shizuku = "13.1.5" # local, see settings.gradle.kts
 # the Home SDK calls Mutex.unlock$default as it is laid out from 1.11 on
 kotlinxCoroutines = "1.11.0"
 datastore = "1.1.7"
@@ -69,6 +70,8 @@ mlkit-genai-prompt = { module = "com.google.mlkit:genai-prompt", version.ref = "
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 health-connect-client = { module = "androidx.health.connect:connect-client", version.ref = "healthConnect" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
+shizuku-api = { module = "dev.rikka.shizuku:api", version.ref = "shizuku" }
+shizuku-provider = { module = "dev.rikka.shizuku:provider", version.ref = "shizuku" }
 play-services-home = { module = "com.google.android.gms:play-services-home", version.ref = "playServicesHome" }
 play-services-home-types = { module = "com.google.android.gms:play-services-home-types", version.ref = "playServicesHome" }
 compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }

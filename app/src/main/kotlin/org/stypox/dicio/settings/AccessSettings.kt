@@ -17,9 +17,12 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DoNotDisturbOn
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -35,12 +38,14 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.launch
 import org.stypox.dicio.R
+import org.stypox.dicio.io.shell.Shell
 import org.stypox.dicio.settings.ui.SettingsItem
 import org.stypox.dicio.skills.home.HomeInfo
 
 /**
  * What Hey re needs from Android and Google to do everything it can, each with where to fix it:
- * being the assistant (for the gesture and the screen), Google Home, and Do Not Disturb access.
+ * being the assistant (for the gesture and the screen), Google Home, Shizuku (phone switches and
+ * sending WhatsApp) and Do Not Disturb access.
  * Re-checked whenever Hey re comes back from Settings.
  */
 @Composable
@@ -62,6 +67,8 @@ fun accessRows(): List<@Composable () -> Unit> {
     val homeConnected by produceState<Boolean?>(null, refresh) {
         value = runCatching { home.isConnected() }.getOrDefault(false)
     }
+    val shizuku by Shell.status.collectAsState()
+    LaunchedEffect(refresh) { Shell.refresh() }
     val scope = rememberCoroutineScope()
     var connecting by remember { mutableStateOf(false) }
 
@@ -91,6 +98,26 @@ fun accessRows(): List<@Composable () -> Unit> {
                         runCatching { home.connect() }
                         connecting = false
                         refresh++
+                    }
+                },
+            )
+        },
+        {
+            AccessRow(
+                title = stringResource(R.string.pref_access_shizuku),
+                icon = Icons.Default.Terminal,
+                ok = shizuku == Shell.Status.Ready,
+                okText = stringResource(R.string.pref_access_shizuku_ok),
+                fixText = stringResource(
+                    if (shizuku == Shell.Status.NotRunning) R.string.pref_access_shizuku_start
+                    else R.string.pref_access_shizuku_allow
+                ),
+                onClick = {
+                    when (shizuku) {
+                        Shell.Status.Ready -> {}
+                        Shell.Status.NeedsPermission -> Shell.requestPermission()
+                        Shell.Status.NotRunning -> context.packageManager
+                            .getLaunchIntentForPackage(Shell.SHIZUKU_PACKAGE)?.let { context.startActivity(it) }
                     }
                 },
             )

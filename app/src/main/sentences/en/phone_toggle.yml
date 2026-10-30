@@ -1,0 +1,102 @@
+# "wifi band karo", "turn on the hotspot", "dark mode chalu kar do"
+wifi_on:
+  - (turn|switch|put) on (the|my)? (wifi|(wi fi))
+  - (turn|switch) (the|my)? (wifi|(wi fi)) on
+  - (enable) (the|my)? (wifi|(wi fi))
+  - (the|my)? (wifi|(wi fi)) (on|chalu|start|shuru|enable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+
+wifi_off:
+  - (turn|switch|put) off (the|my)? (wifi|(wi fi))
+  - (turn|switch) (the|my)? (wifi|(wi fi)) off
+  - (disable) (the|my)? (wifi|(wi fi))
+  - (the|my)? (wifi|(wi fi)) (off|band|bandh|bund|disable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+
+bluetooth_on:
+  - (turn|switch|put) on (the|my)? (bluetooth|(blue tooth))
+  - (turn|switch) (the|my)? (bluetooth|(blue tooth)) on
+  - (enable) (the|my)? (bluetooth|(blue tooth))
+  - (the|my)? (bluetooth|(blue tooth)) (on|chalu|start|shuru|enable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+
+bluetooth_off:
+  - (turn|switch|put) off (the|my)? (bluetooth|(blue tooth))
+  - (turn|switch) (the|my)? (bluetooth|(blue tooth)) off
+  - (disable) (the|my)? (bluetooth|(blue tooth))
+  - (the|my)? (bluetooth|(blue tooth)) (off|band|bandh|bund|disable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+
+mobile_data_on:
+  - (turn|switch|put) on (the|my)? ((mobile data)|(mobile internet)|data|internet)
+  - (turn|switch) (the|my)? ((mobile data)|(mobile internet)|data|internet) on
+  - (enable) (the|my)? ((mobile data)|(mobile internet)|data|internet)
+  - (the|my)? ((mobile data)|(mobile internet)|data|internet) (on|chalu|start|shuru|enable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+
+mobile_data_off:
+  - (turn|switch|put) off (the|my)? ((mobile data)|(mobile internet)|data|internet)
+  - (turn|switch) (the|my)? ((mobile data)|(mobile internet)|data|internet) off
+  - (disable) (the|my)? ((mobile data)|(mobile internet)|data|internet)
+  - (the|my)? ((mobile data)|(mobile internet)|data|internet) (off|band|bandh|bund|disable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+
+hotspot_on:
+  - (turn|switch|put) on (the|my)? (hotspot|(hot spot)|(mobile hotspot)|tethering)
+  - (turn|switch) (the|my)? (hotspot|(hot spot)|(mobile hotspot)|tethering) on
+  - (enable) (the|my)? (hotspot|(hot spot)|(mobile hotspot)|tethering)
+  - (the|my)? (hotspot|(hot spot)|(mobile hotspot)|tethering) (on|chalu|start|shuru|enable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+
+hotspot_off:
+  - (turn|switch|put) off (the|my)? (hotspot|(hot spot)|(mobile hotspot)|tethering)
+  - (turn|switch) (the|my)? (hotspot|(hot spot)|(mobile hotspot)|tethering) off
+  - (disable) (the|my)? (hotspot|(hot spot)|(mobile hotspot)|tethering)
+  - (the|my)? (hotspot|(hot spot)|(mobile hotspot)|tethering) (off|band|bandh|bund|disable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+
+airplane_on:
+  - (turn|switch|put) on (the|my)? ((airplane|aeroplane|flight|aircraft) mode)
+  - (turn|switch) (the|my)? ((airplane|aeroplane|flight|aircraft) mode) on
+  - (enable) (the|my)? ((airplane|aeroplane|flight|aircraft) mode)
+  - (the|my)? ((airplane|aeroplane|flight|aircraft) mode) (on|chalu|start|shuru|enable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+
+airplane_off:
+  - (turn|switch|put) off (the|my)? ((airplane|aeroplane|flight|aircraft) mode)
+  - (turn|switch) (the|my)? ((airplane|aeroplane|flight|aircraft) mode) off
+  - (disable) (the|my)? ((airplane|aeroplane|flight|aircraft) mode)
+  - (the|my)? ((airplane|aeroplane|flight|aircraft) mode) (off|band|bandh|bund|disable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+
+battery_saver_on:
+  - (turn|switch|put) on (the|my)? ((battery|power) saver|saving (mode)?)
+  - (turn|switch) (the|my)? ((battery|power) saver|saving (mode)?) on
+  - (enable) (the|my)? ((battery|power) saver|saving (mode)?)
+  - (the|my)? ((battery|power) saver|saving (mode)?) (on|chalu|start|shuru|enable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+
+battery_saver_off:
+  - (turn|switch|put) off (the|my)? ((battery|power) saver|saving (mode)?)
+  - (turn|switch) (the|my)? ((battery|power) saver|saving (mode)?) off
+  - (disable) (the|my)? ((battery|power) saver|saving (mode)?)
+  - (the|my)? ((battery|power) saver|saving (mode)?) (off|band|bandh|bund|disable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+
+dark_mode_on:
+  - (turn|switch|put) on (the|my)? (dark mode|theme)
+  - (turn|switch) (the|my)? (dark mode|theme) on
+  - (enable) (the|my)? (dark mode|theme)
+  - (the|my)? (dark mode|theme) (on|chalu|start|shuru|enable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+  - (turn|switch|put) off (the)? light mode|theme
+  - (the)? light mode|theme (off|band|bandh|bund|disable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+  - (switch|go) to dark mode|theme
+
+dark_mode_off:
+  - (turn|switch|put) off (the|my)? (dark mode|theme)
+  - (turn|switch) (the|my)? (dark mode|theme) off
+  - (disable) (the|my)? (dark mode|theme)
+  - (the|my)? (dark mode|theme) (off|band|bandh|bund|disable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+  - (turn|switch|put) on (the)? light mode|theme
+  - (the)? light mode|theme (on|chalu|start|shuru|enable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+  - (switch|go) to light mode|theme
+
+location_on:
+  - (turn|switch|put) on (the|my)? (location|gps)
+  - (turn|switch) (the|my)? (location|gps) on
+  - (enable) (the|my)? (location|gps)
+  - (the|my)? (location|gps) (on|chalu|start|shuru|enable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+
+location_off:
+  - (turn|switch|put) off (the|my)? (location|gps)
+  - (turn|switch) (the|my)? (location|gps) off
+  - (disable) (the|my)? (location|gps)
+  - (the|my)? (location|gps) (off|band|bandh|bund|disable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?

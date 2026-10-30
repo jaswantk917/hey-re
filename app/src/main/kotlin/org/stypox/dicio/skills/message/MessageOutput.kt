@@ -104,7 +104,7 @@ class SendMessageOutput(
                     else stringResource(R.string.skill_message_sending_in, recipient.name, secondsLeft)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                ContactHeader(name = recipient.name, number = recipient.address)
+                ContactHeader(name = recipient.name, number = recipient.shownNumber())
                 Spacer(modifier = Modifier.height(4.dp))
                 MessageBubble(text = text, app = recipient.app)
             }
@@ -163,7 +163,7 @@ sealed interface MessageOutput : SkillOutput {
                 Headline(text = getSpeechOutput(ctx))
                 Spacer(modifier = Modifier.height(8.dp))
                 if (recipient.app != MessageApp.Slack) {
-                    ContactHeader(name = recipient.name, number = recipient.address)
+                    ContactHeader(name = recipient.name, number = recipient.shownNumber())
                 }
             }
         }

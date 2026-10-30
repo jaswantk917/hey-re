@@ -5,9 +5,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.telephony.PhoneNumberUtils
 import android.util.Log
 import androidx.annotation.StringRes
 import org.stypox.dicio.R
+import java.util.Locale
 
 enum class MessageApp(@StringRes val label: Int, @StringRes val ready: Int) {
     WhatsApp(R.string.skill_message_via_whatsapp, R.string.skill_message_ready_whatsapp),
@@ -21,7 +23,15 @@ data class Recipient(
     val address: String?,
     val app: MessageApp,
     val confident: Boolean,
-)
+) {
+    /** WhatsApp gives bare digits ("919876543210"); show them as the dialer would. */
+    fun shownNumber(): String? = when {
+        address == null -> null
+        app == MessageApp.WhatsApp ->
+            PhoneNumberUtils.formatNumber("+$address", Locale.getDefault().country) ?: "+$address"
+        else -> address
+    }
+}
 
 /**
  * Opens the chat with the text already typed, leaving the final send to the user: neither WhatsApp

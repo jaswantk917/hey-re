@@ -3,6 +3,7 @@ package org.stypox.dicio.ui.home
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -39,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -55,6 +58,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import org.dicio.skill.context.SkillContext
 import org.dicio.skill.skill.SkillInfo
 import org.dicio.skill.skill.SkillOutput
@@ -222,12 +226,37 @@ fun InteractionList(
         if ((!prevHasPending && newHasPending) || newAnswerCount > prevAnswerCount) {
             scope.launch {
                 listState.animateScrollToItem(lastAnchorIndex)
+                listState.revealLastItem()
             }
         }
         prevHasPending = newHasPending
         prevAnswerCount = newAnswerCount
     }
 }
+
+/**
+ * Keeps the whole last item on screen while it settles (cards grow a moment after appearing), so
+ * actions at its bottom, like a countdown's Cancel, aren't left below the fold; an item taller than
+ * the screen keeps its top in view instead.
+ */
+internal suspend fun LazyListState.revealLastItem() {
+    withTimeoutOrNull(REVEAL_SETTLE_MILLIS) {
+        snapshotFlow {
+            val info = layoutInfo
+            val last = info.visibleItemsInfo.lastOrNull()
+            if (last == null || last.index != info.totalItemsCount - 1) {
+                0
+            } else {
+                val viewportEnd = info.viewportEndOffset - info.afterContentPadding
+                val hiddenBelow = last.offset + last.size - viewportEnd
+                val roomAbove = last.offset - (info.viewportStartOffset + info.beforeContentPadding)
+                minOf(hiddenBelow, roomAbove)
+            }
+        }.collect { if (it > 0) animateScrollBy(it.toFloat()) }
+    }
+}
+
+private const val REVEAL_SETTLE_MILLIS = 1200L
 
 // mirrors WakeWordWidget, which also shows itself while permissions are missing
 @Composable

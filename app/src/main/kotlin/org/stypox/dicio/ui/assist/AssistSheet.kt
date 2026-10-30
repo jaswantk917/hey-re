@@ -69,6 +69,7 @@ import org.stypox.dicio.ui.home.SkillsSheet
 import org.stypox.dicio.ui.home.SttHaptics
 import org.stypox.dicio.ui.home.UserBubble
 import org.stypox.dicio.ui.home.orbMood
+import org.stypox.dicio.ui.home.revealLastItem
 import org.stypox.dicio.ui.home.rememberHappyOnNewAnswer
 import org.stypox.dicio.ui.util.Haptic
 import org.stypox.dicio.ui.util.rememberHaptics
@@ -128,7 +129,10 @@ fun AssistSheet(
             val itemCount = answers.size * 2 + if (pendingQuestion != null) 2 else 0
             // keyed on both: a pending question turning into an answer keeps the same item count
             LaunchedEffect(answers.size, pendingQuestion != null) {
-                if (itemCount > 0) listState.animateScrollToItem(itemCount - 1)
+                if (itemCount > 0) {
+                    listState.animateScrollToItem(itemCount - 1)
+                    listState.revealLastItem()
+                }
             }
 
             if (answers.isEmpty() && pendingQuestion == null) {

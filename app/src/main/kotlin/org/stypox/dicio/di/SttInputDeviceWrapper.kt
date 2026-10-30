@@ -23,10 +23,12 @@ import org.stypox.dicio.io.input.InputEvent
 import org.stypox.dicio.io.input.SttInputDevice
 import org.stypox.dicio.io.input.SttState
 import org.stypox.dicio.io.input.external_popup.ExternalPopupInputDevice
+import org.stypox.dicio.io.input.ondevice.OnDeviceSttInputDevice
 import org.stypox.dicio.io.input.vosk.VoskInputDevice
 import org.stypox.dicio.settings.datastore.InputDevice
 import org.stypox.dicio.settings.datastore.InputDevice.INPUT_DEVICE_EXTERNAL_POPUP
 import org.stypox.dicio.settings.datastore.InputDevice.INPUT_DEVICE_NOTHING
+import org.stypox.dicio.settings.datastore.InputDevice.INPUT_DEVICE_ON_DEVICE
 import org.stypox.dicio.settings.datastore.InputDevice.INPUT_DEVICE_UNSET
 import org.stypox.dicio.settings.datastore.InputDevice.INPUT_DEVICE_VOSK
 import org.stypox.dicio.settings.datastore.InputDevice.UNRECOGNIZED
@@ -105,7 +107,17 @@ class SttInputDeviceWrapperImpl(
     private fun buildInputDevice(setting: InputDevice): SttInputDevice? {
         return when (setting) {
             UNRECOGNIZED,
-            INPUT_DEVICE_UNSET,
+            INPUT_DEVICE_UNSET -> if (OnDeviceSttInputDevice.isAvailable(appContext)) {
+                // the phone's own recognizer is far better where it exists, and needs no download
+                OnDeviceSttInputDevice(appContext, localeManager, silencesBeforeStop)
+            } else {
+                VoskInputDevice(appContext, okHttpClient, localeManager, silencesBeforeStop)
+            }
+            INPUT_DEVICE_ON_DEVICE -> if (OnDeviceSttInputDevice.isAvailable(appContext)) {
+                OnDeviceSttInputDevice(appContext, localeManager, silencesBeforeStop)
+            } else {
+                VoskInputDevice(appContext, okHttpClient, localeManager, silencesBeforeStop)
+            }
             INPUT_DEVICE_VOSK -> VoskInputDevice(appContext, okHttpClient, localeManager, silencesBeforeStop)
             INPUT_DEVICE_EXTERNAL_POPUP ->
                 ExternalPopupInputDevice(appContext, activityForResultManager, localeManager)

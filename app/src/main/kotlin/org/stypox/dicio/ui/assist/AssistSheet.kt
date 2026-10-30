@@ -1,14 +1,37 @@
 package org.stypox.dicio.ui.assist
 
+import androidx.activity.compose.PredictiveBackHandler
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,14 +39,11 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.OpenInFull
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -57,7 +77,6 @@ import org.stypox.dicio.ui.util.rememberHaptics
  * What the assist gesture opens: a sheet over whatever app is in front, listening right away, with
  * only the questions and answers of this visit. The full app is one tap away.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AssistSheet(
     onDismiss: () -> Unit,
@@ -83,14 +102,12 @@ fun AssistSheet(
     val isHappy = rememberHappyOnNewAnswer(interactionLog)
     SttHaptics(sttState)
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-        contentWindowInsets = { WindowInsets.ime },
-    ) {
-        Column(modifier = Modifier.navigationBarsPadding()) {
+    OverlaySheet(onDismiss = onDismiss) {
+        Column(
+            modifier = Modifier
+                .navigationBarsPadding()
+                .imePadding()
+        ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(start = 24.dp, end = 12.dp),
@@ -201,5 +218,96 @@ fun AssistSheet(
             },
             onDismiss = { showSkillsSheet = false },
         )
+    }
+}
+
+/**
+ * A bottom sheet drawn right in the activity's own transparent window (a ModalBottomSheet would
+ * open a dialog window that doesn't go edge to edge here). It springs up, follows the finger when
+ * dragged down, and shrinks along with the predictive back gesture.
+ */
+@Composable
+private fun OverlaySheet(
+    onDismiss: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val density = LocalDensity.current
+    val appear = remember { Animatable(0f) }
+    val drag = remember { Animatable(0f) }
+    val back = remember { Animatable(0f) }
+    var sheetHeight by remember { mutableFloatStateOf(1f) }
+    var dismissing by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        appear.animateTo(1f, spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow))
+    }
+
+    fun dismiss() {
+        if (dismissing) return
+        dismissing = true
+        scope.launch {
+            appear.animateTo(0f, spring(dampingRatio = 1f, stiffness = Spring.StiffnessMedium))
+            onDismiss()
+        }
+    }
+
+    PredictiveBackHandler { progress ->
+        try {
+            progress.collect { back.snapTo(it.progress) }
+            dismiss()
+        } catch (e: CancellationException) {
+            back.animateTo(0f)
+            throw e
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer { alpha = appear.value.coerceIn(0f, 1f) }
+                .background(Color.Black.copy(alpha = 0.32f))
+                .pointerInput(Unit) { detectTapGestures { dismiss() } }
+        )
+        Surface(
+            shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            shadowElevation = 12.dp,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .onSizeChanged { sheetHeight = it.height.toFloat() }
+                .graphicsLayer {
+                    translationY = (1f - appear.value) * sheetHeight + drag.value
+                    val scale = 1f - 0.08f * back.value
+                    scaleX = scale
+                    scaleY = scale
+                    transformOrigin = TransformOrigin(0.5f, 1f)
+                }
+                .draggable(
+                    orientation = Orientation.Vertical,
+                    state = rememberDraggableState { delta ->
+                        scope.launch { drag.snapTo((drag.value + delta).coerceAtLeast(0f)) }
+                    },
+                    onDragStopped = { velocity ->
+                        if (drag.value > with(density) { 120.dp.toPx() } || velocity > 2400f) {
+                            dismiss()
+                        } else {
+                            drag.animateTo(0f, spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium))
+                        }
+                    },
+                ),
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(
+                    modifier = Modifier
+                        .padding(top = 12.dp, bottom = 8.dp)
+                        .size(width = 36.dp, height = 4.dp)
+                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f), CircleShape)
+                )
+                content()
+            }
+        }
     }
 }

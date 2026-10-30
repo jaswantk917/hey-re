@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.stypox.dicio.R
 import org.stypox.dicio.io.input.SttInputDevice
+import org.stypox.dicio.io.input.ondevice.OnDeviceSttInputDevice
 import org.stypox.dicio.settings.datastore.InputDevice
 import org.stypox.dicio.settings.datastore.Language
 import org.stypox.dicio.settings.datastore.SpeechOutputDevice
@@ -127,7 +129,11 @@ private fun MainSettingsScreen(
             inputDevice().Render(
                 when (val inputDevice = settings.inputDevice) {
                     InputDevice.UNRECOGNIZED,
-                    InputDevice.INPUT_DEVICE_UNSET -> InputDevice.INPUT_DEVICE_VOSK
+                    InputDevice.INPUT_DEVICE_UNSET ->
+                        if (OnDeviceSttInputDevice.isAvailable(LocalContext.current))
+                            InputDevice.INPUT_DEVICE_ON_DEVICE
+                        else
+                            InputDevice.INPUT_DEVICE_VOSK
                     else -> inputDevice
                 },
                 viewModel::setInputDevice,

@@ -301,6 +301,8 @@
     <string name="voice_setup_title">Let\'s get your voice ready</string>
     <string name="voice_setup_description">Hey re understands you fully offline. It needs a one-time download of the voice model for your language.</string>
     <string name="voice_setup_unavailable">Voice isn\'t available for this language yet, but you can type to Hey re.</string>
+    <string name="pref_input_method_on_device">Phone\'s speech recognition</string>
+    <string name="pref_input_method_on_device_summary">Your phone\'s own offline recognizer: the most accurate, with nothing extra to download where your phone already has the language</string>
     <string name="assist_open_app">Open Hey re</string>
     <string name="voice_setup_download">Download voice model</string>
     <string name="voice_setup_ready">Ready! Tap the orb and talk.</string>

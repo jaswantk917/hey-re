@@ -107,7 +107,7 @@ private fun MainSettingsScreen(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             item {
                 dynamicColors().Render(
-                    settings.dynamicColors,
+                    settings.useDynamicColors,
                     viewModel::setDynamicColors
                 )
             }

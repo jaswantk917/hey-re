@@ -1,8 +1,11 @@
 package org.stypox.dicio.skills.timer
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.os.Build
+import android.provider.AlarmClock
 import android.util.Log
 import androidx.annotation.StringRes
 import kotlinx.coroutines.Dispatchers
@@ -27,6 +30,10 @@ class TimerSkill(
 ) : StandardRecognizerSkill<Timer>(correspondingSkillInfo, data) {
 
     override suspend fun generateOutput(ctx: SkillContext, inputData: Timer): SkillOutput {
+        // the Clock app can't be asked about its timers, only shown
+        if (inputData !is Timer.Set && SET_TIMERS.isEmpty() && showClockTimers(ctx)) {
+            return TimerOutput.Query(ctx.getString(R.string.skill_timer_open_clock))
+        }
         return when (inputData) {
             is Timer.Set -> {
                 if (inputData.duration == null) {
@@ -53,6 +60,9 @@ class TimerSkill(
         duration: Duration,
         name: String?,
     ): SkillOutput {
+        if (startClockTimer(ctx, duration, name)) {
+            return TimerOutput.SetInClock(duration.toMillis(), name)
+        }
         var ringtone: Ringtone? = null
 
         val setTimer = withContext(Dispatchers.Main) { SetTimer(
@@ -115,6 +125,29 @@ class TimerSkill(
             setTimer.lastTickMillisState,
             name,
         )
+    }
+
+    /** Hands the timer to the phone's Clock app, so it rings, shows up and survives like any other. */
+    private fun startClockTimer(ctx: SkillContext, duration: Duration, name: String?): Boolean {
+        if (duration.seconds !in 1..MAX_CLOCK_TIMER_SECONDS) return false
+        val intent = Intent(AlarmClock.ACTION_SET_TIMER)
+            .putExtra(AlarmClock.EXTRA_LENGTH, duration.seconds.toInt())
+            .putExtra(AlarmClock.EXTRA_SKIP_UI, true)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        name?.let { intent.putExtra(AlarmClock.EXTRA_MESSAGE, it) }
+        return tryStart(ctx, intent)
+    }
+
+    private fun showClockTimers(ctx: SkillContext): Boolean = tryStart(
+        ctx, Intent(AlarmClock.ACTION_SHOW_TIMERS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    )
+
+    private fun tryStart(ctx: SkillContext, intent: Intent): Boolean = try {
+        ctx.android.startActivity(intent)
+        true
+    } catch (e: ActivityNotFoundException) {
+        Log.i(TAG, "No clock app for ${intent.action}, using the built-in timer", e)
+        false
     }
 
     private fun cancelTimer(ctx: SkillContext, name: String?): SkillOutput {
@@ -213,5 +246,7 @@ class TimerSkill(
     companion object {
         val SET_TIMERS: MutableList<SetTimer> = ArrayList()
         val TAG: String = TimerSkill::class.simpleName!!
+        // AlarmClock.EXTRA_LENGTH accepts at most 24 hours
+        private const val MAX_CLOCK_TIMER_SECONDS = 86_400L
     }
 }

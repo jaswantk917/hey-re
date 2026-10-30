@@ -34,12 +34,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.RecordVoiceOver
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.RecordVoiceOver
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -116,7 +116,7 @@ fun HomeTopBar(
         }
         Spacer(modifier = Modifier.weight(1f))
         IconButton(onClick = onSettingsClick, shapes = IconButtonDefaults.shapes()) {
-            Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
+            Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.settings))
         }
         var menuOpen by remember { mutableStateOf(false) }
         Box {
@@ -130,12 +130,12 @@ fun HomeTopBar(
             ) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.stt_popup)) },
-                    leadingIcon = { Icon(Icons.Default.RecordVoiceOver, contentDescription = null) },
+                    leadingIcon = { Icon(Icons.Outlined.RecordVoiceOver, contentDescription = null) },
                     onClick = { menuOpen = false; onSttPopupClick() },
                 )
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.about)) },
-                    leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) },
+                    leadingIcon = { Icon(Icons.Outlined.Info, contentDescription = null) },
                     onClick = { menuOpen = false; onAboutClick() },
                 )
             }

@@ -12,7 +12,8 @@ option java_multiple_files = true;
 
 message UserSettings {
     Theme theme = 1;
-    bool dynamic_colors = 2;
+    // unset means on, so wallpaper colors are the default
+    optional bool dynamic_colors = 2;
     Language language = 3;
     InputDevice input_device = 4;
     SpeechOutputDevice speech_output_device = 5;

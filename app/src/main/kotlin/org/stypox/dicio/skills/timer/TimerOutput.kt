@@ -2,6 +2,7 @@ package org.stypox.dicio.skills.timer
 
 import android.content.Context
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LongState
 import org.dicio.numbers.ParserFormatter
@@ -17,6 +18,7 @@ import org.dicio.skill.standard.StandardRecognizerData
 import org.stypox.dicio.R
 import org.stypox.dicio.io.graphical.Headline
 import org.stypox.dicio.io.graphical.HeadlineSpeechSkillOutput
+import org.stypox.dicio.io.graphical.Subtitle
 import org.stypox.dicio.sentences.Sentences
 import org.stypox.dicio.util.RecognizeYesNoSkill
 import org.stypox.dicio.util.getString
@@ -43,6 +45,23 @@ sealed interface TimerOutput : SkillOutput {
                     false,
                 ),
             )
+        }
+    }
+
+    class SetInClock(
+        private val milliseconds: Long,
+        private val name: String?,
+    ) : TimerOutput {
+        override fun getSpeechOutput(ctx: SkillContext): String = formatStringWithName(
+            ctx, name, milliseconds, R.string.skill_timer_set, R.string.skill_timer_set_name
+        )
+
+        @Composable
+        override fun GraphicalOutput(ctx: SkillContext) {
+            Column {
+                Headline(text = getFormattedDuration(ctx.parserFormatter!!, milliseconds, false))
+                Subtitle(text = ctx.getString(R.string.skill_timer_in_clock))
+            }
         }
     }
 

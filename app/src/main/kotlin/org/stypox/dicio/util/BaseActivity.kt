@@ -24,6 +24,7 @@ import org.stypox.dicio.di.LocaleManager
 import org.stypox.dicio.di.LocaleManagerModule
 import org.stypox.dicio.settings.datastore.UserSettings
 import org.stypox.dicio.ui.theme.AppTheme
+import org.stypox.dicio.settings.useDynamicColors
 import java.util.Locale
 import javax.inject.Inject
 
@@ -91,13 +92,13 @@ abstract class BaseActivity : ComponentActivity() {
         setContent {
             val theme = remember {
                 dataStore.data
-                    .map { Pair(it.theme, it.dynamicColors) }
+                    .map { Pair(it.theme, it.useDynamicColors) }
             }
                 .collectAsState(
                     // run blocking, because we can't start the app if we don't know the theme
                     initial = runBlocking {
                         val data = dataStore.data.first()
-                        Pair(data.theme, data.dynamicColors)
+                        Pair(data.theme, data.useDynamicColors)
                     }
                 )
 

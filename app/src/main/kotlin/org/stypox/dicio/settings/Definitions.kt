@@ -33,6 +33,7 @@ import org.stypox.dicio.settings.datastore.WakeDevice
 import org.stypox.dicio.settings.ui.BooleanSetting
 import org.stypox.dicio.settings.ui.IntSetting
 import org.stypox.dicio.settings.ui.ListSetting
+import org.stypox.dicio.settings.datastore.UserSettings
 
 
 @Composable
@@ -101,6 +102,10 @@ fun dynamicColors() = BooleanSetting(
     descriptionOff = stringResource(R.string.pref_dynamic_colors_summary),
     descriptionOn = stringResource(R.string.pref_dynamic_colors_summary),
 )
+
+/** Wallpaper colors unless the user turned them off. */
+val UserSettings.useDynamicColors: Boolean
+    get() = !hasDynamicColors() || dynamicColors
 
 @Composable
 fun inputDevice() = ListSetting(

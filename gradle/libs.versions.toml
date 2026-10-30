@@ -9,6 +9,8 @@ coilCompose = "2.7.0"
 composeBom = "2026.10.00"
 graphicsShapes = "1.0.1"
 mlkitGenaiPrompt = "1.0.0-beta4"
+healthConnect = "1.1.0"
+playServicesAuth = "21.6.0"
 playServicesHome = "17.1.0" # local, see settings.gradle.kts
 # the Home SDK calls Mutex.unlock$default as it is laid out from 1.11 on
 kotlinxCoroutines = "1.11.0"
@@ -65,6 +67,8 @@ compose-material3 = { module = "androidx.compose.material3:material3" }
 graphics-shapes = { module = "androidx.graphics:graphics-shapes", version.ref = "graphicsShapes" }
 mlkit-genai-prompt = { module = "com.google.mlkit:genai-prompt", version.ref = "mlkitGenaiPrompt" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
+health-connect-client = { module = "androidx.health.connect:connect-client", version.ref = "healthConnect" }
+play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 play-services-home = { module = "com.google.android.gms:play-services-home", version.ref = "playServicesHome" }
 play-services-home-types = { module = "com.google.android.gms:play-services-home-types", version.ref = "playServicesHome" }
 compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }

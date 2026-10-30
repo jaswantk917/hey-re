@@ -1,4 +1,10 @@
 skills:
+  - id: check_in
+    specificity: medium
+    sentences:
+      - id: english
+      - id: hinglish
+
   - id: current_time
     specificity: high
     sentences:

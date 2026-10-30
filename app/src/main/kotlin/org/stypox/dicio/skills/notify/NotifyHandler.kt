@@ -40,6 +40,25 @@ open class NotifyHandler: NotificationListenerService() {
             return@mapNotNull Notification(appName, title ?: "", message ?: "")
         }
     }
+
+    /** How many notifications each app has up, skipping ongoing ones and group summaries. */
+    fun appCounts(): Map<String, Int> = activeNotifications
+        .filter { sbn ->
+            !sbn.isOngoing && sbn.packageName != packageName &&
+                    sbn.notification.flags and android.app.Notification.FLAG_GROUP_SUMMARY == 0 &&
+                    sbn.notification.extras.let {
+                        !it.getCharSequence("android.title").isNullOrBlank() ||
+                                !it.getCharSequence("android.text").isNullOrBlank()
+                    }
+        }
+        .groupingBy { sbn ->
+            try {
+                packageManager.getApplicationLabel(packageManager.getApplicationInfo(sbn.packageName, 0)).toString()
+            } catch (e: Exception) {
+                sbn.packageName
+            }
+        }
+        .eachCount()
 }
 
 /**

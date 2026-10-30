@@ -1,0 +1,18 @@
+english:
+  - (hello|hi|hey|hii|hiya|yo|namaste) (there|buddy|hey re|re)?
+  - (hello|hi|hey|hii)? (there|hey re|re)? how are|r you|u (doing)? (today)?
+  - (hello|hi|hey|hii)? (there|hey re|re)? how s|is it going|everything|life
+  - (hello|hi|hey|hii)? (there|hey re|re)? what s|is up
+  - (hello|hi|hey|hii)? (there|hey re|re)? whats|wassup|sup up?
+  - (hello|hi|hey)? good morning|afternoon|evening
+  - (give me)? (a|my)? check in|briefing|rundown
+  - how s|is my day (going|looking)?
+
+# Hinglish: "kaise ho", "kya haal hai", "kya chal raha hai"
+hinglish:
+  - (hello|hi|hey|hii)? (hey re|re)? kaise|kaisi ho|hai|hain (aap|tum|tu)?
+  - (hello|hi|hey|hii)? (hey re|re)? (aur)? kya haal (chaal)? (hai|hain)?
+  - (hello|hi|hey|hii)? (hey re|re)? (aur)? kya chal raha|rha (hai)?
+  - (hello|hi|hey|hii)? (hey re|re)? sab badhiya|theek|thik (hai)?
+  - namaste|namaskar ji?
+  - ram ram (ji)?

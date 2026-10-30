@@ -359,6 +359,66 @@
     <string name="about_privacy_title">Privacy policy</string>
     <string name="about_privacy_description">Hey re connects to external services only when a skill is expected to do so, or to download machine learning models during setup. All speech processing is performed locally on-device, and most skills can be used offline.</string>
     <string name="about_privacy_link" translatable="false">https://github.com/jaswantk917/hey-re/blob/main/PRIVACY.md</string>
+    <string name="skill_name_check_in">Check-in</string>
+    <string name="skill_sentence_example_check_in">Hello, how are you?</string>
+    <string name="skill_check_in_hello">Doing great, thanks for asking!</string>
+    <string name="skill_check_in_hello_named">Doing great, %1$s!</string>
+    <string name="skill_check_in_hello_hi">Main badhiya, aap batao!</string>
+    <string name="skill_check_in_hello_named_hi">Main badhiya, %1$s!</string>
+    <string name="skill_check_in_steps">You\'re at %1$s steps today.</string>
+    <string name="skill_check_in_steps_hi">Aaj %1$s steps hue hain.</string>
+    <string name="skill_check_in_walk_after_lunch">Take a ten minute walk after lunch.</string>
+    <string name="skill_check_in_walk_after_lunch_hi">Lunch ke baad das minute walk kar lena.</string>
+    <string name="skill_check_in_walk_now">Good time for a short walk.</string>
+    <string name="skill_check_in_walk_now_hi">Abhi thoda walk kar lo.</string>
+    <string name="skill_check_in_walk_at_tea">Walk a little at tea, at half past five.</string>
+    <string name="skill_check_in_walk_at_tea_hi">Saade paanch baje chai pe thoda walk kar lena.</string>
+    <string name="skill_check_in_walk_home">Walk a bit when you leave the office.</string>
+    <string name="skill_check_in_walk_home_hi">Office se nikalte waqt thoda walk kar lena.</string>
+    <string name="skill_check_in_walk_anytime">A short walk would do you good.</string>
+    <string name="skill_check_in_walk_anytime_hi">Thoda walk kar lo.</string>
+    <string name="walk_reminder_channel">Walk reminders</string>
+    <string name="walk_reminder_lunch">Lunch done? Walk for ten minutes</string>
+    <string name="walk_reminder_tea">Tea time: walk a little</string>
+    <string name="walk_reminder_steps">%1$s steps so far today</string>
+    <plurals name="skill_check_in_tasks_due">
+        <item quantity="one">One task is due: %2$s.</item>
+        <item quantity="other">%1$d tasks are due, like %2$s.</item>
+    </plurals>
+    <plurals name="skill_check_in_tasks_due_hi">
+        <item quantity="one">Ek task due hai: %2$s.</item>
+        <item quantity="other">%1$d tasks due hain, jaise %2$s.</item>
+    </plurals>
+    <plurals name="skill_check_in_notifications">
+        <item quantity="one">You have one notification, from %2$s.</item>
+        <item quantity="other">You have %1$d notifications, mostly %2$s.</item>
+    </plurals>
+    <plurals name="skill_check_in_notifications_hi">
+        <item quantity="one">Ek notification hai, %2$s ka.</item>
+        <item quantity="other">%1$d notifications hain, zyada %2$s ke.</item>
+    </plurals>
+    <plurals name="skill_check_in_steps_count">
+        <item quantity="one">%1$s step today</item>
+        <item quantity="other">%1$s steps today</item>
+    </plurals>
+    <string name="skill_check_in_steps_goal">Goal %1$s</string>
+    <plurals name="skill_check_in_tasks_due_title">
+        <item quantity="one">1 task due</item>
+        <item quantity="other">%1$d tasks due</item>
+    </plurals>
+    <plurals name="skill_check_in_tasks_open">
+        <item quantity="one">1 open task, nothing due today</item>
+        <item quantity="other">%1$d open tasks, nothing due today</item>
+    </plurals>
+    <string name="skill_check_in_tasks_none">No open tasks</string>
+    <plurals name="skill_check_in_notifications_title">
+        <item quantity="one">1 notification</item>
+        <item quantity="other">%1$d notifications</item>
+    </plurals>
+    <string name="skill_check_in_notifications_none">No notifications</string>
+    <string name="skill_check_in_steps_connect">Show my steps</string>
+    <string name="skill_check_in_tasks_connect">Connect Google Tasks</string>
+    <string name="skill_check_in_notifications_connect">Count my notifications</string>
     <string name="greeting_morning">Good morning</string>
     <string name="greeting_afternoon">Good afternoon</string>
     <string name="greeting_evening">Good evening</string>

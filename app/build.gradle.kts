@@ -167,6 +167,8 @@ dependencies {
     "pixelImplementation"(libs.mlkit.genai.prompt)
     implementation(libs.play.services.home)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.health.connect.client)
+    implementation(libs.play.services.auth)
     implementation(libs.play.services.home.types)
 
     // Android

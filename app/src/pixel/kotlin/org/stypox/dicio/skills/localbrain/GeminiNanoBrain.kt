@@ -59,6 +59,8 @@ class GeminiNanoBrain : LocalBrain {
                 own details (numbers, durations, places, names, apps). Translate Hindi or Hinglish.
                 Use the conversation so far to fill in what the person leaves out: after
                 "Should I call Maa?", "haan karo" means "call Maa".
+                Greetings, thanks and small talk ("hello", "how are you", "thank you") are not
+                commands, and neither is anything only loosely related to a command: reply NONE.
                 If none of them fits, reply with exactly NONE.
             """.trimIndent(),
             prompt = withHistory(input, recent),

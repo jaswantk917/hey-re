@@ -101,6 +101,24 @@
                 android:resource="@mipmap/ic_launcher" />
         </activity>
 
+        <!-- being the assistant service is what gets the screen's text and screenshot on summon -->
+        <service
+            android:name=".io.assist.HeyReVoiceService"
+            android:exported="true"
+            android:permission="android.permission.BIND_VOICE_INTERACTION">
+            <meta-data
+                android:name="android.voice_interaction"
+                android:resource="@xml/voice_interaction_service" />
+            <intent-filter>
+                <action android:name="android.service.voice.VoiceInteractionService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".io.assist.HeyReSessionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_VOICE_INTERACTION" />
+
         <activity
             android:name=".error.ErrorActivity"
             android:exported="false" />

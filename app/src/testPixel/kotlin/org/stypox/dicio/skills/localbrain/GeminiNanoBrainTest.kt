@@ -2,6 +2,7 @@ package org.stypox.dicio.skills.localbrain
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import org.stypox.dicio.io.assist.ScreenSnapshot
 
 class GeminiNanoBrainTest : StringSpec({
     "plain command" {
@@ -45,5 +46,11 @@ class GeminiNanoBrainTest : StringSpec({
 
     "no history leaves the message as it is" {
         withHistory("what time is it", listOf()) shouldBe "what time is it"
+    }
+
+    "the screen goes in with the app it came from" {
+        screenContext(ScreenSnapshot("com.whatsapp", "WhatsApp", "Maa: khana kha liya?")) shouldBe
+            "What is on their screen right now (in WhatsApp), for when they ask about \"this\" or the screen:\n" +
+            "Maa: khana kha liya?"
     }
 })

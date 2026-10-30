@@ -16,6 +16,7 @@ import org.dicio.skill.skill.SkillInfo
 import org.dicio.skill.skill.SkillOutput
 import org.stypox.dicio.util.RecognizeEverythingSkill
 import org.stypox.dicio.R
+import org.stypox.dicio.io.assist.ScreenSnapshot
 import org.stypox.dicio.io.graphical.HeadlineSpeechSkillOutput
 import org.stypox.dicio.skills.fallback.text.TextFallbackOutput
 
@@ -35,8 +36,14 @@ interface LocalBrain {
      */
     suspend fun rewriteAsCommand(input: String, commands: List<String>, recent: List<Turn>): String?
 
-    /** A short answer to [input] meant to be read out loud, or null if the model can't give one. */
-    suspend fun answer(input: String, recent: List<Turn>): String?
+    /**
+     * A short answer to [input] meant to be read out loud, or null if the model can't give one;
+     * [screen] is what's on the screen the person may be asking about.
+     */
+    suspend fun answer(input: String, recent: List<Turn>, screen: ScreenSnapshot? = null): String?
+
+    /** One or two sentences on what [screen] shows, or null if the model can't tell. */
+    suspend fun summarizeScreen(screen: ScreenSnapshot): String?
 
     /** One earlier exchange, oldest first, so follow-ups make sense. */
     data class Turn(val user: String, val assistant: String)
@@ -45,7 +52,8 @@ interface LocalBrain {
 object NoLocalBrain : LocalBrain {
     override suspend fun isReady() = false
     override suspend fun rewriteAsCommand(input: String, commands: List<String>, recent: List<LocalBrain.Turn>): String? = null
-    override suspend fun answer(input: String, recent: List<LocalBrain.Turn>): String? = null
+    override suspend fun answer(input: String, recent: List<LocalBrain.Turn>, screen: ScreenSnapshot?): String? = null
+    override suspend fun summarizeScreen(screen: ScreenSnapshot): String? = null
 }
 
 /** Only used to label the model's own answers; it is never in the list of selectable skills. */
@@ -63,9 +71,10 @@ object LocalBrainInfo : SkillInfo("local_brain") {
 class LocalBrainSkill(
     private val brain: LocalBrain,
     private val recent: List<LocalBrain.Turn>,
+    private val screen: ScreenSnapshot? = null,
 ) : RecognizeEverythingSkill(LocalBrainInfo) {
     override suspend fun generateOutput(ctx: SkillContext, inputData: String): SkillOutput {
-        val answer = brain.answer(inputData, recent)
+        val answer = brain.answer(inputData, recent, screen)
         return if (answer.isNullOrBlank()) {
             TextFallbackOutput(askToRepeat = (ctx.previousOutput as? TextFallbackOutput)?.let { !it.askToRepeat } ?: true)
         } else {

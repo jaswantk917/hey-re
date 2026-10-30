@@ -18,15 +18,20 @@ import org.stypox.dicio.di.SkillContextInternal
 import org.stypox.dicio.di.SttInputDeviceWrapper
 import org.stypox.dicio.io.graphical.ErrorSkillOutput
 import org.stypox.dicio.io.graphical.MissingPermissionsSkillOutput
+import org.stypox.dicio.io.assist.ScreenContext
+import org.stypox.dicio.io.assist.ScreenSummary
 import org.stypox.dicio.io.input.InputEvent
 import org.stypox.dicio.skills.localbrain.LocalBrain
 import org.stypox.dicio.skills.localbrain.LocalBrainInfo
+import org.stypox.dicio.skills.localbrain.LocalBrainOutput
 import org.stypox.dicio.skills.localbrain.LocalBrainSkill
 import org.stypox.dicio.ui.home.Interaction
 import org.stypox.dicio.ui.home.InteractionLog
 import org.stypox.dicio.ui.home.PendingQuestion
 import org.stypox.dicio.ui.home.QuestionAnswer
 import org.stypox.dicio.util.HinglishNumbers
+import org.stypox.dicio.util.RecognizeEverythingSkill
+import org.dicio.skill.context.SkillContext
 import javax.inject.Singleton
 import org.dicio.skill.standard.util.MatchHelper
 
@@ -102,7 +107,8 @@ class SkillEvaluatorImpl(
 
     private suspend fun evaluateMatchingSkill(utterances: List<String>) {
         val (chosenInput, chosenSkill) = try {
-            findBestMatch(utterances)
+            askAboutScreen(utterances[0])
+                ?: findBestMatch(utterances)
                 ?: askLocalBrain(utterances[0])
                 ?: Pair(utterances[0], skillRanker.getFallbackSkill(skillContext, utterances[0]))
         } catch (throwable: Throwable) {
@@ -207,7 +213,31 @@ class SkillEvaluatorImpl(
         val recent = recentTurns()
         val rewritten = localBrain.rewriteAsCommand(input, commands, recent)
         val match = rewritten?.let { findBestMatch(listOf(it)) }
-        return Pair(input, match?.second ?: LocalBrainSkill(localBrain, recent).scoreAndWrapResult(skillContext, input))
+        val skill = LocalBrainSkill(localBrain, recent, ScreenContext.snapshot.value)
+        return Pair(input, match?.second ?: skill.scoreAndWrapResult(skillContext, input))
+    }
+
+    /**
+     * "Summarize this", "yeh kya hai" while summoned over an app: about the screen, so it skips
+     * the skills (search would take "what is this"). The summary made on summon answers right away.
+     */
+    private suspend fun askAboutScreen(input: String): Pair<String, SkillWithResult<*>>? {
+        val screen = ScreenContext.snapshot.value ?: return null
+        if (!SCREEN_QUESTION.containsMatchIn(input)) return null
+        val ready = (ScreenContext.summary.value as? ScreenSummary.Ready)?.text
+        val skill = if (ready != null && SUMMARY_REQUEST.containsMatchIn(input)) {
+            object : RecognizeEverythingSkill(LocalBrainInfo) {
+                override suspend fun generateOutput(ctx: SkillContext, inputData: String) = LocalBrainOutput(ready)
+            }
+        } else if (localBrain.isReady()) {
+            _state.value = _state.value.copy(
+                pendingQuestion = _state.value.pendingQuestion?.copy(skillBeingEvaluated = LocalBrainInfo)
+            )
+            LocalBrainSkill(localBrain, recentTurns(), screen)
+        } else {
+            return null
+        }
+        return Pair(input, skill.scoreAndWrapResult(skillContext, input))
     }
 
     private fun recentTurns(): List<LocalBrain.Turn> = _state.value.interactions
@@ -256,6 +286,18 @@ class SkillEvaluatorImpl(
         val TAG = SkillEvaluator::class.simpleName
         // enough for "should I call Maa?" -> "haan karo", short enough for Nano's small context
         private const val RECENT_TURNS = 3
+
+        internal val SUMMARY_REQUEST = Regex(
+            "summari[sz]e|sum (it|this) up|what'?s (this|on (my|the) screen)|what is (this|on (my|the) screen)|" +
+                    "(ye|yeh) kya hai|isme kya|screen (pe|par) kya",
+            RegexOption.IGNORE_CASE,
+        )
+        internal val SCREEN_QUESTION = Regex(
+            "\\b(${SUMMARY_REQUEST.pattern}|explain (this|it)|read (this|it)|translate (this|it)|" +
+                    "this (page|screen|message|post|article|email|chat)|is (screen|page|message)|" +
+                    "samjhao|samjha do|kya likha|iska matlab|isko|isme|ismein)\\b",
+            RegexOption.IGNORE_CASE,
+        )
     }
 }
 

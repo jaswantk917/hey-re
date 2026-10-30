@@ -47,8 +47,8 @@ import org.stypox.dicio.ui.util.rememberHaptics
 /**
  * A few seconds' grace before something that is awkward to undo (a call, a message): when [auto] it
  * happens by itself unless cancelled, so no second "yes" is needed; otherwise (a loose contact
- * match) it waits for a tap or a "haan". The timer runs outside of composition, so it also
- * completes when the assist sheet is closed.
+ * match) it waits for a tap or a "haan". Leaving Hey re before it goes through cancels it, see
+ * [cancelAll].
  */
 class Countdown(
     private val auto: Boolean,
@@ -66,6 +66,7 @@ class Countdown(
     fun start(context: Context, action: () -> Unit) {
         this.action = action
         job?.cancel()
+        active.add(this)
         if (!auto) {
             state = State.Waiting
             return
@@ -82,6 +83,7 @@ class Countdown(
     fun confirm(context: Context) {
         if (state == State.Done) return
         job?.cancel()
+        active.remove(this)
         state = State.Done
         // the listening for "cancel" would otherwise hold the microphone
         sttInputDevice(context).stopListening()
@@ -91,6 +93,7 @@ class Countdown(
     fun cancel(context: Context) {
         if (state != State.Counting && state != State.Waiting) return
         job?.cancel()
+        active.remove(this)
         state = State.Cancelled
         sttInputDevice(context).stopListening()
     }
@@ -111,6 +114,16 @@ class Countdown(
     companion object {
         const val DEFAULT_MILLIS = 4000L
         private val scope = CoroutineScope(Dispatchers.Main)
+        private val active = mutableSetOf<Countdown>()
+
+        /**
+         * Hey re was closed or left: a call or message still waiting would otherwise go out
+         * unseen. One that already went through is unaffected, as opening the dialer or chat is
+         * what sends Hey re to the background.
+         */
+        fun cancelAll(context: Context) {
+            active.toList().forEach { it.cancel(context) }
+        }
 
         private fun sttInputDevice(context: Context) = EntryPointAccessors
             .fromApplication(context.applicationContext, SttEntryPoint::class.java)

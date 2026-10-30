@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -123,6 +124,10 @@ fun AssistSheet(
                     Icon(Icons.Default.OpenInFull, contentDescription = stringResource(R.string.assist_open_app))
                 }
             }
+            ScreenChip(
+                collapseOn = answers.size,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 4.dp),
+            )
 
             val seen = remember { mutableSetOf<Any>() }
             val listState = rememberLazyListState()
@@ -148,6 +153,7 @@ fun AssistSheet(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     contentPadding = PaddingValues(vertical = 8.dp),
                     modifier = Modifier
+                        .weight(1f, fill = false)
                         .fillMaxWidth()
                         .heightIn(max = 440.dp),
                 ) {
@@ -281,6 +287,10 @@ private fun OverlaySheet(
             shadowElevation = 12.dp,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
+                // with the keyboard up and a long answer the sheet would otherwise reach under the
+                // status bar; the answers list shrinks instead
+                .statusBarsPadding()
+                .padding(top = 8.dp)
                 .fillMaxWidth()
                 .onSizeChanged { sheetHeight = it.height.toFloat() }
                 .graphicsLayer {

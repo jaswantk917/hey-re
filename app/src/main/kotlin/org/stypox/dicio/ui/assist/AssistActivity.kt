@@ -4,17 +4,28 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.launch
 import org.stypox.dicio.MainActivity
 import org.stypox.dicio.di.SttInputDeviceWrapper
 import org.stypox.dicio.eval.SkillEvaluator
+import org.stypox.dicio.io.assist.ScreenContext
+import org.stypox.dicio.io.assist.ScreenSummary
+import org.stypox.dicio.io.graphical.Countdown
+import org.stypox.dicio.skills.localbrain.LocalBrain
 import org.stypox.dicio.util.BaseActivity
 import java.time.Instant
 import javax.inject.Inject
 
 /**
  * Handles the assist gesture (long-pressing home, the assistant button) by showing [AssistSheet]
- * over the current app, translucent, instead of opening the full app.
+ * over the current app, translucent, instead of opening the full app. Opened by
+ * [org.stypox.dicio.io.assist.HeyReSession], which also passes along what's on screen.
  */
 @AndroidEntryPoint
 class AssistActivity : BaseActivity() {
@@ -24,6 +35,9 @@ class AssistActivity : BaseActivity() {
 
     @Inject
     lateinit var skillEvaluator: SkillEvaluator
+
+    @Inject
+    lateinit var localBrain: LocalBrain
 
     private var nextAssistAllowed = Instant.MIN
 
@@ -44,12 +58,14 @@ class AssistActivity : BaseActivity() {
                     .setAction(Intent.ACTION_ASSIST)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
             )
+            ScreenContext.end()
             finish()
             return
         }
         if (savedInstanceState == null) {
             startListening()
         }
+        summarizeScreen()
 
         composeSetContent {
             AssistSheet(
@@ -70,6 +86,37 @@ class AssistActivity : BaseActivity() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             @Suppress("DEPRECATION")
             overridePendingTransition(0, 0)
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (!isChangingConfigurations) {
+            // closing the sheet (or leaving it) means not now: no call or message behind the user's back
+            Countdown.cancelAll(this)
+            ScreenContext.end()
+        }
+    }
+
+    /**
+     * Gets a summary of the screen ready while the user is still speaking, in case they want it;
+     * the text and the screenshot arrive separately, so it waits a moment for both.
+     */
+    private fun summarizeScreen() {
+        lifecycleScope.launch {
+            ScreenContext.snapshot.filterNotNull()
+                .distinctUntilChangedBy { Pair(it.text, it.screenshot != null) }
+                .collectLatest { screen ->
+                    delay(SCREEN_SETTLE_MILLIS)
+                    if (screen.text.isBlank() && screen.screenshot == null) return@collectLatest
+                    if (!localBrain.isReady()) {
+                        ScreenContext.setSummary(ScreenSummary.Unavailable)
+                        return@collectLatest
+                    }
+                    ScreenContext.setSummary(ScreenSummary.Working)
+                    val summary = localBrain.summarizeScreen(screen)
+                    ScreenContext.setSummary(summary?.let { ScreenSummary.Ready(it) } ?: ScreenSummary.Unavailable)
+                }
         }
     }
 
@@ -94,6 +141,7 @@ class AssistActivity : BaseActivity() {
 
     companion object {
         private const val INTENT_BACKOFF_MILLIS = 100L
+        private const val SCREEN_SETTLE_MILLIS = 300L
         private val TAG = AssistActivity::class.simpleName
     }
 }

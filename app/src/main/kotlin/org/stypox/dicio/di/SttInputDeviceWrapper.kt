@@ -147,12 +147,13 @@ class SttInputDeviceWrapperImpl(
         val attributes = AudioAttributes.Builder()
             .setUsage(
                 when (sttPlaySoundSetting) {
-                    SttPlaySound.UNRECOGNIZED,
-                    SttPlaySound.STT_PLAY_SOUND_UNSET,
                     SttPlaySound.STT_PLAY_SOUND_NOTIFICATION -> AudioAttributes.USAGE_NOTIFICATION
                     SttPlaySound.STT_PLAY_SOUND_ALARM -> AudioAttributes.USAGE_ALARM
                     SttPlaySound.STT_PLAY_SOUND_MEDIA -> AudioAttributes.USAGE_MEDIA
-                    SttPlaySound.STT_PLAY_SOUND_NONE -> return // do not play any sound
+                    // haptics already say when listening starts and stops; sound is opt-in
+                    SttPlaySound.UNRECOGNIZED,
+                    SttPlaySound.STT_PLAY_SOUND_UNSET,
+                    SttPlaySound.STT_PLAY_SOUND_NONE -> return
                 }
             )
             .build()

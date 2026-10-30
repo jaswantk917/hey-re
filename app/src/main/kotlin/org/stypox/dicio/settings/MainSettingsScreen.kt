@@ -184,7 +184,7 @@ private fun MainSettingsScreen(
                         sttPlaySound().Render(
                             when (val sttPlaySound = settings.sttPlaySound) {
                                 SttPlaySound.UNRECOGNIZED,
-                                SttPlaySound.STT_PLAY_SOUND_UNSET -> SttPlaySound.STT_PLAY_SOUND_NOTIFICATION
+                                SttPlaySound.STT_PLAY_SOUND_UNSET -> SttPlaySound.STT_PLAY_SOUND_NONE
                                 else -> sttPlaySound
                             },
                             viewModel::setSttPlaySound

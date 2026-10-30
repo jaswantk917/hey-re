@@ -126,7 +126,8 @@ fun AssistSheet(
             val seen = remember { mutableSetOf<Any>() }
             val listState = rememberLazyListState()
             val itemCount = answers.size * 2 + if (pendingQuestion != null) 2 else 0
-            LaunchedEffect(itemCount) {
+            // keyed on both: a pending question turning into an answer keeps the same item count
+            LaunchedEffect(answers.size, pendingQuestion != null) {
                 if (itemCount > 0) listState.animateScrollToItem(itemCount - 1)
             }
 

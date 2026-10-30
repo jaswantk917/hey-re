@@ -213,17 +213,19 @@ fun InteractionList(
 
     // TODO check if this causes performance problems
     var prevHasPending by rememberSaveable { mutableStateOf(false) }
-    var prevInteractionCount by rememberSaveable { mutableIntStateOf(0) }
+    var prevAnswerCount by rememberSaveable { mutableIntStateOf(0) }
     val newHasPending = pendingQuestion != null
-    val newInteractionCount = interactions.size
-    LaunchedEffect(key1 = newHasPending, key2 = newInteractionCount) {
-        if ((!prevHasPending && newHasPending) || newInteractionCount > prevInteractionCount) {
+    // answers, not interactions: a follow-up (like the timer after "how long?") continues the
+    // same interaction and must scroll too
+    val newAnswerCount = interactions.sumOf { it.questionsAnswers.size }
+    LaunchedEffect(key1 = newHasPending, key2 = newAnswerCount) {
+        if ((!prevHasPending && newHasPending) || newAnswerCount > prevAnswerCount) {
             scope.launch {
                 listState.animateScrollToItem(lastAnchorIndex)
             }
         }
         prevHasPending = newHasPending
-        prevInteractionCount = newInteractionCount
+        prevAnswerCount = newAnswerCount
     }
 }
 

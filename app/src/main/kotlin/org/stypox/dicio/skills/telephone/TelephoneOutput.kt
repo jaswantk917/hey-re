@@ -64,21 +64,16 @@ class TelephoneOutput(
             Headline(text = getSpeechOutput(ctx))
         } else {
             Column {
-                for (i in contacts.indices) {
-                    if (i != 0) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-
-                    Text(
-                        text = contacts[i].first,
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-
-                    for (number in contacts[i].second) {
+                Headline(text = getSpeechOutput(ctx))
+                for ((name, numbers) in contacts) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    ContactHeader(name = name, number = numbers.first(), avatarSize = 44.dp)
+                    for (number in numbers.drop(1)) {
                         Text(
                             text = number,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 8.dp, top = 2.dp)
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 68.dp, bottom = 2.dp),
                         )
                     }
                 }

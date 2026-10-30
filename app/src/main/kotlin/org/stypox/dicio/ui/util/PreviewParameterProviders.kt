@@ -107,7 +107,7 @@ class InteractionLogPreviews : CollectionPreviewParameterProvider<InteractionLog
                 skill = TelephoneInfo,
                 questionsAnswers = listOf(
                     QuestionAnswer("call mom", ConfirmCallOutput("Mom", "1234567890", Sentences.UtilYesNo["en"]!!)),
-                    QuestionAnswer("yes", ConfirmedCallOutput("1234567890")),
+                    QuestionAnswer("yes", ConfirmedCallOutput("Mom", "1234567890")),
                 )
             )
         ),

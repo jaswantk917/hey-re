@@ -11,7 +11,6 @@ import org.dicio.skill.skill.InteractionPlan
 import org.dicio.skill.skill.SkillOutput
 import org.dicio.skill.standard.StandardRecognizerData
 import org.stypox.dicio.R
-import org.stypox.dicio.io.graphical.Body
 import org.stypox.dicio.io.graphical.Headline
 import org.stypox.dicio.sentences.Sentences
 import org.stypox.dicio.util.RecognizeYesNoSkill
@@ -33,9 +32,9 @@ class ConfirmCallOutput(
             ): SkillOutput {
                 return if (inputData) {
                     TelephoneSkill.call(ctx.android, number)
-                    ConfirmedCallOutput(number)
+                    ConfirmedCallOutput(name, number)
                 } else {
-                    ConfirmedCallOutput(null)
+                    ConfirmedCallOutput(null, null)
                 }
             }
         }
@@ -50,8 +49,8 @@ class ConfirmCallOutput(
     override fun GraphicalOutput(ctx: SkillContext) {
         Column {
             Headline(text = getSpeechOutput(ctx))
-            Spacer(modifier = Modifier.height(4.dp))
-            Body(text = number)
+            Spacer(modifier = Modifier.height(8.dp))
+            ContactHeader(name = name, number = number)
         }
     }
 }

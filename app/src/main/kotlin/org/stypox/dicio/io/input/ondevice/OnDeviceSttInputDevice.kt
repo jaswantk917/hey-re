@@ -47,6 +47,9 @@ class OnDeviceSttInputDevice(
     private val scope = CoroutineScope(Dispatchers.Default)
     private var recognizer: SpeechRecognizer? = null
     private var listener: ((InputEvent) -> Unit)? = null
+    // the recognizer sometimes shows words while listening, then ends with an empty result or a
+    // "no match": the user saw what they said, so that's what gets used
+    private var lastPartial: String? = null
     private var locale: Locale
     // the offline language packs on the phone, null until asked (or if the phone can't tell)
     private var installedLanguages: Set<String>? = null
@@ -101,6 +104,7 @@ class OnDeviceSttInputDevice(
     // SpeechRecognizer must only ever be touched from the main thread
     private fun startListening(eventListener: (InputEvent) -> Unit) {
         listener = eventListener
+        lastPartial = null
         val recognizer = recognizer
             ?: SpeechRecognizer.createOnDeviceSpeechRecognizer(context).also {
                 it.setRecognitionListener(recognitionListener)
@@ -254,6 +258,7 @@ class OnDeviceSttInputDevice(
         override fun onPartialResults(partialResults: Bundle?) {
             val best = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 ?.firstOrNull()?.takeIf { it.isNotBlank() } ?: return
+            lastPartial = best
             listener?.invoke(InputEvent.Partial(best))
         }
 
@@ -261,8 +266,9 @@ class OnDeviceSttInputDevice(
             _uiState.value = SttState.Loaded
             val texts = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 ?.filter { it.isNotBlank() }
+            Log.i(TAG, "Results: ${texts?.size} texts, keys=${results?.keySet()}, partial=${lastPartial != null}")
             if (texts.isNullOrEmpty()) {
-                listener?.invoke(InputEvent.None)
+                finishWithLastPartialOr(InputEvent.None)
                 return
             }
             Log.i(TAG, "Heard ${texts.size} alternatives")
@@ -280,6 +286,13 @@ class OnDeviceSttInputDevice(
 
         override fun onError(error: Int) {
             Log.w(TAG, "Recognition error $error")
+            val heardNoWords = error == SpeechRecognizer.ERROR_NO_MATCH ||
+                    error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT
+            if (heardNoWords && lastPartial != null) {
+                _uiState.value = SttState.Loaded
+                finishWithLastPartialOr(InputEvent.None)
+                return
+            }
             when (error) {
                 SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> {
                     _uiState.value = SttState.HeardNothing
@@ -312,6 +325,12 @@ class OnDeviceSttInputDevice(
         }
 
         override fun onEvent(eventType: Int, params: Bundle?) {}
+    }
+
+    private fun finishWithLastPartialOr(fallback: InputEvent) {
+        val partial = lastPartial
+        lastPartial = null
+        listener?.invoke(if (partial != null) InputEvent.Final(listOf(Pair(partial, 1f))) else fallback)
     }
 
     class RecognizerException(val code: Int) : Exception("Speech recognizer error $code")

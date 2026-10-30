@@ -1,6 +1,7 @@
 package org.stypox.dicio.ui.assist
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import dagger.hilt.android.AndroidEntryPoint
@@ -28,6 +29,24 @@ class AssistActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // the sheet animates itself; the system's own slide would carry the dimmed scrim with it
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, 0, 0)
+            overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, 0)
+        } else {
+            @Suppress("DEPRECATION")
+            overridePendingTransition(0, 0)
+        }
+        if (MainActivity.isInForeground > 0) {
+            // Hey re is already on screen: listen right there instead of opening a sheet over it
+            startActivity(
+                Intent(this, MainActivity::class.java)
+                    .setAction(Intent.ACTION_ASSIST)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+            )
+            finish()
+            return
+        }
         if (savedInstanceState == null) {
             startListening()
         }
@@ -43,6 +62,14 @@ class AssistActivity : BaseActivity() {
                     finish()
                 },
             )
+        }
+    }
+
+    override fun finish() {
+        super.finish()
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            @Suppress("DEPRECATION")
+            overridePendingTransition(0, 0)
         }
     }
 

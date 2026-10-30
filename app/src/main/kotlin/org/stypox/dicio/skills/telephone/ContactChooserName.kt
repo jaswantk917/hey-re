@@ -41,6 +41,6 @@ class ContactChooserName internal constructor(
             ConfirmCallOutput(it.first, it.second, yesNoData)
         }
             // impossible situation
-            ?: ConfirmedCallOutput(null)
+            ?: ConfirmedCallOutput(null, null)
     }
 }

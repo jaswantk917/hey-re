@@ -37,7 +37,7 @@ class ContactChooserIndex internal constructor(
             return ConfirmCallOutput(contact.first, contact.second, yesNoData)
         } else {
             // impossible situation
-            return ConfirmedCallOutput(null)
+            return ConfirmedCallOutput(null, null)
         }
     }
 }

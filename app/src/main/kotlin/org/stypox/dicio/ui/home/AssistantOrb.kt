@@ -101,6 +101,18 @@ private val playShapes = listOf(
 private val rareShape = MaterialShapes.Heart
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
+private val restingShapes = listOf(
+    MaterialShapes.Cookie9Sided,
+    MaterialShapes.Puffy,
+    MaterialShapes.Cookie7Sided,
+    MaterialShapes.Flower,
+    MaterialShapes.Cookie12Sided,
+    MaterialShapes.Clover4Leaf,
+)
+
+private const val IDLE_MORPH_MILLIS = 3200L
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AssistantOrb(
     mood: OrbMood,
@@ -115,7 +127,7 @@ fun AssistantOrb(
         targetValue = when (mood) {
             OrbMood.Listening -> colors.tertiary
             OrbMood.Sad -> colors.error
-            OrbMood.Sleepy -> colors.secondaryContainer
+            OrbMood.Sleepy -> colors.primaryContainer
             else -> colors.primary
         },
         animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
@@ -125,7 +137,7 @@ fun AssistantOrb(
         targetValue = when (mood) {
             OrbMood.Listening -> colors.onTertiary
             OrbMood.Sad -> colors.onError
-            OrbMood.Sleepy -> colors.onSecondaryContainer
+            OrbMood.Sleepy -> colors.onPrimaryContainer
             else -> colors.onPrimary
         },
         animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
@@ -150,7 +162,18 @@ fun AssistantOrb(
             )
         }
     }
-    LaunchedEffect(mood) { morphTo(moodShape(mood)) }
+    LaunchedEffect(mood) {
+        morphTo(moodShape(mood))
+        // at rest the orb keeps drifting between calm shapes, so it always looks alive
+        if (mood == OrbMood.Idle || mood == OrbMood.Sleepy) {
+            var i = 0
+            while (true) {
+                delay(IDLE_MORPH_MILLIS)
+                i += 1
+                morphTo(restingShapes[i % restingShapes.size])
+            }
+        }
+    }
 
     // a quick squish under the finger, released with a spring
     val squish = remember { Animatable(1f) }

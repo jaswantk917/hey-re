@@ -40,16 +40,14 @@ fun Navigation() {
     NavHost(navController = navController, startDestination = Home) {
         composable<Home> {
             val context = LocalContext.current
-            ScreenWithDrawer(
+            HomeScreen(
                 onSettingsClick = { navController.navigate(MainSettings) },
                 onAboutClick = { navController.navigate(About) },
-                onSpeechToTextPopupClick = {
+                onSttPopupClick = {
                     val intent = Intent(context, SttPopupActivity::class.java)
                     context.startActivity(intent)
                 },
-            ) {
-                HomeScreen(it)
-            }
+            )
         }
 
         composable<MainSettings> {
@@ -65,46 +63,6 @@ fun Navigation() {
 
         composable<About> {
             AboutScreen(navigationIcon = backIcon)
-        }
-    }
-}
-
-@Composable
-fun ScreenWithDrawer(
-    onSettingsClick: () -> Unit,
-    onAboutClick: () -> Unit,
-    onSpeechToTextPopupClick: () -> Unit,
-    screen: @Composable (navigationIcon: @Composable () -> Unit) -> Unit
-) {
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
-
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            DrawerContent(
-                onSettingsClick = onSettingsClick,
-                onAboutClick = onAboutClick,
-                onSpeechToTextPopupClick = onSpeechToTextPopupClick,
-                closeDrawer = {
-                    scope.launch {
-                        drawerState.close()
-                    }
-                }
-            )
-        },
-    ) {
-        screen {
-            AppBarDrawerIcon(
-                onDrawerClick = {
-                    scope.launch {
-                        drawerState.apply {
-                            if (isClosed) open() else close()
-                        }
-                    }
-                },
-                isClosed = drawerState.isClosed,
-            )
         }
     }
 }

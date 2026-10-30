@@ -26,6 +26,7 @@ plugins {
 android {
     namespace = "org.stypox.dicio"
     compileSdk = libs.versions.compileSdk.get().toInt()
+    compileSdkMinor = libs.versions.compileSdkMinor.get().toInt()
 
     defaultConfig {
         applicationId = "io.github.jaswantk917.heyre"

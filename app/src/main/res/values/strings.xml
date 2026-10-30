@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="app_name" translatable="false">Hey re</string>
+    <!-- the wordmark inside the app, which unlike app_name never carries the debug suffix -->
+    <string name="brand_name" translatable="false">Hey re</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
     <string name="drawer_header_subtitle">May I help you?</string>
@@ -281,4 +283,25 @@
     <string name="about_privacy_title">Privacy policy</string>
     <string name="about_privacy_description">Hey re connects to external services only when a skill is expected to do so, or to download machine learning models during setup. All speech processing is performed locally on-device, and most skills can be used offline.</string>
     <string name="about_privacy_link" translatable="false">https://github.com/jaswantk917/hey-re/blob/main/PRIVACY.md</string>
+    <string name="greeting_morning">Good morning</string>
+    <string name="greeting_afternoon">Good afternoon</string>
+    <string name="greeting_evening">Good evening</string>
+    <string name="greeting_night">Up late?</string>
+    <string name="home_prompt">What\'s up?</string>
+    <string name="try_saying">Try saying</string>
+    <string name="see_all_skills">See all</string>
+    <string name="tap_to_talk">Tap to talk</string>
+    <string name="thinking">Thinking…</string>
+    <string name="type_instead">Type instead</string>
+    <string name="speak_instead">Speak instead</string>
+    <string name="send">Send</string>
+    <string name="what_i_can_do">What I can do</string>
+    <string name="more_options">More options</string>
+    <string name="orb_description">Talk to Hey re</string>
+    <string name="voice_setup_title">Let\'s get your voice ready</string>
+    <string name="voice_setup_description">Hey re understands you fully offline. It needs a one-time download of the voice model for your language.</string>
+    <string name="voice_setup_unavailable">Voice isn\'t available for this language yet, but you can type to Hey re.</string>
+    <string name="assist_open_app">Open Hey re</string>
+    <string name="voice_setup_download">Download voice model</string>
+    <string name="voice_setup_ready">Ready! Tap the orb and talk.</string>
 </resources>

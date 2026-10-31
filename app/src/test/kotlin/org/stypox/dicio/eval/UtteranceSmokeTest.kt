@@ -99,6 +99,8 @@ private val ranker = SkillRanker(
         },
         grammar("sound_mode", Sentences.SoundMode["en"]!!),
         grammar("phone_toggle", Sentences.PhoneToggle["en"]!!),
+        grammar("phone_info", Sentences.PhoneInfo["en"]!!),
+        grammar("find_hub", Sentences.FindHub["en"]!!),
         grammar("check_in", Sentences.CheckIn["en"]!!),
         grammar("help", Sentences.Help["en"]!!),
         grammar("timer", Sentences.Timer["en"]!!),

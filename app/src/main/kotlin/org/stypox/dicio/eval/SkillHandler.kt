@@ -32,6 +32,8 @@ import org.stypox.dicio.skills.notify.NotifyInfo
 import org.stypox.dicio.skills.checkin.CheckInInfo
 import org.stypox.dicio.skills.help.HelpInfo
 import org.stypox.dicio.skills.toggle.ToggleInfo
+import org.stypox.dicio.skills.findhub.FindHubInfo
+import org.stypox.dicio.skills.phoneinfo.PhoneInfoInfo
 import org.stypox.dicio.skills.open.OpenInfo
 import org.stypox.dicio.skills.search.SearchInfo
 import org.stypox.dicio.skills.telephone.TelephoneInfo
@@ -62,6 +64,8 @@ class SkillHandler @Inject constructor(
         HomeInfo,
         SoundModeInfo,
         ToggleInfo,
+        PhoneInfoInfo,
+        FindHubInfo,
         CheckInInfo,
         HelpInfo { enabledSkillsInfo.value.orEmpty() },
         TimerInfo,

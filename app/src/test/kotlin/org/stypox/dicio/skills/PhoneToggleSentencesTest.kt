@@ -8,6 +8,7 @@ import io.kotest.matchers.shouldNotBe
 import org.dicio.skill.standard.util.MatchHelper
 import org.stypox.dicio.sentences.Sentences
 import org.stypox.dicio.sentences.Sentences.PhoneToggle
+import org.stypox.dicio.io.shell.DeviceState
 import org.stypox.dicio.skills.toggle.Toggle
 
 private val data = Sentences.PhoneToggle["en"]!!
@@ -48,12 +49,15 @@ class PhoneToggleSentencesTest : StringSpec({
         match(input).first.scoreIn01Range() shouldBeLessThan torch.score(MatchHelper(null, input), input).first.scoreIn01Range()
     }
 
-    "the hotspot opens its page, the rest switch through Shizuku" {
-        Toggle.Hotspot.command(true) shouldBe null
-        Toggle.Hotspot.command(false) shouldBe null
-        for (toggle in Toggle.entries - Toggle.Hotspot) {
-            toggle.command(true) shouldNotBe null
-            toggle.command(false) shouldNotBe null
+    "every switch flips one way or another: a shell command, else Settings' own switch" {
+        for (toggle in Toggle.entries) {
+            if (toggle.command(true) == null) {
+                toggle.command(false) shouldBe null
+                toggle.stateKey shouldNotBe null
+            } else {
+                toggle.command(false) shouldNotBe null
+            }
         }
+        Toggle.Hotspot.stateKey shouldBe DeviceState.HOTSPOT
     }
 })

@@ -18,6 +18,44 @@ skills:
       - id: dark_mode_off
       - id: location_on
       - id: location_off
+      - id: night_light_on
+      - id: night_light_off
+      - id: auto_rotate_on
+      - id: auto_rotate_off
+
+  - id: find_hub
+    specificity: high
+    sentences:
+      - id: where
+        captures:
+          - id: item
+            type: string
+      - id: remember
+        captures:
+          - id: item
+            type: string
+          - id: place
+            type: string
+      - id: ring
+        captures:
+          - id: item
+            type: string
+      - id: stop_ring
+        captures:
+          - id: item
+            type: string
+
+  - id: phone_info
+    specificity: high
+    sentences:
+      - id: battery
+      - id: storage
+      - id: brightness_up
+      - id: brightness_down
+      - id: brightness_set
+        captures:
+          - id: level
+            type: string
 
   - id: nearby
     specificity: high

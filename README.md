@@ -23,8 +23,10 @@ It's a personal fork of [Dicio](https://github.com/Stypox/dicio-android), built 
 | **Check-in.** Say hello and it tells you your steps, the Google Tasks due today and your unread notifications, and nudges you to walk around your office day | _hello, kaise ho_ · _kitne steps hue aaj_ · _kya mujhe aur chalna chahiye_ |
 | **Calls and messages.** Calls and WhatsApp, SMS or Slack messages go out after a short countdown you can cancel; with Shizuku, WhatsApp sends without a tap | _Maa ko call karo_ · _Papa ko message karo ki late ho jaunga_ |
 | **Google Home.** Your lights, plugs and cooler, now or later | _lights band karo_ · _cooler band karo ek ghante baad_ |
-| **Phone switches** (through Shizuku). Wi-Fi, Bluetooth, mobile data, airplane mode, Battery Saver, dark mode and location. The hotspot opens its own switch, since Android lets no app flip it | _wifi band karo_ · _dark mode chalu kar do_ |
+| **Phone switches** (through Shizuku). Wi-Fi, Bluetooth, mobile data, hotspot, airplane mode, Battery Saver, dark mode, Night Light, auto-rotate and location | _wifi band karo_ · _dark mode chalu kar do_ |
 | **Sound** | _phone silent kar do_ · _dnd on karo_ |
+| **Find Hub** (through Shizuku). Where your devices are, ringing them, and where you put things | _meri chabi kahan hai_ · _yaad rakhna ki passport almari mein hai_ · _ring my watch_ |
+| **Phone status** (through Shizuku). Battery, storage and brightness, from Settings itself | _battery kitni hai_ · _storage kitna bacha hai_ · _brightness kam karo_ |
 | **Time, timers and alarms** | _kitne baje hain_ · _paanch minute ka timer lagao_ · _subah 7 baje ka alarm laga do_ |
 | **Reminders**, as a Clock timer or alarm labelled with what to remember | _2 ghante mein yaad dilana ki chhat se kapde lane hain_ · _remind me to take medicine at 9 pm_ |
 | **Nearby places**, on Google Maps around where you are | _khane ki jagah dhundho aaspaas_ · _nearest ATM_ |
@@ -46,6 +48,10 @@ Make Hey re the phone's default assistant, then long-press the power button.
 - **Over an app:** a sheet opens over whatever you're using, and you can ask about the screen.
 - **In Hey re:** it jumps back to the conversation and listens.
 - **Locked:** the time, timers, alarms, weather, torch and other harmless things answer straight away. Anything personal or that acts on the phone asks you to unlock first, then carries on.
+
+### App functions
+
+Android 16 lets apps publish tools for assistants ("app functions"): Find Hub publishes "where are my keys" and "ring this device", Settings publishes its switches and readings. Calling them needs a permission only Google's assistant holds, but the shell may, so Hey re calls them through Shizuku (`cmd app_function`). That's how the hotspot, Night Light, brightness, battery and storage work, and Find Hub. `adb shell cmd app_function list-app-functions` shows what's on a phone.
 
 ## Hinglish
 

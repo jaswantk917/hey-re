@@ -1,0 +1,26 @@
+battery:
+  - how much (battery|charge) ((is left)|(do i have)|(is there))?
+  - ((what is)|(what s)) (my|the)? battery (level|percentage)?
+  - battery (level|percentage|status)
+  - (battery|charge) (kitni|kitna|kitne) (hai|bachi|bacha|bache|percent) (hai)?
+  - (kitni|kitna) (battery|charge) (hai|bachi|bacha) (hai)?
+
+storage:
+  - how much (storage|space|memory) ((is left)|(do i have)|(is free)|(is used))?
+  - ((what is)|(what s)) (my|the)? storage
+  - (storage|space|memory) (kitni|kitna) (hai|bachi|bacha|bache|free|khali) (hai)?
+  - (phone (ki|ka|me|mein))? (kitni|kitna) (storage|space|memory) (hai|bachi|bacha|free|khali) (hai)?
+
+brightness_up:
+  - (increase|raise|(turn up)) (the|my)? (brightness|(screen brightness))
+  - (make)? (the)? screen brighter
+  - (brightness|roshni) (badhao|(badha do)|badhado|((zyada|tez|up) (karo|(kar do))))
+
+brightness_down:
+  - (decrease|lower|reduce|(turn down)|dim) (the|my)? (brightness|(screen brightness)|screen)
+  - (make)? (the)? screen (darker|dimmer)
+  - (brightness|roshni) (ghatao|(ghata do)|((kam|down|dheemi) (karo|(kar do))))
+
+brightness_set:
+  - (set|put|change) (the|my)? brightness (to|at)? .level. (percent)?
+  - brightness .level. (percent)? (karo|(kar do)|par|pe|rakho|((pe|par) (karo|(kar do))))

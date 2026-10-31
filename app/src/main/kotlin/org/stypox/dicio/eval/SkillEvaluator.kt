@@ -332,7 +332,7 @@ class SkillEvaluatorImpl(
         // skills that change the phone or reach someone: a guess at them asks first
         private val ACTING_SKILLS = setOf(
             "telephone", "message", "phone_toggle", "smart_home", "sound_mode", "alarm", "timer",
-            "navigation", "nearby",
+            "navigation", "nearby", "find_hub", "phone_info",
         )
 
         /**

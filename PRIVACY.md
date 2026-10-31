@@ -16,13 +16,14 @@ Hey re stores your preferences, the conversation you had with it and debugging l
 
 **Notifications** are read, with notification access you grant, to count them in the check-in or read them out when you ask. Silent ones are skipped. They're never stored or sent.
 
-**Shizuku**, if you allow it, lets Hey re flip phone switches (Wi-Fi, Bluetooth and so on). When sending a WhatsApp message, it also reads WhatsApp's screen for a moment to find and press the Send button. Nothing it reads is kept.
+**Shizuku**, if you allow it, lets Hey re flip phone switches (Wi-Fi, Bluetooth and so on), and read and change Settings' own readings (battery, storage, brightness). When sending a WhatsApp message, it also reads WhatsApp's screen for a moment to find and press the Send button. Nothing it reads is kept.
 
 ## What goes online
 
 Each of these is a separate skill, which you can turn off in Settings → Skills:
 
 - **Google Tasks** (read-only). With your consent on Google's own sign-in sheet, Hey re asks Google's Tasks API for your open tasks to tell you what's due. The tasks are not stored.
+- **Find Hub.** Through Shizuku, Hey re asks Google's Find Hub app where your devices are, rings them, and tells it where you put things ("remember my keys are in the drawer"). Find Hub keeps those notes and device locations in your Google account, under its own privacy policy; Hey re keeps none of it.
 - **Google Home.** With your consent on Google's own screens, Hey re asks Google's Home APIs for your devices and switches them. The names of your devices are remembered on the phone, so it knows "cooler" is one of them.
 - **The whole article.** When you summon Hey re over a page whose app hands over its link (Chrome does), Hey re downloads that page itself, without your cookies or login, and Gemini Nano summarises it on the phone. It skips sign-in, reset, invite and other one-time links, homepages and searches, so a second visit can't use them up. The page isn't kept.
 - **Weather, search, lyrics and translation** send what you asked for (the city, the search, the song, the text) to OpenWeatherMap, DuckDuckGo, Genius and Lingva respectively.

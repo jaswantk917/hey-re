@@ -100,3 +100,27 @@ location_off:
   - (turn|switch) (the|my)? (location|gps) off
   - (disable) (the|my)? (location|gps)
   - (the|my)? (location|gps) (off|band|bandh|bund|disable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+
+night_light_on:
+  - (turn|switch|put) on (the|my)? ((night light)|(night mode)|(eye comfort))
+  - (turn|switch) (the|my)? ((night light)|(night mode)) on
+  - (enable) (the|my)? ((night light)|(night mode))
+  - (the|my)? ((night light)|(night mode)) (on|chalu|start|shuru|enable|lagao|laga) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+
+night_light_off:
+  - (turn|switch|put) off (the|my)? ((night light)|(night mode)|(eye comfort))
+  - (turn|switch) (the|my)? ((night light)|(night mode)) off
+  - (disable) (the|my)? ((night light)|(night mode))
+  - (the|my)? ((night light)|(night mode)) (off|band|bandh|bund|disable|hatao|hata) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+
+auto_rotate_on:
+  - (turn|switch|put) on (the|my)? ((auto rotate)|(auto rotation)|(screen rotation)|rotation)
+  - (turn|switch) (the|my)? ((auto rotate)|(auto rotation)|(screen rotation)|rotation) on
+  - (enable) (the|my)? ((auto rotate)|(auto rotation)|(screen rotation))
+  - (the|my)? ((auto rotate)|(auto rotation)|(screen rotation)|rotation) (on|chalu|start|shuru|enable) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?
+
+auto_rotate_off:
+  - (turn|switch|put) off (the|my)? ((auto rotate)|(auto rotation)|(screen rotation)|rotation)
+  - (turn|switch) (the|my)? ((auto rotate)|(auto rotation)|(screen rotation)|rotation) off
+  - (disable) (the|my)? ((auto rotate)|(auto rotation)|(screen rotation))
+  - (the|my)? ((auto rotate)|(auto rotation)|(screen rotation)|rotation) (off|band|bandh|bund|disable|lock) ((kar do)|(kar de)|karo|kardo|karde|kar|do)?

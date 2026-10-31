@@ -6,6 +6,8 @@ import org.dicio.skill.skill.SkillInfo
 import org.dicio.skill.skill.SkillOutput
 import org.dicio.skill.standard.StandardRecognizerData
 import org.dicio.skill.standard.StandardRecognizerSkill
+import org.stypox.dicio.io.shell.AppFunctions
+import org.stypox.dicio.io.shell.DeviceState
 import org.stypox.dicio.io.shell.Shell
 import org.stypox.dicio.sentences.Sentences.PhoneToggle
 
@@ -31,8 +33,12 @@ class ToggleSkill(correspondingSkillInfo: SkillInfo, data: StandardRecognizerDat
             PhoneToggle.DarkModeOff -> Toggle.DarkMode to false
             PhoneToggle.LocationOn -> Toggle.Location to true
             PhoneToggle.LocationOff -> Toggle.Location to false
+            PhoneToggle.NightLightOn -> Toggle.NightLight to true
+            PhoneToggle.NightLightOff -> Toggle.NightLight to false
+            PhoneToggle.AutoRotateOn -> Toggle.AutoRotate to true
+            PhoneToggle.AutoRotateOff -> Toggle.AutoRotate to false
         }
-        if (toggle.command(on) == null) {
+        if (toggle.command(on) == null && toggle.stateKey == null) {
             // Android has no switch apps may flip for this one: show its own
             val opened = runCatching { ctx.android.startActivity(toggle.settingsIntent()) }.isSuccess ||
                     runCatching { ctx.android.startActivity(Intent(toggle.settings).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.isSuccess
@@ -43,6 +49,14 @@ class ToggleSkill(correspondingSkillInfo: SkillInfo, data: StandardRecognizerDat
 
     companion object {
         suspend fun flip(toggle: Toggle, on: Boolean): ToggleOutput.Result {
+            // no shell switch flips the hotspot or night light, but Settings' own app functions do
+            if (toggle.stateKey != null) {
+                return when (val outcome = DeviceState.set(toggle.stateKey, on.toString())) {
+                    is AppFunctions.Outcome.Done -> ToggleOutput.Result.Done
+                    AppFunctions.Outcome.NoShizuku -> ToggleOutput.Result.NeedsShizuku
+                    is AppFunctions.Outcome.Failed -> ToggleOutput.Result.Failed(outcome.reason)
+                }
+            }
             val command = toggle.command(on) ?: return ToggleOutput.Result.ByHand
             val result = Shell.run(command) ?: return ToggleOutput.Result.NeedsShizuku
             return if (result.ok) ToggleOutput.Result.Done else ToggleOutput.Result.Failed(result.output)

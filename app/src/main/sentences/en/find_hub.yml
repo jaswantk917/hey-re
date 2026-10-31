@@ -1,0 +1,20 @@
+# "mere keys kahan hain", "where is my watch": Find Hub's devices first, then what it remembers
+where:
+  - where (is|are|(did i (put|leave|keep))) (my|the)? .item.
+  - (find|locate) (my|the)? .item.
+  - (mera|meri|mere)? .item. (kahan|kidhar|kaha) (hai|hain|rakha|rakhi|rakhe|gaya|gayi|gaye) (hai|hain|tha|thi|the)?
+
+# "remember my keys are in the drawer", "yaad rakhna ki passport almari mein hai"
+remember:
+  - remember (that)? (my|the)? .item. (is|are) .place.
+  - yaad (rakhna|rakho|(rakh lo)) (ki)? (mera|meri|mere)? .item. .place. (hai|hain|rakha|rakhi|rakhe) (hai|hain)?
+  - (mera|meri|mere)? .item. .place. (rakha|rakhi|rakhe) (hai|hain) yaad (rakhna|rakho|(rakh lo))
+
+ring:
+  - (ring|buzz) (my|the)? .item.
+  - make (my|the)? .item. ring
+  - (mera|meri|mere)? .item. (ring|bajao|(baja do)|bajado) (karo|(kar do))?
+
+stop_ring:
+  - stop ringing (my|the)? .item.
+  - (mera|meri|mere)? .item. (ki|ka)? ring (band|bandh) (karo|(kar do))?

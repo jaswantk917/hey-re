@@ -15,6 +15,10 @@ import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MobiledataOff
+import androidx.compose.material.icons.filled.Nightlight
+import androidx.compose.material.icons.filled.NightlightRound
+import androidx.compose.material.icons.filled.ScreenLockRotation
+import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiOff
@@ -22,10 +26,12 @@ import androidx.compose.material.icons.filled.WifiTethering
 import androidx.compose.material.icons.filled.WifiTetheringOff
 import androidx.compose.ui.graphics.vector.ImageVector
 import org.stypox.dicio.R
+import org.stypox.dicio.io.shell.DeviceState
 
 /**
  * A phone switch Hey re flips through Shizuku, with where to flip it by hand otherwise. A null
- * command means there's no shell switch for it at all, only its page in Settings.
+ * command means there's no shell switch for it at all: [stateKey] then names Settings' own switch
+ * for it ([DeviceState]), and without that only its page in Settings is left.
  */
 enum class Toggle(
     @StringRes val label: Int,
@@ -34,6 +40,7 @@ enum class Toggle(
     val settings: String,
     private val onCommand: String?,
     private val offCommand: String?,
+    val stateKey: String? = null,
 ) {
     Wifi(R.string.skill_toggle_wifi, Icons.Default.Wifi, Icons.Default.WifiOff, Settings.Panel.ACTION_WIFI,
         "cmd wifi set-wifi-enabled enabled", "cmd wifi set-wifi-enabled disabled"),
@@ -43,7 +50,7 @@ enum class Toggle(
     MobileData(R.string.skill_toggle_mobile_data, Icons.Default.SignalCellularAlt, Icons.Default.MobiledataOff,
         Settings.Panel.ACTION_INTERNET_CONNECTIVITY, "svc data enable", "svc data disable"),
     Hotspot(R.string.skill_toggle_hotspot, Icons.Default.WifiTethering, Icons.Default.WifiTetheringOff,
-        Settings.ACTION_WIRELESS_SETTINGS, null, null),
+        Settings.ACTION_WIRELESS_SETTINGS, null, null, DeviceState.HOTSPOT),
     Airplane(R.string.skill_toggle_airplane, Icons.Default.AirplanemodeActive, Icons.Default.AirplanemodeInactive,
         Settings.ACTION_AIRPLANE_MODE_SETTINGS,
         "cmd connectivity airplane-mode enable", "cmd connectivity airplane-mode disable"),
@@ -53,7 +60,11 @@ enum class Toggle(
         Settings.ACTION_DISPLAY_SETTINGS, "cmd uimode night yes", "cmd uimode night no"),
     Location(R.string.skill_toggle_location, Icons.Default.LocationOn, Icons.Default.LocationOff,
         Settings.ACTION_LOCATION_SOURCE_SETTINGS,
-        "cmd location set-location-enabled true", "cmd location set-location-enabled false");
+        "cmd location set-location-enabled true", "cmd location set-location-enabled false"),
+    NightLight(R.string.skill_toggle_night_light, Icons.Default.Nightlight, Icons.Default.NightlightRound,
+        Settings.ACTION_NIGHT_DISPLAY_SETTINGS, null, null, DeviceState.NIGHT_LIGHT),
+    AutoRotate(R.string.skill_toggle_auto_rotate, Icons.Default.ScreenRotation, Icons.Default.ScreenLockRotation,
+        Settings.ACTION_DISPLAY_SETTINGS, null, null, DeviceState.AUTO_ROTATE);
 
     fun command(on: Boolean) = if (on) onCommand else offCommand
 

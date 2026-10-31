@@ -250,6 +250,8 @@
     <string name="skill_calculator_could_not_calculate">I could not calculate your request</string>
     <string name="skill_telephone_unknown_contact">No contact found, try again</string>
     <string name="skill_telephone_found_contacts">I found %1$d contacts, which one shall I call?</string>
+    <string name="skill_telephone_which_number">%1$s has %2$d numbers, which one shall I call?</string>
+    <string name="skill_telephone_choose_number">Number %1$d</string>
     <string name="skill_telephone_confirm_call">Call %1$s?</string>
     <string name="skill_telephone_calling">Calling %1$s…</string>
     <string name="skill_telephone_calling_in">Calling %1$s in %2$d</string>

@@ -49,6 +49,7 @@ fun ContactHeader(
     modifier: Modifier = Modifier,
     calling: Boolean = false,
     avatarSize: Dp = 56.dp,
+    showNumber: Boolean = true,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.padding(4.dp)) {
         ContactAvatar(name = name, number = number, size = avatarSize, calling = calling)
@@ -60,7 +61,7 @@ fun ContactHeader(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
-            if (number != null) {
+            if (number != null && showNumber) {
                 Text(
                     text = number,
                     style = MaterialTheme.typography.bodyLarge,

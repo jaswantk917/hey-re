@@ -26,6 +26,7 @@ It's a personal fork of [Dicio](https://github.com/Stypox/dicio-android), built 
 | **Phone switches** (through Shizuku). Wi-Fi, Bluetooth, mobile data, airplane mode, Battery Saver, dark mode and location. The hotspot opens its own switch, since Android lets no app flip it | _wifi band karo_ · _dark mode chalu kar do_ |
 | **Sound** | _phone silent kar do_ · _dnd on karo_ |
 | **Time, timers and alarms** | _kitne baje hain_ · _paanch minute ka timer lagao_ · _subah 7 baje ka alarm laga do_ |
+| **Reminders**, as a Clock timer or alarm labelled with what to remember | _2 ghante mein yaad dilana ki chhat se kapde lane hain_ · _remind me to take medicine at 9 pm_ |
 | **Nearby places**, on Google Maps around where you are | _khane ki jagah dhundho aaspaas_ · _nearest ATM_ |
 | **Notifications**, without the silent ones | _mere notifications batao_ |
 | **Everything else from Dicio**: weather, search, lyrics, translation, calculator, jokes, media, torch, opening apps, directions | _aaj mausam kaisa hai_ · _gaana rok do_ · _youtube kholo_ · _torch jala do_ |

@@ -197,6 +197,8 @@ skills:
         captures:
           - id: time
             type: string
+          - id: name
+            type: string
       - id: show
 
   - id: timer

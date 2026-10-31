@@ -12,15 +12,17 @@ import org.dicio.skill.context.SkillContext
 import org.dicio.skill.skill.SkillOutput
 import org.stypox.dicio.R
 import org.stypox.dicio.io.graphical.HeadlineSpeechSkillOutput
+import org.stypox.dicio.io.graphical.Headline
 import org.stypox.dicio.io.graphical.Subtitle
 import org.stypox.dicio.util.getString
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 sealed interface AlarmOutput : SkillOutput {
-    class Set(private val time: LocalTime) : AlarmOutput {
+    class Set(private val time: LocalTime, private val reminder: String? = null) : AlarmOutput {
         override fun getSpeechOutput(ctx: SkillContext): String =
-            ctx.getString(R.string.skill_alarm_set, format(ctx, time))
+            if (reminder == null) ctx.getString(R.string.skill_alarm_set, format(ctx, time))
+            else ctx.getString(R.string.skill_alarm_reminder_set, format(ctx, time), reminder)
 
         // the time big, like the Clock app shows it
         @Composable
@@ -31,6 +33,7 @@ sealed interface AlarmOutput : SkillOutput {
                     style = MaterialTheme.typography.displayMediumEmphasized,
                     modifier = Modifier.padding(horizontal = 6.dp),
                 )
+                reminder?.let { Headline(text = it) }
                 Subtitle(text = ctx.getString(R.string.skill_alarm_in_clock))
             }
         }

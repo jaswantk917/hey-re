@@ -6,7 +6,13 @@ set:
   - (subah|sham|shaam|raat|dopahar)? .time. (baje)? (ka|ki|ke|pe|par)? alarm (laga|lagao|lagana|set)? (do|de|karo|kar)? (do|de)?
   - alarm (laga|lagao|set) (do|de|karo|kar)? (do|de)? (subah|sham|shaam|raat|dopahar)? .time. (baje)? (ka|ki|pe|par)?
   - (subah|sham|shaam|raat|dopahar)? .time. (baje)? (utha|jaga) (dena|do|de|dijiye)
+  # reminders at a time ring as a Clock alarm labelled with what to remember
+  - remind me? (to|about) .name. at .time.
+  - remind me? at .time. (to|that|about) .name.
+  - (subah|sham|shaam|raat|dopahar)? .time. (baje)? (remind|yaad) (kar|karna|karo|kara|karao|dila|dilana|dilao|(kar dena)|(kara dena)|(dila dena)|(dila do)|(kar do)) (ki|ke|to)? .name.
 
 show:
   - (show|open|check) (my|the)? alarms
   - (mere|saare)? alarms (dikhao|dikha|kholo|batao) (do|de)?
+  - (where is|are)|show|open|check (my|the)? reminder<s?>
+  - (mera|mere)? reminder<s?> (kahan|kidhar) (hai|hain)?

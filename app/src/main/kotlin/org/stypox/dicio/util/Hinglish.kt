@@ -104,5 +104,6 @@ object Hinglish {
         "jalaao" to "jalao", "bujhaao" to "bujhao", "naheen" to "nahi", "nahin" to "nahi", "maan" to "maa",
         "mammi" to "mummy", "paapa" to "papa", "vaali" to "wali", "vaala" to "wala", "sitch" to "switch",
         "svich" to "switch", "plag" to "plug", "pankha" to "fan",
+        "rimaaind" to "remind", "rimaind" to "remind", "rimaaindar" to "reminder", "rimaindar" to "reminder",
     )
 }

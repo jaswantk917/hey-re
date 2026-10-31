@@ -60,6 +60,7 @@ sealed interface TimerOutput : SkillOutput {
         override fun GraphicalOutput(ctx: SkillContext) {
             Column {
                 Headline(text = getFormattedDuration(ctx.parserFormatter!!, milliseconds, false))
+                name?.let { Headline(text = it) }
                 Subtitle(text = ctx.getString(R.string.skill_timer_in_clock))
             }
         }

@@ -220,6 +220,7 @@
     <string name="skill_name_alarm">Alarm</string>
     <string name="skill_sentence_example_alarm">Subah 7 baje ka alarm laga do</string>
     <string name="skill_alarm_set">Alarm set for %1$s</string>
+    <string name="skill_alarm_reminder_set">I\'ll remind you at %1$s: %2$s</string>
     <string name="skill_alarm_in_clock">In your Clock app</string>
     <string name="skill_alarm_shown">Here are your alarms</string>
     <string name="skill_alarm_no_time">What time should the alarm ring?</string>
@@ -264,7 +265,7 @@
     <string name="skill_weather_opening_app">Here\'s the weather</string>
     <string name="skill_timer_in_clock">Running in your Clock app</string>
     <string name="skill_timer_open_clock">Your timers are in the Clock app, opening it</string>
-    <string name="skill_timer_set_name">OK, timer %1$s will expire in %2$s</string>
+    <string name="skill_timer_set_name">I\'ll remind you in %2$s: %1$s</string>
     <string name="skill_timer_canceled">The timer was canceled</string>
     <string name="skill_timer_all_canceled">All timers were canceled</string>
     <string name="skill_timer_canceled_name">Timer %1$s was canceled</string>

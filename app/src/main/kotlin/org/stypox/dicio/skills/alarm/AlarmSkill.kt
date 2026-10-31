@@ -24,7 +24,9 @@ class AlarmSkill(correspondingSkillInfo: SkillInfo, data: StandardRecognizerData
                     .putExtra(AlarmClock.EXTRA_HOUR, time.hour)
                     .putExtra(AlarmClock.EXTRA_MINUTES, time.minute)
                     .putExtra(AlarmClock.EXTRA_SKIP_UI, true)
-                if (start(ctx, intent)) AlarmOutput.Set(time) else AlarmOutput.NoClockApp
+                val reminder = inputData.name?.trim()?.takeIf { it.isNotEmpty() }
+                reminder?.let { intent.putExtra(AlarmClock.EXTRA_MESSAGE, it) }
+                if (start(ctx, intent)) AlarmOutput.Set(time, reminder) else AlarmOutput.NoClockApp
             }
             is Alarm.Show -> {
                 if (start(ctx, Intent(AlarmClock.ACTION_SHOW_ALARMS))) AlarmOutput.Shown

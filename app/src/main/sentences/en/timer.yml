@@ -6,7 +6,11 @@ set:
   # "ka" is often heard as "a": "8 minutes a timer lagao"
   - .duration. (ka|ki|ke|a)? (liye)? timer (laga|lagao|set|start|chalu)? (do|de|karo|kar)? (do|de)?
   - timer (laga|lagao|set|start) (do|de|karo|kar)? (do|de)? .duration. (ka|ki|ke)? (liye)?
-  - .duration. (baad|me|mein) (bata|batana|yaad|bula|bulana) (dila|dilana|dena|do|de)?
+  - .duration. (baad|me|men|mein) (bata|batana|yaad|bula|bulana) (dila|dilana|dena|do|de)?
+  # reminders ring as a Clock timer with what to remember as its label
+  - remind me? (in|after) .duration. (to|that|about) .name.
+  - remind me? (to|about) .name. (in|after) .duration.
+  - .duration. (baad|me|men|mein|main) (remind|yaad) (kar|karna|karo|kara|karao|dila|dilana|dilao|(kar dena)|(kara dena)|(dila dena)|(dila do)|(kar do)) (ki|ke|to)? .name.
 
 cancel:
   - cancel|stop|disable|end|terminate the? (.name.? time<r|rs?>)|(time<r|rs?> called|named|(with the name) .name.)

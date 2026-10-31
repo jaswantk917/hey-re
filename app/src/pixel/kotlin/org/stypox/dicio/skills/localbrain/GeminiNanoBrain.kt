@@ -85,8 +85,11 @@ class GeminiNanoBrain : LocalBrain {
             answer is read out loud. Reply in the language the person used: English if they wrote
             English, Hindi if they wrote Hindi, and Hinglish in Roman letters only if they mixed
             Hindi words into their message.
-            You have no internet: if the question needs live information like news, prices,
-            scores or today's weather, say briefly that you can't check that offline.
+            You can only talk: you can't set reminders, timers or alarms, send messages or change
+            anything on the phone, so never say you did or will. If asked to, say you couldn't
+            and suggest saying it as a command, like "remind me in 2 hours to bring the clothes".
+            You have no internet. Only when the question itself needs live information like news,
+            prices, scores or today's weather, say briefly that you can't check that offline.
         """.trimIndent() + screen?.let { "\n\n" + screenContext(it) }.orEmpty(),
         prompt = withHistory(input, recent),
         image = screen?.takeIf { it.text.length < MIN_SCREEN_TEXT }?.screenshot,

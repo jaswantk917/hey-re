@@ -1,11 +1,38 @@
 # Privacy policy
 
-Hey re is a fork of [Dicio](https://github.com/Stypox/dicio-android); this policy is adapted from Dicio's.
+Hey re is a fork of [Dicio](https://github.com/Stypox/dicio-android); this policy builds on Dicio's.
 
-The data that Hey re itself stores about the user are preferences, history and logs. They are kept in local and private databases which are only used by Hey re. Therefore, no such personal data is ever shared with any online service, except for specific preferences as explained shortly. Preferences are used to allow the user to customize their experience. Preferences strictly related to a specific online website might be sent to them for the purpose of enforcing such preference (for example, the language preference is used to download the correct Speech-To-Text model). History is used to make relevant suggestions and better understand user input. Logs are used only for debugging and troubleshooting purposes, and do not contain any specific user information.
+## What stays on the phone
 
-Hey re contains multiple skills, that is separate components that provide services, so that users can interact with those using the assistant interface (for example weather, lyrics, ...). Some skills work without ever connecting to the internet, while others may connect to various online websites as a requirement for providing their service (for example, the weather skill needs to access the internet to obtain weather data). Skills will not share any personal information with online services, unless it is strictly necessary for them to function (for example, when the weather skill makes a web request, the city is necessarily included). Users may enable or disable each skill individually, so they have full control over which online websites may be contacted.
+Hey re stores your preferences, the conversation you had with it and debugging logs, in the app's private storage. None of it is sent anywhere. The logs contain no personal details.
 
-The voice recognition in Hey re works offline, without ever sending audio to any external service. Once the Vosk AI Speech-To-Text model has been downloaded, Hey re can use it without needing to connect to the internet ever again. Therefore, once the STT model is ready, Hey re can be used without an internet connection, except for skills that need to find information on the internet (for example, the timer will work, while the weather will not). If the user wishes to, they can disable Hey re's access to the internet from Android settings, and the app will continue working normally. The user may even disable voice recognition completely from application settings.
+**Voice.** Speech is recognized on the phone, either by Android's on-device recognizer (Pixel build) or by Vosk (both builds). No audio is ever sent to a server. Vosk's language model is downloaded once, the first time it's needed.
 
-The user can easily delete all of their personal data by just clearing the app's storage from Android settings, or by uninstalling the app completely.
+**Gemini Nano** (Pixel build) runs on the phone through Android's AICore. Hey re gives it what you said and the last few exchanges of the conversation. When you summon Hey re over another app, it also gives Nano that app's on-screen text, or a screenshot if there's little text, so you can ask about it. Android only hands Hey re the screen when you summon it. None of this leaves the phone, and none of it is kept after the answer. Over the lock screen, Nano doesn't see your earlier conversation.
+
+**Contacts** are read to call or message the person you name, and to show your own name and photo on the home screen.
+
+**Health Connect steps** are read to tell you how far you've walked and to nudge you to walk. They're never stored or sent anywhere by Hey re.
+
+**Notifications** are read, with notification access you grant, to count them in the check-in or read them out when you ask. Silent ones are skipped. They're never stored or sent.
+
+**Shizuku**, if you allow it, lets Hey re flip phone switches (Wi-Fi, Bluetooth and so on). When sending a WhatsApp message, it also reads WhatsApp's screen for a moment to find and press the Send button. Nothing it reads is kept.
+
+## What goes online
+
+Each of these is a separate skill, which you can turn off in Settings → Skills:
+
+- **Google Tasks** (read-only). With your consent on Google's own sign-in sheet, Hey re asks Google's Tasks API for your open tasks to tell you what's due. The tasks are not stored.
+- **Google Home.** With your consent on Google's own screens, Hey re asks Google's Home APIs for your devices and switches them. The names of your devices are remembered on the phone, so it knows "cooler" is one of them.
+- **Weather, search, lyrics and translation** send what you asked for (the city, the search, the song, the text) to OpenWeatherMap, DuckDuckGo, Genius and Lingva respectively.
+- **Calls, messages, Maps and opening apps** hand what you said to the app that does it (the dialer, WhatsApp, SMS, Slack or Google Maps), which then follows its own privacy policy.
+
+Everything else (the time, timers, alarms, the torch, sound mode, phone switches, the calculator, jokes and the check-in's steps and notifications) works without the internet. You can block Hey re's internet access in Android settings and those keep working.
+
+## The lock screen
+
+Over the lock screen, Hey re only does what's harmless without your phone being unlocked: the time, timers, alarms, weather, the torch and similar. Calls, messages, switches, your check-in and notifications wait until you unlock.
+
+## Deleting your data
+
+Clear Hey re's storage in Android settings, or uninstall it. To remove access you gave it, revoke it in Android settings (Health Connect, notification access), in Shizuku, or in your Google account (Google Tasks, Google Home).

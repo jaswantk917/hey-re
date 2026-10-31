@@ -1,1 +1,1 @@
-Voice assistant: multilanguage, configurable and libre
+Hinglish voice assistant that runs on your phone, built on Dicio

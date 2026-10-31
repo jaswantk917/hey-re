@@ -1,71 +1,87 @@
-# Dicio assistant
-
-Dicio is a *free and open source* **voice assistant** running on Android. It supports many different **skills** and input/output methods, and it provides both **speech** and **graphical** feedback to a question. It interprets user input and (when possible) generates user output entirely **on-device**, providing privacy by design. It has **multilanguage** support, and is currently available in these languages: Czech, Dutch, English, French, German, Greek, Italian, Polish, Russian, Slovenian, Spanish, Swedish, Turkish and Ukrainian. Open to contributions :-D
-
 <p align="center">
-    <img width="80" alt="Dicio logo" src="./app/src/main/res/mipmap-xxxhdpi/ic_launcher.png">
-    &emsp;
-    <a href="https://f-droid.org/packages/org.stypox.dicio">
-        <img width="206" alt="Get it on F-Droid" src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png">
-    </a>
-    <a href="https://github.com/Stypox/dicio-android/releases">
-        <img width="206" alt="Get it on GitHub" src="./meta/get-it-on-github.png">
-    </a>
-    <a href="https://github.com/DicioTeam/dicio-android/issues/464">
-        <img width="206" alt="Get it on Play Store" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png">
-    </a>
+    <img width="96" alt="Hey re" src="./meta/hey-re-icon.svg">
 </p>
 
-## Screenshots
+# Hey re
 
-[<img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/0.png" width=200>](./fastlane/metadata/android/en-US/images/phoneScreenshots/0.png)
-[<img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width=200>](./fastlane/metadata/android/en-US/images/phoneScreenshots/1.png)
-[<img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width=200>](./fastlane/metadata/android/en-US/images/phoneScreenshots/2.png)
-[<img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width=200>](./fastlane/metadata/android/en-US/images/phoneScreenshots/3.png)
-[<img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width=200>](./fastlane/metadata/android/en-US/images/phoneScreenshots/4.png)
-[<img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" width=200>](./fastlane/metadata/android/en-US/images/phoneScreenshots/4.png)
+Hey re is a **Hinglish voice assistant for Android**. Say "lights band karo", "Maa ko message karo ki main aa raha hun" or "kitne steps hue aaj", in Hindi, English or both in one sentence, and it does it. It works out what you said and answers **on the phone itself**, with Material 3 Expressive design and haptics throughout.
 
-## Skills
+It's a personal fork of [Dicio](https://github.com/Stypox/dicio-android), built for one Pixel 9 and the way its owner talks. It isn't on any app store; you build it yourself.
 
-Currently Dicio answers questions about:
-- **search**: looks up information on **DuckDuckGo** (and in the future more engines) - _Search for Dicio_
-- **weather**: collects weather information from **OpenWeatherMap** - _What's the weather like?_
-- **lyrics**: shows **Genius** lyrics for songs - _What's the song that goes we will we will rock you?_
-- **open**: opens an app on your device - _Open NewPipe_
-- **calculator**: evaluates basic calculations - _What is four thousand and two times three minus a million divided by three hundred?_
-- **telephone**: view and call contacts - _Call Tom_
-- **timer**: set, query and cancel timers - _Set a timer for five minutes_
-- **current time**: query current time - _What time is it?_
-- **navigation**: opens the navigation app at the requested position - _Take me to New York, fifteenth avenue_
-- **jokes**: tells you a joke - _Tell me a joke_
-- **media**: play, pause, previous, next song
-- **translation**: translate from/to any language with **Lingva** - _How do I say Football in German?_
-- **wake word control**: turn on/off the wakeword - _Stop listening_
-- **notifications**: reads all notifications currently in the status bar - _What are my notifications?_
-- **flashlight**: turn on/off the phone flashlight - _Turn on the flashlight_
+<p align="center">
+    <img width="160" alt="Home, listening" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/0.png">
+    <img width="160" alt="Check-in on hello" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/1.png">
+    <img width="160" alt="Hinglish torch" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/2.png">
+    <img width="160" alt="Asking about the screen over Settings" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/3.png">
+    <img width="160" alt="Skills to try" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/4.png">
+    <img width="160" alt="Skills settings" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/5.png">
+</p>
 
-## Speech to text
+## What it does
 
-Dicio uses [Vosk](https://github.com/alphacep/vosk-api/) as its speech to text (`STT`) engine. In order to be able to run on every phone small models are employed, weighing `~50MB`. The download from [here](https://alphacephei.com/vosk/models) starts automatically whenever needed, so the app language can be changed seamlessly.
+| | Try saying |
+|---|---|
+| **Check-in.** Say hello and it tells you your steps, the Google Tasks due today and your unread notifications, and nudges you to walk around your office day | _hello, kaise ho_ · _kitne steps hue aaj_ · _kya mujhe aur chalna chahiye_ |
+| **Calls and messages.** Calls and WhatsApp, SMS or Slack messages go out after a short countdown you can cancel; with Shizuku, WhatsApp sends without a tap | _Maa ko call karo_ · _Papa ko message karo ki late ho jaunga_ |
+| **Google Home.** Your lights, plugs and cooler, now or later | _lights band karo_ · _cooler band karo ek ghante baad_ |
+| **Phone switches** (through Shizuku). Wi-Fi, Bluetooth, mobile data, airplane mode, Battery Saver, dark mode and location. The hotspot opens its own switch, since Android lets no app flip it | _wifi band karo_ · _dark mode chalu kar do_ |
+| **Sound** | _phone silent kar do_ · _dnd on karo_ |
+| **Time, timers and alarms** | _kitne baje hain_ · _paanch minute ka timer lagao_ · _subah 7 baje ka alarm laga do_ |
+| **Nearby places**, on Google Maps around where you are | _khane ki jagah dhundho aaspaas_ · _nearest ATM_ |
+| **Notifications**, without the silent ones | _mere notifications batao_ |
+| **Everything else from Dicio**: weather, search, lyrics, translation, calculator, jokes, media, torch, opening apps, directions | _aaj mausam kaisa hai_ · _gaana rok do_ · _youtube kholo_ · _torch jala do_ |
+| **What it can do** | _tum kya kya kar sakte ho_ |
 
-## Wake Word
+### Gemini Nano
 
-Dicio uses [OpenWakeWord](https://github.com/dscripka/openWakeWord) for wake word support, and by defaults it listens for the _Hey Dicio_ keyword. If you would like to use a different keyword, you can download other `.tflite` models from [Open Wake Word](https://github.com/dscripka/openWakeWord/releases/tag/v0.5.1) or from [this collection](https://github.com/fwartner/home-assistant-wakewords-collection). Then head to `Settings > Input and output methods > Import custom wake word` and select the `.tflite` model you downloaded. Alternatively, you can train a wake word model for a keyword of your choice by following this [Jupiter Notebook](https://github.com/dscripka/openWakeWord/blob/main/notebooks/automatic_model_training.ipynb) with this [configuration](meta/openwakeword_training_config.yml).
+On a Pixel 9 or newer, Gemini Nano runs on the phone and fills the gaps:
+- **Rewording.** When no skill understands a sentence, Nano rewrites it as a command one does. If the guess would act (call, message, switch, Maps), Hey re asks "Did you mean …?" first.
+- **Answers.** It answers small questions offline.
+- **Your screen.** Summoned over an app, it can tell you what's on the screen ("summarise this", "yeh kya hai").
 
-## Contributing
+### The assistant gesture and the lock screen
 
-Dicio's code is **not only here**! The repository with the *compiler for sentences* language files is at [`dicio-sentences-compiler`](https://github.com/Stypox/dicio-sentences-compiler), the *number parser and formatter* is at [`dicio-numbers`](https://github.com/Stypox/dicio-numbers) and the code for evaluating matching algorithms is at [`dicio-evaluation`](https://github.com/Stypox/dicio-evaluation).
+Make Hey re the phone's default assistant, then long-press the power button.
+- **Over an app:** a sheet opens over whatever you're using, and you can ask about the screen.
+- **In Hey re:** it jumps back to the conversation and listens.
+- **Locked:** the time, timers, alarms, weather, torch and other harmless things answer straight away. Anything personal or that acts on the phone asks you to unlock first, then carries on.
 
-When contributing keep in mind that other people may have **needs** and **views different** than yours, so please *respect* them. For any question feel free to contact the project team at [@Stypox](https://github.com/Stypox).
+## Hinglish
 
-### Matrix room for communication
+- **Grammars.** The skills' sentence grammars include Hinglish in Roman letters.
+- **Devanagari.** Hindi the recognizer writes in Devanagari ("लाइट बंद करो") is turned into the same Roman Hinglish, and Hindi number words ("paanch minute") into numbers.
+- **Recognition.** On the Pixel build, Android's on-device recognizer switches between Hindi and Indian English within one sentence once both offline language packs are installed.
 
-The **#dicio** channel on *Matrix* is available to get in touch with the developers: [#dicio:matrix.org](https://matrix.to/#/#dicio:matrix.org). Some convenient Matrix clients, available both for phone and desktop, are listed at that link.
+## Builds
 
-### Translating
+| Flavor | For | Speech to text |
+|---|---|---|
+| `pixel` | Pixel 9 and newer (arm64), with Gemini Nano | Android's on-device recognizer, Vosk as a fallback |
+| `foss` | Any Android 8+ phone, no Google AI | [Vosk](https://github.com/alphacep/vosk-api/) (~50 MB model, downloaded when first needed) |
 
-If you want to translate Dicio to a new language, follow the **steps** listed in the documentation: https://dicio.stypox.org/translating.html
+```sh
+./gradlew :app:assemblePixelRelease   # app/build/outputs/apk/pixel/release/
+./gradlew :app:testPixelDebugUnitTest
+```
 
-### Adding skills
+The wake word, through [OpenWakeWord](https://github.com/dscripka/openWakeWord), still listens for _Hey Dicio_ by default; a custom `.tflite` model can be imported from Settings.
 
-If you want to add a new skill, or improve an existing one, check out the guide in the documentation: https://dicio.stypox.org/adding_skill.html
+### Optional setup
+
+- **Shizuku.** Install and start [Shizuku](https://shizuku.rikka.app/), then allow Hey re in it, for the phone switches and hands-free WhatsApp. Settings → Assistant & access shows its state.
+- **Health Connect, Google Tasks and notification access.** The check-in asks for each the first time; tap its buttons.
+- **Your own build with Google Home or Google Tasks.** These need an OAuth client in your Google Cloud project for the app's package and signing certificate, with the Home APIs and the Tasks API enabled.
+
+## Tests
+
+Besides unit tests, [`smoke/utterances.tsv`](app/src/test/resources/smoke/utterances.tsv) lists real sentences with the skill each must reach. `UtteranceSmokeTest` runs every line through the app's matching and Hinglish handling and writes the results to `app/build/reports/smoke.txt`. When something you said lands on the wrong skill, add it there.
+
+## Privacy
+
+Speech is recognized on the phone, and Gemini Nano runs on the phone. Steps, tasks, notifications and what's on your screen are read only to answer you, and are never stored or sent anywhere by Hey re. Skills that need the internet, like weather or search, say so. Details are in [PRIVACY.md](PRIVACY.md).
+
+## Credits and license
+
+Hey re is built on [Dicio](https://github.com/Stypox/dicio-android) by Stypox and its contributors, together with [dicio-sentences-compiler](https://github.com/Stypox/dicio-sentences-compiler) and [dicio-numbers](https://github.com/Stypox/dicio-numbers). To contribute to Dicio itself (translations, new skills), see [its documentation](https://dicio.stypox.org/).
+
+Like Dicio, Hey re is licensed under the [GNU GPL v3](LICENSE).

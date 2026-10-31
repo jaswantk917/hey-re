@@ -358,7 +358,7 @@
     <string name="about_contributing_link" translatable="false">https://github.com/Stypox/dicio-android#contributing</string>
     <string name="about_privacy_title">Privacy policy</string>
     <string name="about_privacy_description">Hey re connects to external services only when a skill is expected to do so, or to download machine learning models during setup. All speech processing is performed locally on-device, and most skills can be used offline.</string>
-    <string name="about_privacy_link" translatable="false">https://github.com/jaswantk917/hey-re/blob/main/PRIVACY.md</string>
+    <string name="about_privacy_link" translatable="false">https://github.com/jaswantk917/hey-re/blob/hey-re/PRIVACY.md</string>
     <string name="skill_message_sent">Sent to %1$s</string>
     <string name="skill_name_phone_toggle">Phone switches</string>
     <string name="skill_sentence_example_phone_toggle">Wifi band karo</string>

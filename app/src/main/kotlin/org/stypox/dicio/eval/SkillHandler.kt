@@ -27,6 +27,7 @@ import org.stypox.dicio.skills.listening.ListeningInfo
 import org.stypox.dicio.skills.lyrics.LyricsInfo
 import org.stypox.dicio.skills.media.MediaInfo
 import org.stypox.dicio.skills.navigation.NavigationInfo
+import org.stypox.dicio.skills.nearby.NearbyInfo
 import org.stypox.dicio.skills.notify.NotifyInfo
 import org.stypox.dicio.skills.checkin.CheckInInfo
 import org.stypox.dicio.skills.help.HelpInfo
@@ -55,6 +56,7 @@ class SkillHandler @Inject constructor(
         OpenInfo,
         CalculatorInfo,
         NavigationInfo,
+        NearbyInfo,
         TelephoneInfo,
         MessageInfo,
         HomeInfo,

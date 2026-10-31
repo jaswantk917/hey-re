@@ -1,0 +1,12 @@
+# "restaurants near me", "nearest atm": a Maps search around where the user is
+english:
+  - (find|show|search)? (me)? (some|a|the)? .what. (near|around) (me|here)
+  - (find|show|search)? (me)? (some|a|the)? .what. nearby
+  - (find|show|search)? (me)? (some|a|the)? nearby .what.
+  - (find|show)? (me)? the? nearest|closest .what.
+
+# "khane ki jagah dhundho aaspaas", "aaspaas petrol pump dikhao", "sabse paas ATM kahan hai"
+hinglish:
+  - (aaspaas|nazdeek|najdeek|nearby|((aas)? paas (mein|me|main)?)) (koi|ek)? .what. (dhundho|dhundo|dhoondho|dhundh|dikhao|dikha|batao|bata)? (do|de|na)?
+  - (koi|ek)? .what. (dhundho|dhundo|dhoondho|dhundh|dikhao|dikha|batao|bata)? (do|de)? (aaspaas|nazdeek|najdeek|nearby|((aas)? paas (mein|me|main)?)) (dhundho|dhundo|dhoondho|dhundh|dikhao|dikha|batao|bata)? (do|de|na)?
+  - (sabse)? nazdeek|paas|nazdeeki .what. kahan|kaha (hai|milega|milegi)?

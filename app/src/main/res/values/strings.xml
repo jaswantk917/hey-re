@@ -388,6 +388,10 @@
     <string name="skill_guess_confirm">Did you mean “%1$s”?</string>
     <string name="skill_guess_do_it">Yes, do it</string>
     <string name="skill_guess_declined">Okay, I won\'t.</string>
+    <string name="skill_name_nearby">Nearby places</string>
+    <string name="skill_sentence_example_nearby">Restaurants near me</string>
+    <string name="skill_nearby_showing">Nearby %1$s, on Maps</string>
+    <string name="skill_nearby_showing_hi">Aaspaas ke %1$s, Maps pe</string>
     <string name="skill_name_help">What I can do</string>
     <string name="skill_sentence_example_help">What can you do?</string>
     <string name="skill_help_speech">Here\'s what I can do. Tap one to try it.</string>

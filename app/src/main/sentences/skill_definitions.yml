@@ -19,6 +19,18 @@ skills:
       - id: location_on
       - id: location_off
 
+  - id: nearby
+    specificity: high
+    sentences:
+      - id: english
+        captures:
+          - id: what
+            type: string
+      - id: hinglish
+        captures:
+          - id: what
+            type: string
+
   - id: help
     specificity: medium
     sentences:

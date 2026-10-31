@@ -37,6 +37,7 @@ On a Pixel 9 or newer, Gemini Nano runs on the phone and fills the gaps:
 - **Rewording.** When no skill understands a sentence, Nano rewrites it as a command one does. If the guess would act (call, message, switch, Maps), Hey re asks "Did you mean …?" first.
 - **Answers.** It answers small questions offline.
 - **Your screen.** Summoned over an app, it can tell you what's on the screen ("summarise this", "yeh kya hai").
+- **The whole article.** Over a page in Chrome, a second summary reads the whole article behind the link ("poora article batao"), not only what's visible. One-time links like sign-in or reset pages are never fetched.
 
 ### The assistant gesture and the lock screen
 

@@ -7,15 +7,21 @@ import android.util.Log
 import android.view.WindowManager
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.stypox.dicio.MainActivity
 import org.stypox.dicio.di.SttInputDeviceWrapper
 import org.stypox.dicio.eval.SkillEvaluator
 import org.stypox.dicio.skills.home.HomeControl
+import org.stypox.dicio.io.assist.Article
 import org.stypox.dicio.io.assist.ScreenContext
 import org.stypox.dicio.io.assist.requestUnlock
 import org.stypox.dicio.io.assist.ScreenSummary
@@ -80,6 +86,7 @@ class AssistActivity : BaseActivity() {
             startListening()
         }
         summarizeScreen()
+        summarizeArticle()
 
         composeSetContent {
             AssistSheet(
@@ -135,6 +142,29 @@ class AssistActivity : BaseActivity() {
                     ScreenContext.setSummary(ScreenSummary.Working)
                     val summary = localBrain.summarizeScreen(screen)
                     ScreenContext.setSummary(summary?.let { ScreenSummary.Ready(it) } ?: ScreenSummary.Unavailable)
+                }
+        }
+    }
+
+    /** The whole page behind a link, alongside the screen, for when what's visible isn't enough. */
+    private fun summarizeArticle() {
+        lifecycleScope.launch {
+            ScreenContext.snapshot.mapNotNull { it?.link }
+                .distinctUntilChanged()
+                .filter { Article.worthFetching(it) }
+                .collectLatest { link ->
+                    if (!localBrain.isReady()) return@collectLatest
+                    ScreenContext.setArticle(ScreenSummary.Working)
+                    val page = withContext(Dispatchers.IO) {
+                        try {
+                            Article.fetch(link)
+                        } catch (e: Exception) {
+                            Log.w(TAG, "Could not read the article", e)
+                            null
+                        }
+                    }
+                    val summary = page?.let { localBrain.summarizeArticle(it) }
+                    ScreenContext.setArticle(summary?.let { ScreenSummary.Ready(it) } ?: ScreenSummary.Unavailable)
                 }
         }
     }

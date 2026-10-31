@@ -2,6 +2,7 @@ package org.stypox.dicio.eval
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import org.stypox.dicio.eval.SkillEvaluatorImpl.Companion.ARTICLE_REQUEST
 import org.stypox.dicio.eval.SkillEvaluatorImpl.Companion.SCREEN_QUESTION
 import org.stypox.dicio.eval.SkillEvaluatorImpl.Companion.SUMMARY_REQUEST
 
@@ -28,6 +29,20 @@ class ScreenQuestionTest : StringSpec({
     "a summary request can use the summary made on summon" {
         SUMMARY_REQUEST.containsMatchIn("summarize this") shouldBe true
         SUMMARY_REQUEST.containsMatchIn("ye kya hai") shouldBe true
+        SUMMARY_REQUEST.containsMatchIn("yah kya screen per") shouldBe true
+        SUMMARY_REQUEST.containsMatchIn("screen par kya chal raha") shouldBe true
+        SUMMARY_REQUEST.containsMatchIn("is page mein kya likha hai") shouldBe true
         SUMMARY_REQUEST.containsMatchIn("explain this") shouldBe false
+    }
+
+    "the whole article is asked for by name, the screen otherwise" {
+        for (input in listOf(
+            "summarise the article", "poora article batao", "whole page summarise karo", "ye link kya hai",
+        )) {
+            ARTICLE_REQUEST.containsMatchIn(input) shouldBe true
+        }
+        for (input in listOf("summarize this", "ye kya hai", "screen pe kya hai", "linkedin kholo")) {
+            ARTICLE_REQUEST.containsMatchIn(input) shouldBe false
+        }
     }
 })

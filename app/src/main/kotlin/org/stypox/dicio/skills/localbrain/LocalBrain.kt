@@ -16,6 +16,7 @@ import org.dicio.skill.skill.SkillInfo
 import org.dicio.skill.skill.SkillOutput
 import org.stypox.dicio.util.RecognizeEverythingSkill
 import org.stypox.dicio.R
+import org.stypox.dicio.io.assist.Article
 import org.stypox.dicio.io.assist.ScreenSnapshot
 import org.stypox.dicio.io.graphical.HeadlineSpeechSkillOutput
 import org.stypox.dicio.skills.fallback.text.TextFallbackOutput
@@ -45,6 +46,9 @@ interface LocalBrain {
     /** One or two sentences on what [screen] shows, or null if the model can't tell. */
     suspend fun summarizeScreen(screen: ScreenSnapshot): String?
 
+    /** Two or three sentences on what the whole [article] says, or null if the model can't tell. */
+    suspend fun summarizeArticle(article: Article.Page): String?
+
     /** One earlier exchange, oldest first, so follow-ups make sense. */
     data class Turn(val user: String, val assistant: String)
 }
@@ -54,6 +58,7 @@ object NoLocalBrain : LocalBrain {
     override suspend fun rewriteAsCommand(input: String, commands: List<String>, recent: List<LocalBrain.Turn>): String? = null
     override suspend fun answer(input: String, recent: List<LocalBrain.Turn>, screen: ScreenSnapshot?): String? = null
     override suspend fun summarizeScreen(screen: ScreenSnapshot): String? = null
+    override suspend fun summarizeArticle(article: Article.Page): String? = null
 }
 
 /** Only used to label the model's own answers; it is never in the list of selectable skills. */

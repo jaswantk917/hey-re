@@ -13,6 +13,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import org.stypox.dicio.io.assist.Article
 import org.stypox.dicio.io.assist.ScreenSnapshot
 
 /**
@@ -24,6 +27,7 @@ class GeminiNanoBrain : LocalBrain {
     private val scope = CoroutineScope(Dispatchers.IO)
     private var download: Job? = null
     private var loggedModel = false
+    private val busy = Mutex()
 
     override suspend fun isReady(): Boolean {
         val status = try {
@@ -110,6 +114,21 @@ class GeminiNanoBrain : LocalBrain {
         )?.trim()?.takeIf { it.isNotEmpty() }
     }
 
+    override suspend fun summarizeArticle(article: Article.Page): String? = generate(
+        system = """
+            You are Hey re, the voice assistant the person just summoned while reading a page on
+            their phone. In two or three short sentences of plain text, tell them what the whole
+            article says and its main point, beyond what fits on their screen. No lists or
+            markdown. Write in English, or in Hinglish in Roman letters if the article is in Hindi.
+        """.trimIndent(),
+        prompt = buildString {
+            article.title?.let { append("Title: ").appendLine(it) }
+            append(article.text)
+        },
+        temperature = 0f,
+        maxTokens = ARTICLE_TOKENS,
+    )?.trim()?.takeIf { it.isNotEmpty() }
+
     private suspend fun generate(
         system: String,
         prompt: String,
@@ -118,19 +137,30 @@ class GeminiNanoBrain : LocalBrain {
         image: Bitmap? = null,
     ): String? =
         try {
-            val options: GenerateContentRequest.Builder.() -> Unit = {
-                this.temperature = temperature
-                topK = TOP_K
-                maxOutputTokens = maxTokens
-            }
-            model.generateContent(
-                if (image == null) generateContentRequest(SystemInstruction(system), TextPart(prompt), options)
-                else generateContentRequest(SystemInstruction(system), ImagePart(image), TextPart(prompt), options)
-            ).candidates.firstOrNull()?.text
+            // the screen and the article are summarised at once; AICore takes one request at a time
+            busy.withLock { generateNow(system, prompt, temperature, maxTokens, image) }
         } catch (e: Exception) {
             Log.w(TAG, "Gemini Nano generation failed", e)
             null
         }
+
+    private suspend fun generateNow(
+        system: String,
+        prompt: String,
+        temperature: Float,
+        maxTokens: Int,
+        image: Bitmap?,
+    ): String? {
+        val options: GenerateContentRequest.Builder.() -> Unit = {
+            this.temperature = temperature
+            topK = TOP_K
+            maxOutputTokens = maxTokens
+        }
+        return model.generateContent(
+            if (image == null) generateContentRequest(SystemInstruction(system), TextPart(prompt), options)
+            else generateContentRequest(SystemInstruction(system), ImagePart(image), TextPart(prompt), options)
+        ).candidates.firstOrNull()?.text
+    }
 
     companion object {
         private val TAG = GeminiNanoBrain::class.simpleName
@@ -138,6 +168,7 @@ class GeminiNanoBrain : LocalBrain {
         private const val ANSWER_TOKENS = 120
         private const val ANSWER_TEMPERATURE = 0.4f
         private const val SUMMARY_TOKENS = 80
+        private const val ARTICLE_TOKENS = 140
         // less text than this (a photo, a game, a video) and the screenshot says more
         private const val MIN_SCREEN_TEXT = 40
         private const val TOP_K = 16

@@ -12,6 +12,8 @@ data class ScreenSnapshot(
     val appName: String?,
     val text: String,
     val screenshot: Bitmap? = null,
+    /** The page's own link, when the app hands it over (Chrome does). */
+    val link: String? = null,
 )
 
 sealed interface ScreenSummary {
@@ -31,16 +33,25 @@ object ScreenContext {
     private val _summary = MutableStateFlow<ScreenSummary?>(null)
     val summary: StateFlow<ScreenSummary?> = _summary
 
+    /** The whole article behind [ScreenSnapshot.link], next to the summary of what's on screen. */
+    private val _article = MutableStateFlow<ScreenSummary?>(null)
+    val article: StateFlow<ScreenSummary?> = _article
+
     internal var hideSession: (() -> Unit)? = null
 
     internal fun begin() {
         _snapshot.value = null
         _summary.value = null
+        _article.value = null
     }
 
     internal fun setText(packageName: String?, appName: String?, text: String) {
         _snapshot.value = (_snapshot.value ?: ScreenSnapshot(packageName, appName, ""))
             .copy(packageName = packageName, appName = appName, text = text)
+    }
+
+    internal fun setLink(link: String) {
+        _snapshot.value = (_snapshot.value ?: ScreenSnapshot(null, null, "")).copy(link = link)
     }
 
     internal fun setScreenshot(screenshot: Bitmap) {
@@ -51,10 +62,15 @@ object ScreenContext {
         _summary.value = summary
     }
 
+    fun setArticle(article: ScreenSummary) {
+        _article.value = article
+    }
+
     /** The sheet is gone: forget the screen and let the system tear the session down. */
     fun end() {
         _snapshot.value = null
         _summary.value = null
+        _article.value = null
         hideSession?.invoke()
         hideSession = null
     }

@@ -24,6 +24,7 @@ Each of these is a separate skill, which you can turn off in Settings → Skills
 
 - **Google Tasks** (read-only). With your consent on Google's own sign-in sheet, Hey re asks Google's Tasks API for your open tasks to tell you what's due. The tasks are not stored.
 - **Google Home.** With your consent on Google's own screens, Hey re asks Google's Home APIs for your devices and switches them. The names of your devices are remembered on the phone, so it knows "cooler" is one of them.
+- **The whole article.** When you summon Hey re over a page whose app hands over its link (Chrome does), Hey re downloads that page itself, without your cookies or login, and Gemini Nano summarises it on the phone. It skips sign-in, reset, invite and other one-time links, homepages and searches, so a second visit can't use them up. The page isn't kept.
 - **Weather, search, lyrics and translation** send what you asked for (the city, the search, the song, the text) to OpenWeatherMap, DuckDuckGo, Genius and Lingva respectively.
 - **Calls, messages, Maps and opening apps** hand what you said to the app that does it (the dialer, WhatsApp, SMS, Slack or Google Maps), which then follows its own privacy policy.
 

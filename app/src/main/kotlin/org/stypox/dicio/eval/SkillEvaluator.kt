@@ -252,6 +252,13 @@ class SkillEvaluatorImpl(
     private suspend fun askAboutScreen(input: String): Pair<String, SkillWithResult<*>>? {
         val screen = ScreenContext.snapshot.value ?: return null
         val roman = Hinglish.romanize(input)
+        val article = (ScreenContext.article.value as? ScreenSummary.Ready)?.text
+        if (article != null && ARTICLE_REQUEST.containsMatchIn(roman)) {
+            val skill = object : RecognizeEverythingSkill(LocalBrainInfo) {
+                override suspend fun generateOutput(ctx: SkillContext, inputData: String) = LocalBrainOutput(article)
+            }
+            return Pair(input, skill.scoreAndWrapResult(skillContext, input))
+        }
         if (!SCREEN_QUESTION.containsMatchIn(roman)) return null
         val ready = (ScreenContext.summary.value as? ScreenSummary.Ready)?.text
         val skill = if (ready != null && SUMMARY_REQUEST.containsMatchIn(roman)) {
@@ -370,7 +377,12 @@ class SkillEvaluatorImpl(
 
         internal val SUMMARY_REQUEST = Regex(
             "summari[sz]e|sum (it|this) up|what'?s (this|on (my|the) screen)|what is (this|on (my|the) screen)|" +
-                    "(ye|yeh) kya hai|isme kya|screen (pe|par) kya",
+                    "(ye|yeh|yah|ya) kya\\b|isme kya|(screen|page) (pe|par|per|pr|mein|me|main)\\b",
+            RegexOption.IGNORE_CASE,
+        )
+        // "poora article batao", "summarise the whole page": the article behind the link, not the screen
+        internal val ARTICLE_REQUEST = Regex(
+            "\\b(article|(whole|full|entire|poora|pura|puri|poori) (page|post|story|link|cheez)|(the|is|ye|yeh) link)\\b",
             RegexOption.IGNORE_CASE,
         )
         internal val SCREEN_QUESTION = Regex(

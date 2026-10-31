@@ -55,6 +55,8 @@ class HeyReSession(context: Context) : VoiceInteractionSession(context) {
         val structure = state.assistStructure ?: return
         val packageName = structure.activityComponent?.packageName
         if (packageName == context.packageName) return
+        state.assistContent?.webUri?.takeIf { it.scheme == "https" || it.scheme == "http" }
+            ?.let { ScreenContext.setLink(it.toString()) }
         ScreenContext.setText(packageName, appName(packageName), ScreenContext.textOf(structure))
     }
 

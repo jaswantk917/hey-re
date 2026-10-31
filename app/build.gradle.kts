@@ -165,6 +165,9 @@ dependencies {
 
     // Gemini Nano through AICore, Pixel build only
     "pixelImplementation"(libs.mlkit.genai.prompt)
+    // reading the text in an image, English and Hindi; through Play services, so nothing to bundle
+    "pixelImplementation"(libs.mlkit.text.recognition)
+    "pixelImplementation"(libs.mlkit.text.recognition.devanagari)
     implementation(libs.play.services.home)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.health.connect.client)

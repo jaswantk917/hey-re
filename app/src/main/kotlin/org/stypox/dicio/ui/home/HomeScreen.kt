@@ -1,6 +1,7 @@
 package org.stypox.dicio.ui.home
 
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.isImeVisible
@@ -97,6 +98,7 @@ fun HomeScreen(
             SnackbarHost(hostState = viewModel.snackbarHostState)
         },
         topBarBlur = topBarBlur.value,
+        onImage = viewModel.skillEvaluator::processImage,
     )
 }
 
@@ -118,6 +120,7 @@ fun HomeScreen(
     snackbarHost: @Composable () -> Unit,
     // off in Settings: a solid bar instead of the conversation blurring beneath it
     topBarBlur: Boolean = true,
+    onImage: (Bitmap) -> Unit = {},
 ) {
     // null while talking, the text being typed while in typing mode
     var typedText by rememberSaveable { mutableStateOf<String?>(null) }
@@ -134,6 +137,7 @@ fun HomeScreen(
         uiPrefs.edit { putInt(ANSWERS_SO_FAR, answersSoFar) }
     }
     SttHaptics(sttState)
+    val imagePickers = rememberImagePickers(onImage)
 
     // listening (the gesture or the wake word while typing): the orb, not the composer
     val keyboard = LocalSoftwareKeyboardController.current
@@ -233,7 +237,11 @@ fun HomeScreen(
         HomeTopBar(
             showTitle = interactionCount > 0 || interactionLog.pendingQuestion != null,
             onSettingsClick = onSettingsClick,
-                )
+            onShowSkills = {
+                haptics.play(Haptic.Tap)
+                showSkillsSheet = true
+            },
+        )
 
         HomeDock(
             sttState = sttState,
@@ -243,10 +251,9 @@ fun HomeScreen(
             onSend = ::send,
             onSttClick = onSttClick,
             onOrbLongClick = { haptics.play(Haptic.Spin) },
-            onShowSkills = {
-                haptics.play(Haptic.Tap)
-                showSkillsSheet = true
-            },
+            onTakePhoto = imagePickers.takePhoto,
+            onChoosePhoto = imagePickers.choosePhoto,
+            onPasteImage = imagePickers.pasteImage,
             onToggleTyping = {
                 haptics.play(Haptic.Tap)
                 typedText = if (typedText == null) "" else null

@@ -23,4 +23,6 @@ class FakeSkillEvaluator : SkillEvaluator {
     override fun expectBrief() {}
 
     override fun briefIfIdle() {}
+
+    override fun processImage(image: android.graphics.Bitmap) {}
 }

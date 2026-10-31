@@ -28,6 +28,7 @@ import org.stypox.dicio.eval.SkillEvaluator
 import org.stypox.dicio.skills.checkin.WalkReminder
 import org.stypox.dicio.skills.home.HomeControl
 import org.stypox.dicio.io.graphical.Countdown
+import org.stypox.dicio.io.assist.ScreenContext
 import org.stypox.dicio.io.wake.WakeService
 import org.stypox.dicio.io.wake.WakeState.Loaded
 import org.stypox.dicio.io.wake.WakeState.Loading
@@ -119,6 +120,7 @@ class MainActivity : BaseActivity() {
         if (!isChangingConfigurations) {
             Countdown.cancelAll(this)
             sttInputDevice.cancelListening()
+            ScreenContext.forgetImage()
         }
 
         // once the activity is swiped away from the lock screen (or put in the background in any

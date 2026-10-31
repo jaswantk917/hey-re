@@ -30,6 +30,7 @@ It's a personal fork of [Dicio](https://github.com/Stypox/dicio-android), built 
 | **Time, timers and alarms** | _kitne baje hain_ · _paanch minute ka timer lagao_ · _subah 7 baje ka alarm laga do_ |
 | **Reminders**, as a Clock timer or alarm labelled with what to remember | _2 ghante mein yaad dilana ki chhat se kapde lane hain_ · _remind me to take medicine at 9 pm_ |
 | **Nearby places**, on Google Maps around where you are | _khane ki jagah dhundho aaspaas_ · _nearest ATM_ |
+| **Images.** Take a photo, pick one, or paste one from the keyboard: Hey re reads the text in it (Hindi and English, on the phone), says what it shows with Gemini Nano, and lets you copy or translate the text, or ask about it | the photo button beside the mic · _isme kya likha hai_ |
 | **Notifications**, without the silent ones | _mere notifications batao_ |
 | **What needs you.** Summon Hey re and say nothing, or ask: missed calls, people writing again or asking something, live updates like a delivery, tasks due, low battery or storage. Each is scored on its own and only the top few show, or none | _kuch important hai_ · _what did i miss_ |
 | **Everything else from Dicio**: weather, search, lyrics, translation, calculator, jokes, media, torch, opening apps, directions | _aaj mausam kaisa hai_ · _gaana rok do_ · _youtube kholo_ · _torch jala do_ |

@@ -12,6 +12,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
+import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import org.stypox.dicio.ui.util.Haptic
 import org.stypox.dicio.ui.util.rememberHaptics
 import androidx.compose.animation.AnimatedContent
@@ -26,6 +31,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
+import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,7 +47,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.content.MediaType
+import androidx.compose.foundation.content.consume
+import androidx.compose.foundation.content.contentReceiver
+import androidx.compose.foundation.content.hasMediaType
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -68,6 +82,8 @@ import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -96,6 +112,7 @@ import org.stypox.dicio.ui.util.loadingProgressString
 @Composable
 fun HomeTopBar(
     showTitle: Boolean,
+    onShowSkills: () -> Unit,
     onSettingsClick: () -> Unit,
 ) {
     Row(
@@ -121,6 +138,9 @@ fun HomeTopBar(
             )
         }
         Spacer(modifier = Modifier.weight(1f))
+        IconButton(onClick = onShowSkills, shapes = IconButtonDefaults.shapes()) {
+            Icon(Icons.Default.AutoAwesome, contentDescription = stringResource(R.string.what_i_can_do))
+        }
         IconButton(onClick = onSettingsClick, shapes = IconButtonDefaults.shapes()) {
             Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.settings))
         }
@@ -192,7 +212,9 @@ fun HomeDock(
     onSend: (String) -> Unit,
     onSttClick: () -> Unit,
     onOrbLongClick: () -> Unit,
-    onShowSkills: () -> Unit,
+    onTakePhoto: () -> Unit,
+    onChoosePhoto: () -> Unit,
+    onPasteImage: (Uri) -> Unit,
     onToggleTyping: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -233,6 +255,7 @@ fun HomeDock(
                 text = typedText ?: "",
                 onTextChange = onTypedTextChange,
                 onSend = onSend,
+                onPasteImage = onPasteImage,
                 onSpeakInstead = if (sttState != null) onToggleTyping else null,
             )
         } else {
@@ -241,7 +264,8 @@ fun HomeDock(
                 mood = mood,
                 onOrbClick = onOrbClick,
                 onOrbLongClick = onOrbLongClick,
-                onShowSkills = onShowSkills,
+                onTakePhoto = onTakePhoto,
+                onChoosePhoto = onChoosePhoto,
                 onTypeInstead = onToggleTyping,
             )
         }
@@ -255,7 +279,8 @@ private fun VoiceDock(
     mood: OrbMood,
     onOrbClick: () -> Unit,
     onOrbLongClick: () -> Unit,
-    onShowSkills: () -> Unit,
+    onTakePhoto: () -> Unit,
+    onChoosePhoto: () -> Unit,
     onTypeInstead: () -> Unit,
 ) {
     Column(
@@ -285,20 +310,56 @@ private fun VoiceDock(
                 contentDescription = stringResource(R.string.orb_description),
                 size = 96.dp,
             )
-            FilledTonalIconButton(
-                onClick = onShowSkills,
-                shapes = IconButtonDefaults.shapes(
-                    shape = MaterialShapes.Clover4Leaf.toShape(),
-                    pressedShape = MaterialShapes.Clover8Leaf.toShape(),
-                ),
-                colors = IconButtonDefaults.filledTonalIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                ),
-                modifier = Modifier.size(SideButtonSize),
-            ) {
-                Icon(Icons.Default.AutoAwesome, contentDescription = stringResource(R.string.what_i_can_do))
-            }
+            ImageButton(onTakePhoto = onTakePhoto, onChoosePhoto = onChoosePhoto)
+        }
+    }
+}
+
+/** Shows Hey re an image to read and ask about: a new photo or one from the gallery. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ImageButton(onTakePhoto: () -> Unit, onChoosePhoto: () -> Unit) {
+    var menuOpen by remember { mutableStateOf(false) }
+    val haptics = rememberHaptics()
+    Box {
+        FilledTonalIconButton(
+            onClick = {
+                haptics.play(Haptic.Tap)
+                menuOpen = true
+            },
+            shapes = IconButtonDefaults.shapes(
+                shape = MaterialShapes.Clover4Leaf.toShape(),
+                pressedShape = MaterialShapes.Clover8Leaf.toShape(),
+            ),
+            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            ),
+            modifier = Modifier.size(SideButtonSize),
+        ) {
+            Icon(Icons.Default.AddPhotoAlternate, contentDescription = stringResource(R.string.image_button))
+        }
+        DropdownMenu(
+            expanded = menuOpen,
+            onDismissRequest = { menuOpen = false },
+            shape = RoundedCornerShape(20.dp),
+        ) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.image_take_photo)) },
+                leadingIcon = { Icon(Icons.Default.PhotoCamera, contentDescription = null) },
+                onClick = {
+                    menuOpen = false
+                    onTakePhoto()
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.image_choose_photo)) },
+                leadingIcon = { Icon(Icons.Default.PhotoLibrary, contentDescription = null) },
+                onClick = {
+                    menuOpen = false
+                    onChoosePhoto()
+                },
+            )
         }
     }
 }
@@ -377,16 +438,28 @@ private fun DockStatus(sttState: SttState?) {
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
 private fun Composer(
     text: String,
     onTextChange: (String) -> Unit,
     onSend: (String) -> Unit,
+    onPasteImage: (Uri) -> Unit,
     onSpeakInstead: (() -> Unit)?,
 ) {
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
+    // the field keeps its own state, the only kind that takes an image from the keyboard; the
+    // text stays hoisted so a tapped suggestion can still fill it in
+    val state = rememberTextFieldState(text)
+    val currentText by rememberUpdatedState(text)
+    val currentOnTextChange by rememberUpdatedState(onTextChange)
+    LaunchedEffect(text) {
+        if (state.text.toString() != text) state.setTextAndPlaceCursorAtEnd(text)
+    }
+    LaunchedEffect(state) {
+        snapshotFlow { state.text.toString() }.collect { if (it != currentText) currentOnTextChange(it) }
+    }
 
     Surface(
         shape = RoundedCornerShape(percent = 50),
@@ -408,16 +481,15 @@ private fun Composer(
                 }
             }
             BasicTextField(
-                value = text,
-                onValueChange = { onTextChange(it.replace("\n", "")) },
-                singleLine = true,
+                state = state,
+                lineLimits = TextFieldLineLimits.SingleLine,
                 textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-                keyboardActions = KeyboardActions(onSend = { onSend(text) }),
-                decorationBox = { inner ->
+                onKeyboardAction = { onSend(state.text.toString()) },
+                decorator = { inner ->
                     Box(contentAlignment = Alignment.CenterStart) {
-                        if (text.isEmpty()) {
+                        if (state.text.isEmpty()) {
                             Text(
                                 text = stringResource(R.string.text_input_hint),
                                 style = MaterialTheme.typography.bodyLarge,
@@ -430,7 +502,12 @@ private fun Composer(
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = 14.dp)
-                    .focusRequester(focusRequester),
+                    .focusRequester(focusRequester)
+                    // an image pasted or picked from the keyboard's clipboard: show it to Hey re
+                    .contentReceiver { content ->
+                        if (!content.hasMediaType(MediaType.Image)) return@contentReceiver content
+                        content.consume { item -> item.uri?.also(onPasteImage) != null }
+                    },
             )
             AnimatedVisibility(
                 visible = text.isNotBlank(),
@@ -591,7 +668,9 @@ private fun HomeDockPreview() {
                     onSend = {},
                     onSttClick = {},
                     onOrbLongClick = {},
-                    onShowSkills = {},
+                    onTakePhoto = {},
+                    onChoosePhoto = {},
+                    onPasteImage = {},
                     onToggleTyping = {},
                 )
             }
@@ -603,7 +682,9 @@ private fun HomeDockPreview() {
                 onSend = {},
                 onSttClick = {},
                 onOrbLongClick = {},
-                onShowSkills = {},
+                onTakePhoto = {},
+                onChoosePhoto = {},
+                onPasteImage = {},
                 onToggleTyping = {},
             )
         }

@@ -58,6 +58,21 @@ object ScreenContext {
         _snapshot.value = (_snapshot.value ?: ScreenSnapshot(null, null, "")).copy(screenshot = screenshot)
     }
 
+    /**
+     * An image the person showed Hey re (a photo, a pasted screenshot) stands in for the screen,
+     * so "isme kya likha hai" and "summarise this" are about it.
+     */
+    fun showImage(image: Bitmap, text: String?) {
+        _snapshot.value = ScreenSnapshot(IMAGE, "an image they shared", text.orEmpty(), image)
+        _summary.value = null
+        _article.value = null
+    }
+
+    /** Leaving the app forgets a shown image; a summoned screen is the sheet's to forget. */
+    fun forgetImage() {
+        if (_snapshot.value?.packageName == IMAGE) _snapshot.value = null
+    }
+
     fun setSummary(summary: ScreenSummary) {
         _summary.value = summary
     }
@@ -102,4 +117,5 @@ object ScreenContext {
     }
 
     private const val MAX_CHARS = 3000
+    private const val IMAGE = "hey-re:image"
 }

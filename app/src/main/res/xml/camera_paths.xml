@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- where the camera app writes a photo taken to show Hey re; replaced by the next one -->
+<paths>
+    <cache-path name="camera" path="camera/" />
+</paths>

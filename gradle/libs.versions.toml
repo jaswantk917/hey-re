@@ -9,6 +9,8 @@ coilCompose = "2.7.0"
 composeBom = "2026.10.00"
 graphicsShapes = "1.0.1"
 mlkitGenaiPrompt = "1.0.0-beta4"
+mlkitTextRecognition = "19.0.2"
+mlkitTextRecognitionDevanagari = "16.0.2"
 healthConnect = "1.1.0"
 playServicesAuth = "21.6.0"
 playServicesHome = "17.1.0"
@@ -67,6 +69,8 @@ compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview"
 compose-material3 = { module = "androidx.compose.material3:material3" }
 graphics-shapes = { module = "androidx.graphics:graphics-shapes", version.ref = "graphicsShapes" }
 mlkit-genai-prompt = { module = "com.google.mlkit:genai-prompt", version.ref = "mlkitGenaiPrompt" }
+mlkit-text-recognition = { module = "com.google.android.gms:play-services-mlkit-text-recognition", version.ref = "mlkitTextRecognition" }
+mlkit-text-recognition-devanagari = { module = "com.google.android.gms:play-services-mlkit-text-recognition-devanagari", version.ref = "mlkitTextRecognitionDevanagari" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 health-connect-client = { module = "androidx.health.connect:connect-client", version.ref = "healthConnect" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }

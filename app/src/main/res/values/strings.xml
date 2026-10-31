@@ -376,6 +376,17 @@
     <string name="skill_toggle_battery_saver">Battery Saver</string>
     <string name="skill_toggle_dark_mode">Dark mode</string>
     <string name="skill_toggle_location">Location</string>
+    <string name="skill_name_image">Image</string>
+    <string name="skill_image_question">Look at this image</string>
+    <string name="skill_image_read_text">Here\'s the text in it</string>
+    <string name="skill_image_nothing">I couldn\'t make out anything in it</string>
+    <string name="skill_image_copy_text">Copy text</string>
+    <string name="skill_image_translate">Translate</string>
+    <string name="skill_image_translate_command">Translate this to English</string>
+    <string name="skill_image_ask_hint">Ask about it: \"isme kya likha hai\", \"summarise this\"</string>
+    <string name="image_take_photo">Take a photo</string>
+    <string name="image_choose_photo">Choose a photo</string>
+    <string name="image_button">Show an image</string>
     <string name="skill_name_brief">What needs you</string>
     <string name="skill_sentence_example_brief">Kuch important hai?</string>
     <string name="skill_brief_nothing">Nothing needs you right now</string>

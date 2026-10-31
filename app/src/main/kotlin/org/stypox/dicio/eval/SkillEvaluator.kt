@@ -1,6 +1,7 @@
 package org.stypox.dicio.eval
 
 import android.util.Log
+import android.graphics.Bitmap
 import android.os.SystemClock
 import dagger.Module
 import dagger.Provides
@@ -22,6 +23,9 @@ import org.stypox.dicio.io.graphical.ErrorSkillOutput
 import org.stypox.dicio.io.graphical.MissingPermissionsSkillOutput
 import org.stypox.dicio.io.input.SttState
 import org.stypox.dicio.skills.brief.BriefInfo
+import org.stypox.dicio.skills.image.ImageInfo
+import org.stypox.dicio.skills.image.ImageOutput
+import org.stypox.dicio.skills.image.TextReader
 import org.stypox.dicio.skills.brief.BriefSkill
 import org.stypox.dicio.R
 import org.stypox.dicio.io.assist.ScreenContext
@@ -61,6 +65,9 @@ interface SkillEvaluator {
 
     /** The app was opened: if the person does nothing for a moment, show the brief quietly. */
     fun briefIfIdle()
+
+    /** An image the person showed (camera, gallery, pasted): read it, say what it is, keep it to ask about. */
+    fun processImage(image: Bitmap)
 }
 
 class SkillEvaluatorImpl(
@@ -68,6 +75,7 @@ class SkillEvaluatorImpl(
     private val skillHandler: SkillHandler,
     private val sttInputDevice: SttInputDeviceWrapper,
     private val localBrain: LocalBrain,
+    private val textReader: TextReader,
 ) : SkillEvaluator {
 
     private val scope = CoroutineScope(Dispatchers.Default)
@@ -112,6 +120,33 @@ class SkillEvaluatorImpl(
             if (lastIdleBrief != 0L && now - lastIdleBrief < IDLE_BRIEF_EVERY_MILLIS) return@launch
             lastIdleBrief = now
             showBrief(speak = false, onlyIfSomething = true)
+        }
+    }
+
+    override fun processImage(image: Bitmap) {
+        briefOnSilence = false
+        scope.launch {
+            _state.value = _state.value.copy(
+                pendingQuestion = PendingQuestion(
+                    userInput = skillContext.android.getString(R.string.skill_image_question),
+                    continuesLastInteraction = false,
+                    skillBeingEvaluated = ImageInfo,
+                )
+            )
+            val output = try {
+                val text = textReader.read(image)
+                // follow-ups ("isme kya likha hai", "translate this") are about this image now
+                ScreenContext.showImage(image, text)
+                val description = if (localBrain.isReady()) localBrain.describeImage(image, text) else null
+                ImageOutput(image, description, text)
+            } catch (e: Exception) {
+                addErrorInteractionFromPending(e)
+                return@launch
+            }
+            addInteractionFromPending(output)
+            output.getSpeechOutput(skillContext).takeIf { it.isNotBlank() }?.let {
+                withContext(Dispatchers.Main) { skillContext.speechOutputDevice.speak(it) }
+            }
         }
     }
 
@@ -477,7 +512,8 @@ class SkillEvaluatorModule {
         skillHandler: SkillHandler,
         sttInputDevice: SttInputDeviceWrapper,
         localBrain: LocalBrain,
+        textReader: TextReader,
     ): SkillEvaluator {
-        return SkillEvaluatorImpl(skillContext, skillHandler, sttInputDevice, localBrain)
+        return SkillEvaluatorImpl(skillContext, skillHandler, sttInputDevice, localBrain, textReader)
     }
 }

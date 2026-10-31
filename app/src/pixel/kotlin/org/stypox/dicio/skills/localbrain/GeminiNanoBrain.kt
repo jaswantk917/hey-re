@@ -132,6 +132,20 @@ class GeminiNanoBrain : LocalBrain {
         maxTokens = ARTICLE_TOKENS,
     )?.trim()?.takeIf { it.isNotEmpty() }
 
+    override suspend fun describeImage(image: Bitmap, text: String?): String? = generate(
+        system = """
+            You are Hey re, a voice assistant on the person's phone. They just showed you an image.
+            In one or two short sentences of plain text, say what it is and the one thing in it
+            most worth knowing (a total on a bill, a date on a notice, what a message asks). No
+            lists or markdown. Write in English, or in Hinglish in Roman letters if the image's
+            text is mostly in Hindi.
+        """.trimIndent(),
+        prompt = if (text.isNullOrBlank()) "Here is the image." else "Here is the image. Its text reads:\n" + text.take(MAX_IMAGE_TEXT),
+        image = image,
+        temperature = 0f,
+        maxTokens = SUMMARY_TOKENS,
+    )?.trim()?.takeIf { it.isNotEmpty() }
+
     private suspend fun generate(
         system: String,
         prompt: String,
@@ -172,6 +186,7 @@ class GeminiNanoBrain : LocalBrain {
         private const val ANSWER_TEMPERATURE = 0.4f
         private const val SUMMARY_TOKENS = 80
         private const val ARTICLE_TOKENS = 140
+        private const val MAX_IMAGE_TEXT = 3000
         // less text than this (a photo, a game, a video) and the screenshot says more
         private const val MIN_SCREEN_TEXT = 40
         private const val TOP_K = 16

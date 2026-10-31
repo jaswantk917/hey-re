@@ -39,6 +39,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -74,6 +75,7 @@ import org.stypox.dicio.ui.home.UserBubble
 import org.stypox.dicio.ui.home.orbMood
 import org.stypox.dicio.ui.home.revealLastItem
 import org.stypox.dicio.ui.home.rememberHappyOnNewAnswer
+import org.stypox.dicio.ui.home.rememberImagePickers
 import org.stypox.dicio.ui.util.Haptic
 import org.stypox.dicio.ui.util.rememberHaptics
 
@@ -109,6 +111,7 @@ fun AssistSheet(
 
     val isHappy = rememberHappyOnNewAnswer(interactionLog)
     SttHaptics(sttState)
+    val imagePickers = rememberImagePickers(viewModel.skillEvaluator::processImage)
 
     OverlaySheet(onDismiss = onDismiss) {
         Column(
@@ -126,6 +129,15 @@ fun AssistSheet(
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f),
                 )
+                IconButton(
+                    onClick = {
+                        haptics.play(Haptic.Tap)
+                        showSkillsSheet = true
+                    },
+                    shapes = IconButtonDefaults.shapes(),
+                ) {
+                    Icon(Icons.Default.AutoAwesome, contentDescription = stringResource(R.string.what_i_can_do))
+                }
                 IconButton(onClick = onOpenApp, shapes = IconButtonDefaults.shapes()) {
                     Icon(Icons.Default.OpenInFull, contentDescription = stringResource(R.string.assist_open_app))
                 }
@@ -212,10 +224,9 @@ fun AssistSheet(
                     viewModel.sttInputDevice.onClick(viewModel.skillEvaluator::processInputEvent)
                 },
                 onOrbLongClick = { haptics.play(Haptic.Spin) },
-                onShowSkills = {
-                    haptics.play(Haptic.Tap)
-                    showSkillsSheet = true
-                },
+                onTakePhoto = imagePickers.takePhoto,
+                onChoosePhoto = imagePickers.choosePhoto,
+                onPasteImage = imagePickers.pasteImage,
                 onToggleTyping = {
                     haptics.play(Haptic.Tap)
                     typedText = if (typedText == null) "" else null

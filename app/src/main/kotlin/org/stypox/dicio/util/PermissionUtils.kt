@@ -10,13 +10,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import dev.shreyaspatil.permissionflow.compose.rememberMultiplePermissionState
+import dev.shreyaspatil.permissionflow.compose.rememberPermissionFlowRequestLauncher
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
 import org.dicio.skill.skill.Permission
 import org.stypox.dicio.R
+import org.stypox.dicio.eval.SkillEvaluator
 
 val PERMISSION_READ_CONTACTS = Permission.NormalPermission(
     name = R.string.perm_read_contacts,
@@ -150,3 +155,47 @@ fun requestAnyPermission(
     context.startActivity(Intent(action))
 }
 
+
+/**
+ * Lets [skillEvaluator] ask for the permissions a skill needs, from whichever screen is in front
+ * (the app or the assist sheet); set on resume, since the launcher belongs to that activity.
+ */
+@Composable
+fun UsePermissionRequester(skillEvaluator: SkillEvaluator) {
+    val channel = remember { Channel<Boolean>() }
+    val coroutineScope = rememberCoroutineScope()
+    val launcher = rememberPermissionFlowRequestLauncher { isGranted ->
+        coroutineScope.launch {
+            channel.send(isGranted.values.all { it })
+        }
+    }
+    val context = LocalContext.current
+
+    suspend fun requestPermissions(permissions: List<Permission>): Boolean {
+        val nonGrantedSecurePermissions = getNonGrantedSecurePermissions(
+            context,
+            permissions.filterIsInstance<Permission.SecurePermission>()
+        )
+        if (nonGrantedSecurePermissions.isNotEmpty()) {
+            // do not request secure permissions directly, it would be confusing, so ask explicitly
+            // instead
+            return false
+        }
+
+        val normalPermissions = permissions.filterIsInstance<Permission.NormalPermission>()
+            .map { it.id }.toTypedArray()
+        if (checkPermissions(context, *normalPermissions)) {
+            // permissions already granted
+            return true
+        }
+
+        // some permission is not already granted, need to request it
+        launcher.launch(normalPermissions)
+        return channel.receive()
+    }
+
+    LifecycleResumeEffect(launcher) {
+        skillEvaluator.permissionRequester = ::requestPermissions
+        onPauseOrDispose {}
+    }
+}

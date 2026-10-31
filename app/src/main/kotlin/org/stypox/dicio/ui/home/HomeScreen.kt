@@ -27,7 +27,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,13 +47,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import androidx.hilt.navigation.compose.hiltViewModel
-import dev.shreyaspatil.permissionflow.compose.rememberPermissionFlowRequestLauncher
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import org.dicio.skill.context.SkillContext
-import org.dicio.skill.skill.Permission
 import org.dicio.skill.skill.SkillInfo
 import org.stypox.dicio.di.SkillContextImpl
 import org.stypox.dicio.io.input.InputEvent
@@ -66,49 +61,14 @@ import org.stypox.dicio.ui.util.Haptic
 import org.stypox.dicio.ui.util.InteractionLogPreviews
 import org.stypox.dicio.ui.util.SkillInfoPreviews
 import org.stypox.dicio.ui.util.rememberHaptics
-import org.stypox.dicio.util.checkPermissions
-import org.stypox.dicio.util.getNonGrantedSecurePermissions
+import org.stypox.dicio.util.UsePermissionRequester
 
 @Composable
 fun HomeScreen(
     onSettingsClick: () -> Unit,
 ) {
-    val channel = remember { Channel<Boolean>() }
-    val coroutineScope = rememberCoroutineScope()
-    val launcher = rememberPermissionFlowRequestLauncher { isGranted ->
-        coroutineScope.launch {
-            channel.send(isGranted.values.all { it })
-        }
-    }
-    val context = LocalContext.current
-
-    suspend fun requestPermissions(permissions: List<Permission>): Boolean {
-        val nonGrantedSecurePermissions = getNonGrantedSecurePermissions(
-                context,
-                permissions.filterIsInstance<Permission.SecurePermission>()
-        )
-        if (nonGrantedSecurePermissions.isNotEmpty()) {
-            // do not request secure permissions directly, it would be confusing, so ask explicitly
-            // instead
-            return false
-        }
-
-        val normalPermissions = permissions.filterIsInstance<Permission.NormalPermission>()
-            .map { it.id }.toTypedArray()
-        if (checkPermissions(context, *normalPermissions)) {
-            // permissions already granted
-            return true
-        }
-
-        // some permission is not already granted, need to request it
-        launcher.launch(normalPermissions)
-        return channel.receive()
-    }
-
     val viewModel: HomeScreenViewModel = hiltViewModel()
-    // keep assigning permissionRequester at every recomposition because `launcher` changes when
-    // the activity is recreated (no rememberSaveable is available)
-    viewModel.skillEvaluator.permissionRequester = ::requestPermissions
+    UsePermissionRequester(viewModel.skillEvaluator)
 
     val enabledSkillsInfo = viewModel.skillHandler.enabledSkillsInfo.collectAsState()
     val interactionsState = viewModel.skillEvaluator.state.collectAsState()

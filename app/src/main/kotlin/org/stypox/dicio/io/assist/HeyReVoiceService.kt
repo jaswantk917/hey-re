@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.util.Log
 import android.service.voice.VoiceInteractionService
 import android.service.voice.VoiceInteractionSession
 import android.service.voice.VoiceInteractionSessionService
@@ -55,6 +56,7 @@ class HeyReSession(context: Context) : VoiceInteractionSession(context) {
         val structure = state.assistStructure ?: return
         val packageName = structure.activityComponent?.packageName
         if (packageName == context.packageName) return
+        Log.i("HeyReSession", "Assist from $packageName, link ${if (state.assistContent?.webUri != null) "given" else "not given"}")
         state.assistContent?.webUri?.takeIf { it.scheme == "https" || it.scheme == "http" }
             ?.let { ScreenContext.setLink(it.toString()) }
         ScreenContext.setText(packageName, appName(packageName), ScreenContext.textOf(structure))

@@ -28,6 +28,7 @@ import org.stypox.dicio.io.assist.ScreenSummary
 import org.stypox.dicio.io.graphical.Countdown
 import org.stypox.dicio.skills.localbrain.LocalBrain
 import org.stypox.dicio.util.BaseActivity
+import org.stypox.dicio.util.UsePermissionRequester
 import java.time.Instant
 import javax.inject.Inject
 
@@ -89,6 +90,7 @@ class AssistActivity : BaseActivity() {
         summarizeArticle()
 
         composeSetContent {
+            UsePermissionRequester(skillEvaluator)
             AssistSheet(
                 onDismiss = ::finish,
                 onOpenApp = {
@@ -163,6 +165,7 @@ class AssistActivity : BaseActivity() {
                             null
                         }
                     }
+                    if (page == null) Log.i(TAG, "Nothing to summarise behind the link")
                     val summary = page?.let { localBrain.summarizeArticle(it) }
                     ScreenContext.setArticle(summary?.let { ScreenSummary.Ready(it) } ?: ScreenSummary.Unavailable)
                 }

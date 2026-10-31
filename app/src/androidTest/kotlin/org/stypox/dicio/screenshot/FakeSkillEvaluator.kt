@@ -19,4 +19,6 @@ class FakeSkillEvaluator : SkillEvaluator {
 
     override fun processInputEvent(event: InputEvent) {
     }
+
+    override fun expectBrief() {}
 }

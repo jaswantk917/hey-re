@@ -191,6 +191,7 @@ class AssistActivity : BaseActivity() {
         val now = Instant.now()
         if (nextAssistAllowed < now) {
             nextAssistAllowed = now.plusMillis(INTENT_BACKOFF_MILLIS)
+            skillEvaluator.expectBrief()
             sttInputDevice.tryLoad(skillEvaluator::processInputEvent)
         } else {
             Log.w(TAG, "Ignoring duplicate assist intent")

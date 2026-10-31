@@ -1,9 +1,11 @@
 package org.stypox.dicio.skills.notify
 
 import android.app.NotificationManager
+import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import org.stypox.dicio.skills.brief.Attention
 
 open class NotifyHandler: NotificationListenerService() {
     companion object Companion {
@@ -50,6 +52,53 @@ open class NotifyHandler: NotificationListenerService() {
         }
     }
 
+    /**
+     * The notifications that might need the person, for the brief: missed calls, chats, live
+     * updates (a delivery on its way) and the rest that alert. Media, Hey re's own, and group
+     * summaries are left out.
+     */
+    fun attentionCandidates(): List<Attention.Candidate> = activeNotifications.mapNotNull { sbn ->
+        val notification = sbn.notification
+        if (sbn.packageName == packageName || notification.flags and android.app.Notification.FLAG_GROUP_SUMMARY != 0) {
+            return@mapNotNull null
+        }
+        val extras = notification.extras
+        if (extras.containsKey(android.app.Notification.EXTRA_MEDIA_SESSION)) return@mapNotNull null
+        val title = extras.getCharSequence(android.app.Notification.EXTRA_TITLE)?.toString().orEmpty()
+        val text = extras.getCharSequence(android.app.Notification.EXTRA_TEXT)?.toString().orEmpty()
+        if (title.isBlank() && text.isBlank()) return@mapNotNull null
+        val ranking = NotificationListenerService.Ranking()
+        val ranked = currentRanking.getRanking(sbn.key, ranking)
+        val promoted = Build.VERSION.SDK_INT >= 36 &&
+                notification.flags and android.app.Notification.FLAG_PROMOTED_ONGOING != 0
+        val kind = when {
+            notification.category == android.app.Notification.CATEGORY_MISSED_CALL -> Attention.Kind.MissedCall
+            sbn.isOngoing -> if (promoted || notification.category in LIVE_CATEGORIES) Attention.Kind.Live
+            else return@mapNotNull null
+            !ranked || !isAlerting(ranking.importance) -> return@mapNotNull null
+            notification.category == android.app.Notification.CATEGORY_MESSAGE || ranking.isConversation ->
+                Attention.Kind.Message
+            else -> Attention.Kind.Other
+        }
+        Attention.Candidate(
+            kind = kind,
+            app = appName(sbn.packageName),
+            title = title,
+            text = text,
+            postedAtMillis = sbn.postTime,
+            count = extras.getParcelableArray(android.app.Notification.EXTRA_MESSAGES)?.size?.coerceAtLeast(1) ?: 1,
+            isGroup = extras.getBoolean(android.app.Notification.EXTRA_IS_GROUP_CONVERSATION),
+            packageName = sbn.packageName,
+            open = notification.contentIntent,
+        )
+    }
+
+    private fun appName(packageName: String) = try {
+        this.packageManager.getApplicationLabel(this.packageManager.getApplicationInfo(packageName, 0)).toString()
+    } catch (e: Exception) {
+        packageName
+    }
+
     /** How many notifications each app has up, skipping silent and ongoing ones and group summaries. */
     fun appCounts(): Map<String, Int> = activeNotifications
         .filter { sbn ->
@@ -69,6 +118,10 @@ open class NotifyHandler: NotificationListenerService() {
         }
         .eachCount()
 }
+
+// ongoing notifications worth a mention besides Android 16's promoted "live updates"; plain
+// progress (backups, downloads) is not, nor the call the person is already on
+private val LIVE_CATEGORIES = setOf(android.app.Notification.CATEGORY_NAVIGATION)
 
 internal fun isAlerting(importance: Int): Boolean = importance >= NotificationManager.IMPORTANCE_DEFAULT
 

@@ -18,6 +18,8 @@ import org.stypox.dicio.di.SkillContextInternal
 import org.stypox.dicio.di.SttInputDeviceWrapper
 import org.stypox.dicio.io.graphical.ErrorSkillOutput
 import org.stypox.dicio.io.graphical.MissingPermissionsSkillOutput
+import org.stypox.dicio.skills.brief.BriefInfo
+import org.stypox.dicio.skills.brief.BriefSkill
 import org.stypox.dicio.R
 import org.stypox.dicio.io.assist.ScreenContext
 import org.stypox.dicio.io.assist.isLocked
@@ -50,6 +52,9 @@ interface SkillEvaluator {
     var unlockRequester: suspend () -> Boolean
 
     fun processInputEvent(event: InputEvent)
+
+    /** Summoned: if the person then says nothing, show what needs them instead (the brief). */
+    fun expectBrief()
 }
 
 class SkillEvaluatorImpl(
@@ -77,7 +82,16 @@ class SkillEvaluatorImpl(
 
     override var unlockRequester: suspend () -> Boolean = { !skillContext.android.isLocked() }
 
+    // set on summon, dropped as soon as anything is heard: only a quiet summon gets the brief
+    @Volatile
+    private var briefOnSilence = false
+
+    override fun expectBrief() {
+        briefOnSilence = true
+    }
+
     override fun processInputEvent(event: InputEvent) {
+        if (event is InputEvent.Final || event is InputEvent.Partial) briefOnSilence = false
         scope.launch {
             suspendProcessInputEvent(event)
         }
@@ -100,6 +114,10 @@ class SkillEvaluatorImpl(
             }
             InputEvent.None -> {
                 _state.value = _state.value.copy(pendingQuestion = null)
+                if (briefOnSilence) {
+                    briefOnSilence = false
+                    showBrief()
+                }
             }
             is InputEvent.Partial -> {
                 _state.value = _state.value.copy(
@@ -202,6 +220,28 @@ class SkillEvaluatorImpl(
         } catch (throwable: Throwable) {
             addErrorInteractionFromPending(throwable)
             return
+        }
+    }
+
+    /** The brief, as if asked for, without a question bubble; never over the lock screen. */
+    private suspend fun showBrief() {
+        if (skillContext.android.isLocked()) return
+        if (skillHandler.enabledSkillsInfo.value?.any { it.id == BriefInfo.id } != true) return
+        val output = try {
+            BriefSkill.brief(skillContext)
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not gather the brief", e)
+            return
+        }
+        val log = _state.value
+        _state.value = log.copy(
+            interactions = log.interactions + Interaction(
+                skill = BriefInfo,
+                questionsAnswers = listOf(QuestionAnswer(null, output)),
+            ),
+        )
+        output.getSpeechOutput(skillContext).takeIf { it.isNotBlank() }?.let {
+            withContext(Dispatchers.Main) { skillContext.speechOutputDevice.speak(it) }
         }
     }
 

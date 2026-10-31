@@ -69,6 +69,7 @@ class MainActivity : BaseActivity() {
         if (nextAssistAllowed < now) {
             nextAssistAllowed = now.plusMillis(INTENT_BACKOFF_MILLIS)
             Log.d(TAG, "Received assist intent")
+            skillEvaluator.expectBrief()
             sttInputDevice.tryLoad(skillEvaluator::processInputEvent)
         } else {
             Log.w(TAG, "Ignoring duplicate assist intent")

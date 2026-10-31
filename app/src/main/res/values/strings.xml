@@ -376,6 +376,17 @@
     <string name="skill_toggle_battery_saver">Battery Saver</string>
     <string name="skill_toggle_dark_mode">Dark mode</string>
     <string name="skill_toggle_location">Location</string>
+    <string name="skill_name_brief">What needs you</string>
+    <string name="skill_sentence_example_brief">Kuch important hai?</string>
+    <string name="skill_brief_nothing">Nothing needs you right now</string>
+    <plurals name="skill_brief_count">
+        <item quantity="one">One thing needs you</item>
+        <item quantity="other">%1$d things need you</item>
+    </plurals>
+    <string name="skill_brief_all_clear">No missed calls, chats or tasks waiting</string>
+    <string name="skill_brief_now_playing">Playing %1$s</string>
+    <string name="skill_brief_battery">Battery low</string>
+    <string name="skill_brief_storage">Storage almost full</string>
     <string name="skill_name_find_hub">Find Hub</string>
     <string name="skill_sentence_example_find_hub">Meri chabi kahan hai?</string>
     <string name="skill_find_hub_not_understood">What should I look for?</string>

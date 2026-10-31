@@ -23,6 +23,11 @@ skills:
       - id: auto_rotate_on
       - id: auto_rotate_off
 
+  - id: brief
+    specificity: high
+    sentences:
+      - id: attention
+
   - id: find_hub
     specificity: high
     sentences:

@@ -196,14 +196,12 @@ sealed interface FindHubOutput : SkillOutput {
     }
 }
 
-private fun iconFor(device: FindHub.Device): ImageVector = when {
-    device.type?.contains("watch", ignoreCase = true) == true || device.name.contains("watch", ignoreCase = true) ->
-        Icons.Default.Watch
-    device.type?.contains("tablet", ignoreCase = true) == true -> Icons.Default.Tablet
-    device.type?.contains("bud", ignoreCase = true) == true || device.type?.contains("headphone", ignoreCase = true) == true ->
-        Icons.Default.Headphones
-    device.type?.contains("phone", ignoreCase = true) == true || device.isThisPhone -> Icons.Default.PhoneAndroid
-    else -> Icons.Default.LocationOn
+private fun iconFor(device: FindHub.Device): ImageVector = when (device.type?.uppercase()) {
+    "WEAR" -> Icons.Default.Watch
+    "TABLET" -> Icons.Default.Tablet
+    "BEACON" -> Icons.Default.Headphones
+    "PHONE" -> Icons.Default.PhoneAndroid
+    else -> if (device.isThisPhone) Icons.Default.PhoneAndroid else Icons.Default.LocationOn
 }
 
 /** The answer's icon in a cookie, popping in the first time it's shown. */

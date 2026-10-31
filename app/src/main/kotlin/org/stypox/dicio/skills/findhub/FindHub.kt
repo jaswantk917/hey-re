@@ -61,7 +61,8 @@ object FindHub {
         return Device(
             id = id,
             name = fields["deviceName"] as? String ?: return null,
-            type = fields["deviceType"] as? String,
+            // WEAR, PHONE, BEACON...; deviceType only says ANDROID_DEVICE or FASTPAIR_DEVICE
+            type = (fields["deviceCategory"] ?: fields["deviceType"]) as? String,
             ringable = fields["isRingable"] as? Boolean ?: false,
             isThisPhone = fields["isCurrentDevice"] as? Boolean ?: false,
         )
@@ -85,11 +86,9 @@ object FindHub {
     const val APP_PACKAGE = PACKAGE
 
     private val TYPE_WORDS = mapOf(
-        "watch" to setOf("watch", "ghadi"),
-        "phone" to setOf("phone", "mobile", "fon"),
+        "wear" to setOf("watch", "ghadi"),
+        "phone" to setOf("phone", "mobile"),
         "tablet" to setOf("tablet", "tab"),
-        "earbuds" to setOf("buds", "earbuds", "headphones"),
-        "headphones" to setOf("buds", "earbuds", "headphones"),
-        "tracker" to setOf("tag", "tracker"),
+        "beacon" to setOf("buds", "earbuds", "headphones", "speaker", "tag", "tracker"),
     )
 }

@@ -4,9 +4,10 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
 class FindHubTest : StringSpec({
+    // as Find Hub lists them on the owner's phone
     val phone = FindHub.Device("p", "Pixel 9", "PHONE", ringable = true, isThisPhone = true)
-    val watch = FindHub.Device("w", "Pixel Watch 3", "WATCH", ringable = true, isThisPhone = false)
-    val tag = FindHub.Device("t", "Keys tag", "TRACKER", ringable = true, isThisPhone = false)
+    val watch = FindHub.Device("w", "Galaxy Watch8", "WEAR", ringable = true, isThisPhone = false)
+    val tag = FindHub.Device("t", "Keys tag", "BEACON", ringable = true, isThisPhone = false)
     val devices = listOf(phone, watch, tag)
 
     "what Find Hub doesn't know is no memo" {
@@ -16,7 +17,7 @@ class FindHubTest : StringSpec({
 
     "devices are matched by the name or the kind of device said" {
         FindHub.match("watch", devices) shouldBe watch
-        FindHub.match("pixel watch", devices) shouldBe watch
+        FindHub.match("galaxy watch", devices) shouldBe watch
         FindHub.match("ghadi", devices) shouldBe watch
         FindHub.match("phone", devices) shouldBe phone
         FindHub.match("keys", devices) shouldBe tag
@@ -29,8 +30,11 @@ class FindHubTest : StringSpec({
 
     "a device as the shell lists it" {
         FindHub.device(
-            mapOf("deviceId" to "w", "deviceName" to "Pixel Watch 3", "isRingable" to true, "isCurrentDevice" to false)
-        ) shouldBe FindHub.Device("w", "Pixel Watch 3", null, ringable = true, isThisPhone = false)
+            mapOf(
+                "deviceId" to "w", "deviceName" to "Galaxy Watch8", "deviceType" to "ANDROID_DEVICE",
+                "deviceCategory" to "WEAR", "isRingable" to true, "isCurrentDevice" to false,
+            )
+        ) shouldBe FindHub.Device("w", "Galaxy Watch8", "WEAR", ringable = true, isThisPhone = false)
         FindHub.device(mapOf("deviceName" to "no id")) shouldBe null
     }
 })

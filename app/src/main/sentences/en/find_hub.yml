@@ -2,7 +2,7 @@
 where:
   - where (is|are|(did i (put|leave|keep))) (my|the)? .item.
   - (find|locate) (my|the)? .item.
-  - (mera|meri|mere)? .item. (kahan|kidhar|kaha) (hai|hain|rakha|rakhi|rakhe|gaya|gayi|gaye) (hai|hain|tha|thi|the)?
+  - (mera|meri|mere)? .item. (kahan|kidhar|kaha|kahaan|keedhar) (hai|hain|rakha|rakhi|rakhe|gaya|gayi|gaye) (hai|hain|tha|thi|the)?
 
 # "remember my keys are in the drawer", "yaad rakhna ki passport almari mein hai"
 remember:

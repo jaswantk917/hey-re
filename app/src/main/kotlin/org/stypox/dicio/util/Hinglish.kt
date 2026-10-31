@@ -104,6 +104,10 @@ object Hinglish {
         "jalaao" to "jalao", "bujhaao" to "bujhao", "naheen" to "nahi", "nahin" to "nahi", "maan" to "maa",
         "mammi" to "mummy", "paapa" to "papa", "vaali" to "wali", "vaala" to "wala", "sitch" to "switch",
         "svich" to "switch", "plag" to "plug", "pankha" to "fan",
+        "voch" to "watch", "vaach" to "watch", "vauch" to "watch", "keedhar" to "kidhar", "kahaan" to "kahan",
+        "chaabee" to "chabi", "chaabi" to "chabi",
+        "baitri" to "battery", "braaitnes" to "brightness", "braitnes" to "brightness", "hotaspot" to "hotspot",
+        "paasport" to "passport", "bajaao" to "bajao",
         "rimaaind" to "remind", "rimaind" to "remind", "rimaaindar" to "reminder", "rimaindar" to "reminder",
     )
 }

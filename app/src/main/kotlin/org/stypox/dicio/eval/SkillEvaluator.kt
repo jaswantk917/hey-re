@@ -232,7 +232,9 @@ class SkillEvaluatorImpl(
         val recent = if (skillContext.android.isLocked()) listOf() else recentTurns()
         val rewritten = localBrain.rewriteAsCommand(input, commands, recent)
             ?.takeUnless { copiesAnExample(it, Hinglish.romanize(input), commands) }
+            ?.takeUnless { flipsOnOff(it, Hinglish.romanize(input)) }
         val match = rewritten?.let { findBestMatch(listOf(it)) }?.second
+            ?.takeUnless { it.skill.correspondingSkillInfo.id == "flashlight" && !mentionsLight(Hinglish.romanize(input)) }
         val yesNo = Sentences.UtilYesNo[skillContext.sentencesLanguage]
         if (rewritten != null && match != null && yesNo != null &&
             match.skill.correspondingSkillInfo.id in ACTING_SKILLS
@@ -339,6 +341,25 @@ class SkillEvaluatorImpl(
             val said = words(HinglishNumbers.normalize(input)).toSet()
             return details.any { it !in said }
         }
+
+        /**
+         * Nano has turned "cooler chala do" into "Cooler band karo": a guess that switches the
+         * other way from what the person said is worse than no guess.
+         */
+        internal fun flipsOnOff(rewritten: String, input: String): Boolean {
+            fun direction(text: String) = words(text).toSet().let { said ->
+                (if (said.any { it in ON_WORDS }) 1 else 0) - (if (said.any { it in OFF_WORDS }) 1 else 0)
+            }
+            val asked = direction(input)
+            return asked != 0 && direction(rewritten) == -asked
+        }
+
+        /** Nano has heard "ek selfie lo" as "Torch jala do"; the torch is only for asking about a light. */
+        internal fun mentionsLight(input: String) = words(input).any { it in LIGHT_WORDS }
+
+        private val LIGHT_WORDS = setOf("torch", "flash", "flashlight", "light", "lite", "roshni", "batti", "andhera")
+        private val ON_WORDS = setOf("on", "chalu", "chala", "chalao", "jala", "jalao", "start")
+        private val OFF_WORDS = setOf("off", "band", "bujha", "bujhao", "stop")
 
         private fun words(text: String) =
             text.lowercase().split(Regex("[^\\p{L}\\p{N}]+")).filter { it.isNotEmpty() }

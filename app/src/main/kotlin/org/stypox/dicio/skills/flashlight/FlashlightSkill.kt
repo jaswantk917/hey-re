@@ -27,7 +27,7 @@ class FlashlightSkill(
                 Flashlight.TurnOn -> true
             }
             cameraManager.setTorchMode(cameraId, turnedOn)
-            return FlashlightOutput.Success(turnedOn = turnedOn)
+            return FlashlightOutput.Success(cameraId, turnedOn)
         } catch (throwable: Throwable) {
             return FlashlightOutput.Error(throwable)
         }

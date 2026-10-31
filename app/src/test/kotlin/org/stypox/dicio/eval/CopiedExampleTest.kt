@@ -29,4 +29,19 @@ class CopiedExampleTest : StringSpec({
         SkillEvaluatorImpl.copiesAnExample("Navigate to Connaught Place", "connaught place le chalo", examples) shouldBe false
         SkillEvaluatorImpl.copiesAnExample("Call Papa", "papa ko phone lagao", examples) shouldBe false
     }
+
+    "a guess that switches the other way is thrown away" {
+        SkillEvaluatorImpl.flipsOnOff("Cooler band karo", "cooler chala do") shouldBe true
+        SkillEvaluatorImpl.flipsOnOff("Cooler band karo", "on karo call cooler on karo") shouldBe true
+        SkillEvaluatorImpl.flipsOnOff("Turn off the lights", "light jala do") shouldBe true
+        SkillEvaluatorImpl.flipsOnOff("Cooler chalu karo", "cooler chala do") shouldBe false
+        SkillEvaluatorImpl.flipsOnOff("Cooler band karo", "cooler ko rok do") shouldBe false
+        SkillEvaluatorImpl.flipsOnOff("What time is it?", "kitne baje hain") shouldBe false
+    }
+
+    "the torch is only guessed when a light was asked about" {
+        SkillEvaluatorImpl.mentionsLight("ek selfie lo") shouldBe false
+        SkillEvaluatorImpl.mentionsLight("yahan bahut andhera hai") shouldBe true
+        SkillEvaluatorImpl.mentionsLight("phone ki light jalao") shouldBe true
+    }
 })

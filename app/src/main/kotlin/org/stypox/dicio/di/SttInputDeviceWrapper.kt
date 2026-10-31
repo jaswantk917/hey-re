@@ -45,6 +45,8 @@ interface SttInputDeviceWrapper {
 
     fun stopListening()
 
+    fun cancelListening()
+
     fun onClick(eventListener: (InputEvent) -> Unit)
 
     fun reinitializeToReleaseResources()
@@ -180,6 +182,10 @@ class SttInputDeviceWrapperImpl(
 
     override fun stopListening() {
         sttInputDevice?.stopListening()
+    }
+
+    override fun cancelListening() {
+        sttInputDevice?.cancelListening()
     }
 
     override fun onClick(eventListener: (InputEvent) -> Unit) {

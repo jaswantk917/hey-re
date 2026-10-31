@@ -56,6 +56,8 @@ class OnDeviceSttInputDevice(
     private var waitingSince = 0L
     private var speechBegan = false
     private var stopRequested = false
+    // summoned again just as the last session ends, the recognizer can still be busy: try once more
+    private var retriedBusy = false
     private var locale: Locale
     // the offline language packs on the phone, null until asked (or if the phone can't tell)
     private var installedLanguages: Set<String>? = null
@@ -88,6 +90,20 @@ class OnDeviceSttInputDevice(
         mainHandler.post {
             stopRequested = true
             recognizer?.stopListening()
+        }
+    }
+
+    // left mid-listen: Android cuts a background app's microphone, and the restarts would carry on
+    // unheard until the stop sound, so end it now and act on nothing that was heard
+    override fun cancelListening() {
+        mainHandler.post {
+            if (_uiState.value != SttState.Listening && _uiState.value != SttState.WaitingForResult) {
+                return@post
+            }
+            listener = null
+            stopRequested = true
+            recognizer?.cancel()
+            _uiState.value = SttState.Loaded
         }
     }
 
@@ -125,6 +141,7 @@ class OnDeviceSttInputDevice(
         lastPartial = null
         speechBegan = false
         stopRequested = false
+        retriedBusy = false
         waitingSince = SystemClock.elapsedRealtime()
         val recognizer = recognizer
             ?: SpeechRecognizer.createOnDeviceSpeechRecognizer(context).also {
@@ -352,6 +369,18 @@ class OnDeviceSttInputDevice(
                 SpeechRecognizer.ERROR_RECOGNIZER_BUSY,
                 SpeechRecognizer.ERROR_TOO_MANY_REQUESTS,
                 SpeechRecognizer.ERROR_SERVER_DISCONNECTED -> {
+                    val listener = listener
+                    if (!retriedBusy && !stopRequested && listener != null) {
+                        recognizer?.destroy()
+                        recognizer = null
+                        mainHandler.postDelayed({
+                            if (this@OnDeviceSttInputDevice.listener === listener && !stopRequested) {
+                                startListening(listener)
+                                retriedBusy = true
+                            }
+                        }, BUSY_RETRY_MILLIS)
+                        return
+                    }
                     // a stale session, e.g. the mic reopening right after an answer; start fresh
                     // next time instead of showing an error the user can do nothing about
                     recognizer?.destroy()
@@ -383,6 +412,7 @@ class OnDeviceSttInputDevice(
         private const val SILENCE_UNIT_MILLIS = 1000
         private const val HEARD_NOTHING_MILLIS = 2500L
         private const val MAX_WAIT_MILLIS = 8000L
+        private const val BUSY_RETRY_MILLIS = 250L
         private const val HINDI = "hi-IN"
         private val HINGLISH_LANGUAGES = listOf("hi-in", "en-in")
 

@@ -10,6 +10,9 @@ interface SttInputDevice {
 
     fun stopListening()
 
+    /** Stops listening and drops whatever was heard, e.g. when the person leaves the app. */
+    fun cancelListening() = stopListening()
+
     fun onClick(eventListener: (InputEvent) -> Unit)
 
     suspend fun destroy()

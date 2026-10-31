@@ -53,6 +53,8 @@ class AssistActivity : BaseActivity() {
     lateinit var homeControl: HomeControl
 
     private var nextAssistAllowed = Instant.MIN
+    // false when it only handed the gesture on to the app already open, which is now listening
+    private var showsSheet = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,6 +77,7 @@ class AssistActivity : BaseActivity() {
             finish()
             return
         }
+        showsSheet = true
         homeControl.register(this)
         // over the lock screen too; what's personal asks for an unlock (SkillEvaluator)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
@@ -94,6 +97,8 @@ class AssistActivity : BaseActivity() {
             AssistSheet(
                 onDismiss = ::finish,
                 onOpenApp = {
+                    // still listening: carry on in the app instead of cutting the person off
+                    showsSheet = false
                     startActivity(
                         Intent(this, MainActivity::class.java)
                             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
@@ -122,6 +127,7 @@ class AssistActivity : BaseActivity() {
         if (!isChangingConfigurations) {
             // closing the sheet (or leaving it) means not now: no call or message behind the user's back
             Countdown.cancelAll(this)
+            if (showsSheet) sttInputDevice.cancelListening()
             ScreenContext.end()
         }
     }

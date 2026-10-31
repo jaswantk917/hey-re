@@ -2,15 +2,22 @@ play:
   - play|resume|unpause|start|restart (the? song|media|track|music|audio|video|movie|stream|film)
   - turn on the? player
   - continue playing (the? song|media|track|music|audio|video|movie|stream|film)?
+  # Hinglish: "gaana chalao", "music baja do"
+  - gaana|gana|gaane|music|song (chalao|chala|bajao|baja|chalu|play|resume) (do|de|karo|kar)?
 
 pause:
   - pause|halt|stop|hold (the? song|media|track|music|audio|video|movie|stream|film)
   - put the? song|media|track|music|audio|video|movie|stream|film on hold
+  # Hinglish: "gaana rok do"
+  - gaana|gana|music|song|video (rok|ruk|pause|band) (do|de|karo|kar)? (do|de)?
 
 previous:
   - replay|play|(go|switch|return|rewind|(go? back)|(move back<ward|wards?>) to)? the? previous|last song|media|track|music|audio|video|movie|stream|film? (in the queue)?
   - rewind
+  - pichla|pichhla|previous gaana|gana|song (chalao|lagao|bajao|chala|laga|baja|play)? (do|de|karo)?
 
 next:
   - skip the|a|one? song|media|track|music|audio|video|movie|stream|film
   - play|(go|switch|skip|jump|(move forward) to)? the? next|following song|media|track|music|audio|video|movie|stream|film? (in the queue)?
+  # Hinglish: "agla gaana lagao"
+  - agla|aglaa|next gaana|gana|song (chalao|lagao|bajao|chala|laga|baja|play)? (do|de|karo)?

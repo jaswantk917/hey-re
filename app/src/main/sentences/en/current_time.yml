@@ -1,2 +1,6 @@
 query:
   - what|(what s|is)|whats the? time (is it)?
+  # Hinglish: "kitne baje hain", "time kya hua", "abhi kya time hai"
+  - (abhi)? kitne|kitna baje (hain|hai|hue)? (abhi)?
+  - (abhi)? time|samay kya (hua|hai|hui) (hai)?
+  - (abhi)? kya time|samay (hua|hai|hui) (hai)? (abhi)?

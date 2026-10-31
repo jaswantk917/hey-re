@@ -1,0 +1,113 @@
+# What gets said to Hey re, and the skill it must reach through the grammar alone.
+# skill<TAB>sentence. "-" means no skill should take it (Gemini Nano answers it).
+# A leading "?" marks a known gap: reported, but it doesn't fail the build until it's fixed.
+
+# greetings and the check-in
+check_in	hello
+check_in	hi
+check_in	hello how are you
+check_in	kaise ho
+check_in	kya haal hai
+check_in	aur kya chal raha hai
+check_in	good morning
+check_in	namaste
+check_in	how's my day looking
+
+# steps and walking
+check_in	kitna steps ho gaya aaj
+check_in	aaj kitne steps hue
+check_in	how many steps today
+check_in	क्या मुझे थोड़ा और चलना चाहिए
+check_in	should i walk more
+check_in	have i walked enough today
+
+help	what can you do
+help	tum kya kya kar sakte ho
+help	how can you help me
+
+current_time	what time is it
+current_time	kitne baje hain
+current_time	time kya hua
+current_time	abhi kya time hai
+
+timer	set a timer for five minutes
+timer	paanch minute ka timer lagao
+timer	10 minute ka timer laga do
+timer	cancel the timer
+
+alarm	wake me up at 6:30
+alarm	set an alarm for 7 am
+alarm	subah 7 baje ka alarm laga do
+
+weather	what's the weather
+weather	how is the weather in delhi
+weather	aaj mausam kaisa hai
+weather	is it raining outside
+
+telephone	call maa
+telephone	maa ko call karo
+telephone	papa ko phone lagao
+telephone	मम्मी को कॉल करो
+
+message	message maa that i'm on my way
+message	maa ko message karo ki main aa raha hun
+message	whatsapp papa that i'll be late
+?message	tell maa i'm on my way
+
+smart_home	lights off karo
+smart_home	cooler band karo
+smart_home	hall ki light jala do
+smart_home	turn on the lights
+smart_home	लाइट बंद करो
+
+flashlight	torch jala do
+flashlight	turn on the flashlight
+flashlight	torch band karo
+
+phone_toggle	wifi band karo
+phone_toggle	bluetooth on kar do
+phone_toggle	dark mode chalu karo
+phone_toggle	hotspot on karo
+phone_toggle	flight mode on karo
+phone_toggle	turn off mobile data
+
+sound_mode	phone silent kar do
+sound_mode	vibrate pe daal do
+sound_mode	dnd on karo
+
+media	next song
+media	pause the music
+media	gaana rok do
+
+nearby	khane ki jagah dhundho aaspaas
+nearby	aaspaas petrol pump dikhao
+nearby	restaurants near me
+nearby	nearest atm
+
+navigation	navigate to connaught place
+navigation	take me to india gate
+
+open	open whatsapp
+open	youtube kholo
+open	instagram open karo
+
+notify	read my notifications
+notify	mere notifications batao
+
+Joke	tell me a joke
+Joke	ek joke sunao
+
+calculator	what is 5 times 4
+calculator	25 plus 17 kitna hota hai
+
+search	search how to make chai
+
+translation	translate hello from english to hindi
+
+listening	stop listening
+
+# for Gemini Nano, not a skill
+-	thank you
+-	who is the prime minister of india
+-	mujhe neend aa rahi hai
+-	what should i eat for dinner

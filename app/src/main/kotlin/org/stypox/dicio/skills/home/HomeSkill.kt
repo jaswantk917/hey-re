@@ -70,7 +70,7 @@ class HomeSkill(
     }
 }
 
-private val SmartHome.what: String?
+internal val SmartHome.what: String?
     get() = when (this) {
         is SmartHome.TurnOn -> what
         is SmartHome.TurnOff -> what

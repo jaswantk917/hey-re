@@ -3,3 +3,6 @@ current:
   - weather (in|on? .where.)?
   - how is it outside
   - is it cold|cool|warm|hot|sunny|rainy|raining (in|on .where.)|outside?
+  # Hinglish: "aaj mausam kaisa hai", "kal baarish hogi kya"
+  - (aaj|kal|abhi)? mausam|weather kaisa|kaise|kya (hai|hoga|rahega)? (aaj|kal)?
+  - (kya)? (aaj|kal|abhi)? baarish|barish (hogi|hone|ho) (wali|rahi)? (hai)? (kya)?

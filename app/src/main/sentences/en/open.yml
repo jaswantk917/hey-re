@@ -1,2 +1,4 @@
 query:
   - open|run|execute|view|see|launch the? (app|application? .what.)|(.what. app|application?)
+  # Hinglish: "youtube kholo", "instagram open karo"
+  - .what. (app)? kholo|khol|open|launch (do|de|karo|kar)?

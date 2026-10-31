@@ -1,2 +1,4 @@
 calculate:
   - calculate|evaluate|(what is)|(whats)|(what s)|(find the value of?) .calculation.
+  # Hinglish: "25 plus 17 kitna hota hai"
+  - .calculation. kitna|kya (hota|hoga|hai|hua) (hai)?

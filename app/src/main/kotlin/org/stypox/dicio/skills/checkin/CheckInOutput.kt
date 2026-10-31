@@ -152,7 +152,7 @@ class CheckInOutput(
 
         val rows = buildList<@Composable () -> Unit> {
             when (val steps = checkIn.steps) {
-                is Section.Ready -> add { StepsRow(steps.value, firstShow) }
+                is Section.Ready -> add { StepsRow(steps.value, firstShow, showNudge = !stepsOnly) }
                 Section.NeedsAccess -> add {
                     ConnectRow(Icons.AutoMirrored.Filled.DirectionsWalk, R.string.skill_check_in_steps_connect) {
                         healthLauncher.launch(HealthSteps.permissionsToRequest(context))
@@ -226,8 +226,9 @@ private fun Arrive(index: Int, firstShow: Boolean, content: @Composable () -> Un
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun StepsRow(steps: Long, firstShow: Boolean) {
-    val walk = remember(steps) { Routine.nudge(steps, LocalDateTime.now()) }
+private fun StepsRow(steps: Long, firstShow: Boolean, showNudge: Boolean) {
+    // asked only about steps, the headline already says the nudge; the goal goes here instead
+    val walk = remember(steps) { Routine.nudge(steps, LocalDateTime.now()) }?.takeIf { showNudge }
     var shown by remember { mutableIntStateOf(if (firstShow) 0 else steps.toInt()) }
     LaunchedEffect(steps) { delay(200); shown = steps.toInt() }
     val counted by animateIntAsState(shown, tween(900), label = "steps count")

@@ -334,8 +334,9 @@ class SkillEvaluatorImpl(
          */
         internal fun copiesAnExample(rewritten: String, input: String, examples: List<String>): Boolean {
             val example = examples.firstOrNull { words(it) == words(rewritten) } ?: return false
-            val details = EXAMPLE_DETAIL.findAll(example).map { it.value.lowercase() }
-            val said = words(input).toSet()
+            // "Paanch minute ka timer lagao" carries a 5 just as "Wake me up at 6:30" carries a 6
+            val details = EXAMPLE_DETAIL.findAll(HinglishNumbers.normalize(example)).map { it.value.lowercase() }
+            val said = words(HinglishNumbers.normalize(input)).toSet()
             return details.any { it !in said }
         }
 

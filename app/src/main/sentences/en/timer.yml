@@ -3,7 +3,8 @@ set:
   - (set up?)|setup|start|create a? (.duration. time<r|rs?>)|(time<r|rs?> (for|of .duration.)? (called|named|(with the name) .name.)?)
 
   # Hinglish: "5 minute ka timer laga do", "10 minute baad batana"
-  - .duration. (ka|ki|ke)? (liye)? timer (laga|lagao|set|start|chalu)? (do|de|karo|kar)? (do|de)?
+  # "ka" is often heard as "a": "8 minutes a timer lagao"
+  - .duration. (ka|ki|ke|a)? (liye)? timer (laga|lagao|set|start|chalu)? (do|de|karo|kar)? (do|de)?
   - timer (laga|lagao|set|start) (do|de|karo|kar)? (do|de)? .duration. (ka|ki|ke)? (liye)?
   - .duration. (baad|me|mein) (bata|batana|yaad|bula|bulana) (dila|dilana|dena|do|de)?
 

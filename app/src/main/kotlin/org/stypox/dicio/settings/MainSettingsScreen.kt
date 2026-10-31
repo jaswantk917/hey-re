@@ -146,6 +146,7 @@ private fun MainSettingsScreen(
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                         { dynamicColors().Render(settings.useDynamicColors, viewModel::setDynamicColors) }
                     } else null,
+                    { topBarBlur().Render(settings.useTopBarBlur, viewModel::setTopBarBlur) },
                     {
                         languageSetting().Render(
                             when (val language = settings.language) {

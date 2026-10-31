@@ -63,6 +63,8 @@ class MainSettingsViewModel @Inject constructor(
         updateData { it.setTheme(value) }
     fun setDynamicColors(value: Boolean) =
         updateData { it.setDynamicColors(value) }
+    fun setTopBarBlur(value: Boolean) =
+        updateData { it.setTopBarBlur(value) }
     fun setInputDevice(value: InputDevice) =
         updateData { it.setInputDevice(value) }
     fun setWakeDevice(value: WakeDevice) =

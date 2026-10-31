@@ -24,4 +24,6 @@ message UserSettings {
     int32 stt_silence_duration = 10;
     // the Android TTS voice's name; empty picks the best one for the language
     string tts_voice = 11;
+    // unset means on: the conversation blurs as it scrolls under the top bar
+    optional bool top_bar_blur = 12;
 }

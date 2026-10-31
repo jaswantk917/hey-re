@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.ints.shouldBeGreaterThan
 import org.dicio.numbers.ParserFormatter
 import org.dicio.skill.context.SkillContext
 import org.dicio.skill.context.SpeechOutputDevice
@@ -56,6 +57,19 @@ class UtteranceSmokeTest : StringSpec({
         results.filter { (row, got) -> got != row.expected && !row.knownGap }
             .map { (row, got) -> "\"${row.sentence}\" went to $got, wanted ${row.expected}" }
             .shouldBeEmpty()
+    }
+
+    "every example the app shows to tap reaches its own skill" {
+        // the skill tiles and "what can you do" say these to Hey re as they are written
+        val strings = File("src/main/res/values/strings.xml").readText()
+        val examples = Regex("<string name=\"skill_sentence_example_([a-z_]+)\">([^<]*)</string>")
+            .findAll(strings).map { it.groupValues[1] to it.groupValues[2].replace("\\'", "'") }.toList()
+        examples.size shouldBeGreaterThan 15
+        examples.mapNotNull { (key, example) ->
+            val id = if (key == "joke") "Joke" else key
+            val got = route(example)
+            if (got == id) null else "\"$example\" went to $got, wanted $id"
+        }.shouldBeEmpty()
     }
 })
 

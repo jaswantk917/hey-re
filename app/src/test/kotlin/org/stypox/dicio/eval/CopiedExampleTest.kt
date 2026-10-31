@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldBe
 class CopiedExampleTest : StringSpec({
     val examples = listOf(
         "Navigate to Vancouver international airport", "What time is it?", "Call Tom", "Set a timer for five minutes",
-        "Wake me up at 6:30",
+        "Wake me up at 6:30", "Paanch minute ka timer lagao",
     )
 
     "Nano copying an example's own details is thrown away" {
@@ -15,12 +15,14 @@ class CopiedExampleTest : StringSpec({
         ) shouldBe true
         SkillEvaluatorImpl.copiesAnExample("call tom", "kisi ko phone lagao", examples) shouldBe true
         SkillEvaluatorImpl.copiesAnExample("wake me up at 6:30", "subah uthana", examples) shouldBe true
+        SkillEvaluatorImpl.copiesAnExample("Paanch minute ka timer lagao", "8 minutes a timer lagao", examples) shouldBe true
     }
 
     "a rewrite that happens to be an example is kept when it adds nothing the person didn't say" {
         SkillEvaluatorImpl.copiesAnExample("What time is it?", "kitne baje hain", examples) shouldBe false
         SkillEvaluatorImpl.copiesAnExample("Call Tom", "tom ko phone lagao", examples) shouldBe false
         SkillEvaluatorImpl.copiesAnExample("Set a timer for five minutes", "paanch minute ka timer", examples) shouldBe false
+        SkillEvaluatorImpl.copiesAnExample("Paanch minute ka timer lagao", "paanch minute ka timer chahiye", examples) shouldBe false
     }
 
     "a real rewrite with the person's own details is kept" {

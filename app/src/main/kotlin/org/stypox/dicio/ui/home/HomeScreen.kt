@@ -51,6 +51,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import dev.shreyaspatil.permissionflow.compose.rememberPermissionFlowRequestLauncher
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.dicio.skill.context.SkillContext
 import org.dicio.skill.skill.Permission
@@ -59,6 +60,7 @@ import org.stypox.dicio.di.SkillContextImpl
 import org.stypox.dicio.io.input.InputEvent
 import org.stypox.dicio.io.input.SttState
 import org.stypox.dicio.io.wake.WakeState
+import org.stypox.dicio.settings.useTopBarBlur
 import org.stypox.dicio.ui.theme.AppTheme
 import org.stypox.dicio.ui.util.Haptic
 import org.stypox.dicio.ui.util.InteractionLogPreviews
@@ -112,6 +114,7 @@ fun HomeScreen(
     val interactionsState = viewModel.skillEvaluator.state.collectAsState()
     val sttState = viewModel.sttInputDevice.uiState.collectAsState()
     val wakeState = viewModel.wakeDevice.state.collectAsState()
+    val topBarBlur = viewModel.dataStore.data.map { it.useTopBarBlur }.collectAsState(true)
 
     HomeScreen(
         skillContext = viewModel.skillContext,
@@ -133,6 +136,7 @@ fun HomeScreen(
         snackbarHost = {
             SnackbarHost(hostState = viewModel.snackbarHostState)
         },
+        topBarBlur = topBarBlur.value,
     )
 }
 
@@ -152,6 +156,8 @@ fun HomeScreen(
     onManualUserInput: (String) -> Unit,
     onSettingsClick: () -> Unit,
     snackbarHost: @Composable () -> Unit,
+    // off in Settings: a solid bar instead of the conversation blurring beneath it
+    topBarBlur: Boolean = true,
 ) {
     // null while talking, the text being typed while in typing mode
     var typedText by rememberSaveable { mutableStateOf<String?>(null) }
@@ -233,7 +239,7 @@ fun HomeScreen(
             contentPadding = PaddingValues(top = topInset + 8.dp, bottom = bottomInset + dockHeight + BottomFade + 8.dp),
             modifier = Modifier
                 .fillMaxSize()
-                .edgeBlur(top = topInset, bottom = bottomInset + dockHeight + BottomFade),
+                .edgeBlur(top = if (topBarBlur) topInset else 0.dp, bottom = bottomInset + dockHeight + BottomFade),
         )
 
         // scrims so the top bar and the dock stay legible over whatever scrolls beneath them
@@ -241,7 +247,13 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(topInset + 12.dp)
-                .background(Brush.verticalGradient(listOf(surface, surface.copy(alpha = 0.7f), Color.Transparent)))
+                .background(
+                    if (topBarBlur) {
+                        Brush.verticalGradient(listOf(surface, surface.copy(alpha = 0.7f), Color.Transparent))
+                    } else {
+                        Brush.verticalGradient(0f to surface, topInset / (topInset + 12.dp) to surface, 1f to Color.Transparent)
+                    }
+                )
         )
         Box(
             modifier = Modifier

@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Hearing
 import androidx.compose.material.icons.filled.HourglassEmpty
+import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.filled.InvertColors
 import androidx.compose.material.icons.filled.KeyboardAlt
 import androidx.compose.material.icons.filled.Language
@@ -102,6 +103,18 @@ fun dynamicColors() = BooleanSetting(
     descriptionOff = stringResource(R.string.pref_dynamic_colors_summary),
     descriptionOn = stringResource(R.string.pref_dynamic_colors_summary),
 )
+
+@Composable
+fun topBarBlur() = BooleanSetting(
+    title = stringResource(R.string.pref_top_bar_blur_title),
+    icon = Icons.Default.BlurOn,
+    descriptionOff = stringResource(R.string.pref_top_bar_blur_summary_off),
+    descriptionOn = stringResource(R.string.pref_top_bar_blur_summary_on),
+)
+
+/** The blur under the top bar unless the user turned it off. */
+val UserSettings.useTopBarBlur: Boolean
+    get() = !hasTopBarBlur() || topBarBlur
 
 /** Wallpaper colors unless the user turned them off. */
 val UserSettings.useDynamicColors: Boolean

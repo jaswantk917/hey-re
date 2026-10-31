@@ -9,12 +9,11 @@ Hey re is a **Hinglish voice assistant for Android**. Say "lights band karo", "M
 It's a personal fork of [Dicio](https://github.com/Stypox/dicio-android), built for one Pixel 9 and the way its owner talks. It isn't on any app store; you build it yourself.
 
 <p align="center">
-    <img width="160" alt="Home, listening" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/0.png">
-    <img width="160" alt="Check-in on hello" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/1.png">
-    <img width="160" alt="Hinglish torch" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/2.png">
-    <img width="160" alt="Asking about the screen over Settings" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/3.png">
-    <img width="160" alt="Skills to try" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/4.png">
-    <img width="160" alt="Skills settings" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/5.png">
+    <img width="160" alt="Home" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/0.png">
+    <img width="160" alt="Check-in in Hinglish" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/1.png">
+    <img width="160" alt="Torch and steps in Hinglish" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/2.png">
+    <img width="160" alt="What it can do" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/3.png">
+    <img width="160" alt="More of what it can do" src="./fastlane/metadata/android/en-US/images/phoneScreenshots/4.png">
 </p>
 
 ## What it does

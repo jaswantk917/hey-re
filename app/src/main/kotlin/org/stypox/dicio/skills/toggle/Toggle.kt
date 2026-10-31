@@ -23,14 +23,17 @@ import androidx.compose.material.icons.filled.WifiTetheringOff
 import androidx.compose.ui.graphics.vector.ImageVector
 import org.stypox.dicio.R
 
-/** A phone switch Hey re flips through Shizuku, with where to flip it by hand otherwise. */
+/**
+ * A phone switch Hey re flips through Shizuku, with where to flip it by hand otherwise. A null
+ * command means there's no shell switch for it at all, only its page in Settings.
+ */
 enum class Toggle(
     @StringRes val label: Int,
     val onIcon: ImageVector,
     val offIcon: ImageVector,
     val settings: String,
-    private val onCommand: String,
-    private val offCommand: String,
+    private val onCommand: String?,
+    private val offCommand: String?,
 ) {
     Wifi(R.string.skill_toggle_wifi, Icons.Default.Wifi, Icons.Default.WifiOff, Settings.Panel.ACTION_WIFI,
         "cmd wifi set-wifi-enabled enabled", "cmd wifi set-wifi-enabled disabled"),
@@ -40,7 +43,7 @@ enum class Toggle(
     MobileData(R.string.skill_toggle_mobile_data, Icons.Default.SignalCellularAlt, Icons.Default.MobiledataOff,
         Settings.Panel.ACTION_INTERNET_CONNECTIVITY, "svc data enable", "svc data disable"),
     Hotspot(R.string.skill_toggle_hotspot, Icons.Default.WifiTethering, Icons.Default.WifiTetheringOff,
-        Settings.ACTION_WIRELESS_SETTINGS, HOTSPOT_ON, HOTSPOT_OFF),
+        Settings.ACTION_WIRELESS_SETTINGS, null, null),
     Airplane(R.string.skill_toggle_airplane, Icons.Default.AirplanemodeActive, Icons.Default.AirplanemodeInactive,
         Settings.ACTION_AIRPLANE_MODE_SETTINGS,
         "cmd connectivity airplane-mode enable", "cmd connectivity airplane-mode disable"),
@@ -54,9 +57,11 @@ enum class Toggle(
 
     fun command(on: Boolean) = if (on) onCommand else offCommand
 
-    fun settingsIntent(): Intent = Intent(settings).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    fun settingsIntent(): Intent =
+        if (this == Hotspot) {
+            // straight to the hotspot's own switch, past the network page
+            Intent().setClassName("com.android.settings", "com.android.settings.Settings\$WifiTetherSettingsActivity")
+        } else {
+            Intent(settings)
+        }.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 }
-
-// tethering has no shell switch of its own; the connectivity service starts the one in Settings
-private const val HOTSPOT_ON = "cmd connectivity start-tethering wifi"
-private const val HOTSPOT_OFF = "cmd connectivity stop-tethering wifi"

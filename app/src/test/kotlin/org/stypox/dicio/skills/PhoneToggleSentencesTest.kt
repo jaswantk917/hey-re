@@ -4,9 +4,11 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.floats.shouldBeGreaterThan
 import io.kotest.matchers.floats.shouldBeLessThan
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import org.dicio.skill.standard.util.MatchHelper
 import org.stypox.dicio.sentences.Sentences
 import org.stypox.dicio.sentences.Sentences.PhoneToggle
+import org.stypox.dicio.skills.toggle.Toggle
 
 private val data = Sentences.PhoneToggle["en"]!!
 
@@ -44,5 +46,14 @@ class PhoneToggleSentencesTest : StringSpec({
         val torch = Sentences.Flashlight["en"]!!
         val input = "torch on karo"
         match(input).first.scoreIn01Range() shouldBeLessThan torch.score(MatchHelper(null, input), input).first.scoreIn01Range()
+    }
+
+    "the hotspot opens its page, the rest switch through Shizuku" {
+        Toggle.Hotspot.command(true) shouldBe null
+        Toggle.Hotspot.command(false) shouldBe null
+        for (toggle in Toggle.entries - Toggle.Hotspot) {
+            toggle.command(true) shouldNotBe null
+            toggle.command(false) shouldNotBe null
+        }
     }
 })

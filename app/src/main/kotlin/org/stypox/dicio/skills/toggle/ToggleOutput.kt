@@ -59,6 +59,7 @@ class ToggleOutput(
     sealed interface Result {
         data object Done : Result
         data object NeedsShizuku : Result
+        data object ByHand : Result
         data class Failed(val reason: String) : Result
     }
 
@@ -67,6 +68,7 @@ class ToggleOutput(
             if (on) R.string.skill_toggle_on else R.string.skill_toggle_off, ctx.getString(toggle.label)
         )
         Result.NeedsShizuku -> ctx.getString(R.string.skill_toggle_needs_shizuku)
+        Result.ByHand -> ctx.getString(R.string.skill_toggle_by_hand, ctx.getString(toggle.label))
         is Result.Failed -> ctx.getString(R.string.skill_toggle_failed, ctx.getString(toggle.label))
     }
 
@@ -85,6 +87,7 @@ class ToggleOutput(
         when (val current = result) {
             Result.Done -> Switched(toggle, on, rememberFirstShow(this))
             Result.NeedsShizuku -> NeedsShizuku(toggle, status)
+            Result.ByHand -> Fallback(toggle, stringResource(R.string.skill_toggle_by_hand, stringResource(toggle.label)))
             is Result.Failed -> Fallback(toggle, stringResource(R.string.skill_toggle_failed, stringResource(toggle.label)))
         }
     }

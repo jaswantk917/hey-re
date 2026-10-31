@@ -115,6 +115,12 @@ class OnDeviceSttInputDevice(
 
     // SpeechRecognizer must only ever be touched from the main thread
     private fun startListening(eventListener: (InputEvent) -> Unit) {
+        if (_uiState.value == SttState.Listening || _uiState.value == SttState.WaitingForResult) {
+            // summoned again mid-listen: start over on a fresh recognizer, since reusing the busy
+            // one fails the old session with ERROR_CLIENT and that would show as an error
+            recognizer?.destroy()
+            recognizer = null
+        }
         listener = eventListener
         lastPartial = null
         speechBegan = false
@@ -122,7 +128,7 @@ class OnDeviceSttInputDevice(
         waitingSince = SystemClock.elapsedRealtime()
         val recognizer = recognizer
             ?: SpeechRecognizer.createOnDeviceSpeechRecognizer(context).also {
-                it.setRecognitionListener(recognitionListener)
+                it.setRecognitionListener(CurrentOnly(it))
                 this.recognizer = it
             }
         _uiState.value = SttState.WaitingForResult
@@ -249,6 +255,20 @@ class OnDeviceSttInputDevice(
             recognizer.triggerModelDownload(recognizerIntent())
             _uiState.value = SttState.Loaded
         }
+    }
+
+    /** [owner]'s events, only while it's still the recognizer: a replaced one can still report. */
+    private inner class CurrentOnly(private val owner: SpeechRecognizer) : RecognitionListener {
+        private val current get() = recognizer === owner
+        override fun onReadyForSpeech(params: Bundle?) { if (current) recognitionListener.onReadyForSpeech(params) }
+        override fun onBeginningOfSpeech() { if (current) recognitionListener.onBeginningOfSpeech() }
+        override fun onRmsChanged(rmsdB: Float) {}
+        override fun onBufferReceived(buffer: ByteArray?) {}
+        override fun onEndOfSpeech() { if (current) recognitionListener.onEndOfSpeech() }
+        override fun onPartialResults(partialResults: Bundle?) { if (current) recognitionListener.onPartialResults(partialResults) }
+        override fun onResults(results: Bundle?) { if (current) recognitionListener.onResults(results) }
+        override fun onError(error: Int) { if (current) recognitionListener.onError(error) }
+        override fun onEvent(eventType: Int, params: Bundle?) {}
     }
 
     private val recognitionListener = object : RecognitionListener {

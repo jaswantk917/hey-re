@@ -1,5 +1,6 @@
 package org.stypox.dicio.skills.toggle
 
+import android.content.Intent
 import org.dicio.skill.context.SkillContext
 import org.dicio.skill.skill.SkillInfo
 import org.dicio.skill.skill.SkillOutput
@@ -31,12 +32,19 @@ class ToggleSkill(correspondingSkillInfo: SkillInfo, data: StandardRecognizerDat
             PhoneToggle.LocationOn -> Toggle.Location to true
             PhoneToggle.LocationOff -> Toggle.Location to false
         }
+        if (toggle.command(on) == null) {
+            // Android has no switch apps may flip for this one: show its own
+            val opened = runCatching { ctx.android.startActivity(toggle.settingsIntent()) }.isSuccess ||
+                    runCatching { ctx.android.startActivity(Intent(toggle.settings).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.isSuccess
+            return ToggleOutput(toggle, on, if (opened) ToggleOutput.Result.ByHand else ToggleOutput.Result.Failed(""))
+        }
         return ToggleOutput(toggle, on, flip(toggle, on))
     }
 
     companion object {
         suspend fun flip(toggle: Toggle, on: Boolean): ToggleOutput.Result {
-            val result = Shell.run(toggle.command(on)) ?: return ToggleOutput.Result.NeedsShizuku
+            val command = toggle.command(on) ?: return ToggleOutput.Result.ByHand
+            val result = Shell.run(command) ?: return ToggleOutput.Result.NeedsShizuku
             return if (result.ok) ToggleOutput.Result.Done else ToggleOutput.Result.Failed(result.output)
         }
     }

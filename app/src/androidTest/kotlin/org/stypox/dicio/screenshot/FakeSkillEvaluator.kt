@@ -21,4 +21,6 @@ class FakeSkillEvaluator : SkillEvaluator {
     }
 
     override fun expectBrief() {}
+
+    override fun briefIfIdle() {}
 }

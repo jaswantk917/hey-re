@@ -1,6 +1,7 @@
 package org.stypox.dicio.eval
 
 import android.util.Log
+import android.os.SystemClock
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.delay
 import org.dicio.skill.skill.InteractionPlan
 import org.dicio.skill.skill.Permission
 import org.dicio.skill.skill.SkillOutput
@@ -18,6 +20,7 @@ import org.stypox.dicio.di.SkillContextInternal
 import org.stypox.dicio.di.SttInputDeviceWrapper
 import org.stypox.dicio.io.graphical.ErrorSkillOutput
 import org.stypox.dicio.io.graphical.MissingPermissionsSkillOutput
+import org.stypox.dicio.io.input.SttState
 import org.stypox.dicio.skills.brief.BriefInfo
 import org.stypox.dicio.skills.brief.BriefSkill
 import org.stypox.dicio.R
@@ -55,6 +58,9 @@ interface SkillEvaluator {
 
     /** Summoned: if the person then says nothing, show what needs them instead (the brief). */
     fun expectBrief()
+
+    /** The app was opened: if the person does nothing for a moment, show the brief quietly. */
+    fun briefIfIdle()
 }
 
 class SkillEvaluatorImpl(
@@ -88,6 +94,25 @@ class SkillEvaluatorImpl(
 
     override fun expectBrief() {
         briefOnSilence = true
+    }
+
+    private var lastIdleBrief = 0L
+
+    override fun briefIfIdle() {
+        scope.launch {
+            val interactionsBefore = _state.value.interactions.size
+            delay(IDLE_BRIEF_DELAY_MILLIS)
+            val log = _state.value
+            val stt = sttInputDevice.uiState.value
+            // summoned (the quiet-summon brief handles it), asked something, or listening already
+            if (briefOnSilence || log.pendingQuestion != null || log.interactions.size != interactionsBefore ||
+                stt == SttState.Listening || stt == SttState.WaitingForResult
+            ) return@launch
+            val now = SystemClock.elapsedRealtime()
+            if (lastIdleBrief != 0L && now - lastIdleBrief < IDLE_BRIEF_EVERY_MILLIS) return@launch
+            lastIdleBrief = now
+            showBrief(speak = false, onlyIfSomething = true)
+        }
     }
 
     override fun processInputEvent(event: InputEvent) {
@@ -223,8 +248,11 @@ class SkillEvaluatorImpl(
         }
     }
 
-    /** The brief, as if asked for, without a question bubble; never over the lock screen. */
-    private suspend fun showBrief() {
+    /**
+     * The brief, as if asked for, without a question bubble; never over the lock screen. Opening
+     * the app shows it only when something needs the person, and silently.
+     */
+    private suspend fun showBrief(speak: Boolean = true, onlyIfSomething: Boolean = false) {
         if (skillContext.android.isLocked()) return
         if (skillHandler.enabledSkillsInfo.value?.any { it.id == BriefInfo.id } != true) return
         val output = try {
@@ -233,6 +261,7 @@ class SkillEvaluatorImpl(
             Log.w(TAG, "Could not gather the brief", e)
             return
         }
+        if (onlyIfSomething && output.isEmpty) return
         val log = _state.value
         _state.value = log.copy(
             interactions = log.interactions + Interaction(
@@ -240,6 +269,7 @@ class SkillEvaluatorImpl(
                 questionsAnswers = listOf(QuestionAnswer(null, output)),
             ),
         )
+        if (!speak) return
         output.getSpeechOutput(skillContext).takeIf { it.isNotBlank() }?.let {
             withContext(Dispatchers.Main) { skillContext.speechOutputDevice.speak(it) }
         }
@@ -362,6 +392,9 @@ class SkillEvaluatorImpl(
         val TAG = SkillEvaluator::class.simpleName
         // enough for "should I call Maa?" -> "haan karo", short enough for Nano's small context
         private const val RECENT_TURNS = 3
+        private const val IDLE_BRIEF_DELAY_MILLIS = 1_500L
+        // reopening the app a minute later shouldn't stack up the same brief
+        private const val IDLE_BRIEF_EVERY_MILLIS = 10 * 60_000L
         // the time, a timer or the torch is fine from the lock screen; calls, messages, switches
         // and anything showing the owner's day wait for an unlock
         internal val LOCK_SCREEN_SKILLS = setOf(

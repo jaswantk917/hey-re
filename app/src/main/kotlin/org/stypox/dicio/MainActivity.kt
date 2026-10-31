@@ -105,6 +105,7 @@ class MainActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
         skillEvaluator.unlockRequester = ::requestUnlock
+        skillEvaluator.briefIfIdle()
     }
 
     override fun onStart() {

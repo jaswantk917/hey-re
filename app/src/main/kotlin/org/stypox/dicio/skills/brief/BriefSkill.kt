@@ -17,7 +17,7 @@ class BriefSkill(correspondingSkillInfo: SkillInfo, data: StandardRecognizerData
     override suspend fun generateOutput(ctx: SkillContext, inputData: Brief): SkillOutput = brief(ctx)
 
     companion object {
-        suspend fun brief(ctx: SkillContext): SkillOutput = BriefOutput(
+        suspend fun brief(ctx: SkillContext): BriefOutput = BriefOutput(
             Attention.rank(BriefSources.candidates(ctx.android), System.currentTimeMillis()),
             BriefSources.nowPlaying(ctx.android),
         )

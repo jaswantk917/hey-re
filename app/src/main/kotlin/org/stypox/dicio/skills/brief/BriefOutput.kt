@@ -61,6 +61,8 @@ class BriefOutput(
     private val items: List<Attention.Ranked>,
     private val nowPlaying: NowPlaying?,
 ) : SkillOutput {
+    val isEmpty get() = items.isEmpty()
+
     override fun getSpeechOutput(ctx: SkillContext): String {
         if (items.isEmpty()) return ctx.getString(R.string.skill_brief_nothing)
         val phrases = items.map { Attention.phrase(it.candidate) }

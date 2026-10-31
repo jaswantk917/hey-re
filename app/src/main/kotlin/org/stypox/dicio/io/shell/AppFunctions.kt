@@ -47,6 +47,8 @@ object AppFunctions {
         return try {
             val result = Json.parseToJsonElement(json) as? JsonObject
                 ?: return Outcome.Failed(output.lineSequence().first())
+            // "{}": the function ran and had nothing to give, like a device with no known location
+            if (result.isEmpty()) return Outcome.Done(null)
             if (RETURN_VALUE !in result) return Outcome.Failed(output.lineSequence().first())
             Outcome.Done(unwrap(result[RETURN_VALUE]))
         } catch (e: Exception) {

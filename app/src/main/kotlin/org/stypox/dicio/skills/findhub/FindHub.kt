@@ -1,5 +1,6 @@
 package org.stypox.dicio.skills.findhub
 
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.stypox.dicio.io.shell.AppFunctions
@@ -21,9 +22,21 @@ object FindHub {
         AppFunctions.asList(value).mapNotNull { (it as? Map<*, *>)?.let(::device) }
     }
 
-    suspend fun locate(device: Device): Outcome =
-        AppFunctions.call(PACKAGE, function("locateDevice"), buildJsonObject { put("deviceId", device.id) })
-            .map { (it as? Map<*, *>)?.let(::location) }
+    /** Where [device] was last seen; with nothing cached, Find Hub is asked to look again first. */
+    suspend fun locate(device: Device): Outcome {
+        val cached = lastLocation(device)
+        if (cached !is Outcome.Done || cached.value != null) return cached
+        val refresh = AppFunctions.call(PACKAGE, function("refreshDeviceLocation"), deviceParams(device))
+        if (refresh !is Outcome.Done) return Outcome.Done(null)
+        delay(REFRESH_WAIT_MILLIS)
+        return lastLocation(device)
+    }
+
+    private suspend fun lastLocation(device: Device): Outcome =
+        AppFunctions.call(PACKAGE, function("locateDevice"), deviceParams(device))
+            .map { (it as? Map<*, *>)?.let(::location)?.takeIf { location -> location.place != null } }
+
+    private fun deviceParams(device: Device) = buildJsonObject { put("deviceId", device.id) }
 
     suspend fun ring(device: Device, ring: Boolean): Outcome = AppFunctions.call(
         PACKAGE, function("ringDevice"),
@@ -83,6 +96,8 @@ object FindHub {
     private fun function(name: String) = "com.google.android.apps.adm.memory.BaseMemoryAppFunctionService#$name"
 
     private const val PACKAGE = "com.google.android.apps.adm"
+    // a live location takes Find Hub a few seconds to fetch from the device
+    private const val REFRESH_WAIT_MILLIS = 5000L
     const val APP_PACKAGE = PACKAGE
 
     private val TYPE_WORDS = mapOf(

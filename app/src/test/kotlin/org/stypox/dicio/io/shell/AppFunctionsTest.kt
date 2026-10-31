@@ -28,6 +28,10 @@ class AppFunctionsTest : StringSpec({
         (outcome.value as Map<*, *>)["isSuccessful"] shouldBe true
     }
 
+    "an empty answer is nothing to give, not an error" {
+        AppFunctions.parse("{}") shouldBe Outcome.Done(null)
+    }
+
     "an error from the shell is a failure with its first line" {
         val outcome = AppFunctions.parse(
             "Error executing app function: android.app.appfunctions.AppFunctionException: The app function " +

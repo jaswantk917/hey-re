@@ -231,6 +231,7 @@ class SkillEvaluatorImpl(
         // the conversation from before the phone was locked isn't for whoever holds it now
         val recent = if (skillContext.android.isLocked()) listOf() else recentTurns()
         val rewritten = localBrain.rewriteAsCommand(input, commands, recent)
+            ?.takeUnless { copiesAnExample(it, Hinglish.romanize(input), commands) }
         val match = rewritten?.let { findBestMatch(listOf(it)) }?.second
         val yesNo = Sentences.UtilYesNo[skillContext.sentencesLanguage]
         if (rewritten != null && match != null && yesNo != null &&
@@ -322,7 +323,28 @@ class SkillEvaluatorImpl(
         // skills that change the phone or reach someone: a guess at them asks first
         private val ACTING_SKILLS = setOf(
             "telephone", "message", "phone_toggle", "smart_home", "sound_mode", "alarm", "timer",
+            "navigation", "nearby",
         )
+
+        /**
+         * Nano sometimes answers with an example command word for word ("should I walk more?" ->
+         * "Navigate to Vancouver international airport"). It's a copy, not a translation, when it
+         * carries the example's own details (a place, a name, a number) the person never said;
+         * "kitne baje hain" -> "What time is it?" has none and is a fine answer.
+         */
+        internal fun copiesAnExample(rewritten: String, input: String, examples: List<String>): Boolean {
+            val example = examples.firstOrNull { words(it) == words(rewritten) } ?: return false
+            val details = EXAMPLE_DETAIL.findAll(example).map { it.value.lowercase() }
+            val said = words(input).toSet()
+            return details.any { it !in said }
+        }
+
+        private fun words(text: String) =
+            text.lowercase().split(Regex("[^\\p{L}\\p{N}]+")).filter { it.isNotEmpty() }
+
+        // names and places are capitalized past the first word; numbers count only in digits,
+        // since "paanch minute" rightly becomes "five minutes"
+        private val EXAMPLE_DETAIL = Regex("(?<=\\s)\\p{Lu}\\p{L}*|\\p{N}+")
 
         internal val SUMMARY_REQUEST = Regex(
             "summari[sz]e|sum (it|this) up|what'?s (this|on (my|the) screen)|what is (this|on (my|the) screen)|" +

@@ -25,9 +25,14 @@ steps:
   - (show)? my step|steps (count)? (today|(so far))?
   - how much|far (have|did)? i walk|walked (today|(so far))?
   - steps today
+  - should i walk (a)? (bit|little)? more
+  - do i need to walk (a)? (bit|little)? (more)?
+  - have i walked enough (today)?
 
 steps_hinglish:
   - (aaj)? (maine|main|mai)? kitne|kitna step|steps (chale|chala|chal|liye|kiye)? (ho)? (gaye|gaya|gae|gye|gya|hue|hua|huye)? (aaj)? (hai|hain|he)?
   - (aaj)? (main|mai|maine)? kitna chala|chal (liya|chuka)? (aaj)? (hun|hu|hoon|hai)?
   - (aaj)? (mere|meri)? step|steps kitne|kitna (hue|hua|huye|hain|hai)? (hain|hai)?
   - aaj ke step|steps (batao|bata|dikhao)?
+  - (kya)? (mujhe|main)? (thoda)? (aur)? chalna|walk (chahiye|chahie|chaahie|chaahiye|karna) (kya)? (aur)?
+  - (kya)? (mujhe)? (aur)? chalna|walk padega|hai (kya)?

@@ -10,6 +10,7 @@ import org.dicio.skill.standard.util.MatchHelper
 import org.stypox.dicio.sentences.Sentences
 import org.stypox.dicio.sentences.Sentences.CheckIn
 import org.stypox.dicio.sentences.Sentences.Help
+import org.stypox.dicio.util.Hinglish
 
 private fun <T> StandardRecognizerData<T>.match(input: String) = score(MatchHelper(null, input), input)
 
@@ -47,6 +48,23 @@ class HelpAndStepsSentencesTest : StringSpec({
             withClue(input) {
                 checkIn.match(input).second shouldBe CheckIn.StepsHinglish
                 checkIn.match(input).first.scoreIn01Range() shouldBeGreaterThan 0.9f
+            }
+        }
+    }
+
+    "should I walk more is a steps question" {
+        val checkIn = Sentences.CheckIn["en"]!!
+        for (input in listOf("should i walk a bit more", "do i need to walk more", "have i walked enough today")) {
+            withClue(input) {
+                checkIn.match(input).second shouldBe CheckIn.Steps
+                checkIn.match(input).first.scoreIn01Range() shouldBeGreaterThan 0.9f
+            }
+        }
+        for (said in listOf("क्या मुझे थोड़ा और चलना चाहिए", "क्या मुझे चलना चाहिए और", "kya mujhe aur walk karna chahiye")) {
+            val input = Hinglish.romanize(said)
+            withClue(input) {
+                checkIn.match(input).second shouldBe CheckIn.StepsHinglish
+                checkIn.match(input).first.scoreIn01Range() shouldBeGreaterThan 0.8f
             }
         }
     }

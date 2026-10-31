@@ -39,6 +39,8 @@ import androidx.compose.ui.graphics.blur.BlurRadiusSpec
 import androidx.compose.ui.graphics.blur.BlurStop
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -166,6 +168,17 @@ fun HomeScreen(
         uiPrefs.edit { putInt(ANSWERS_SO_FAR, answersSoFar) }
     }
     SttHaptics(sttState)
+
+    // listening (the gesture or the wake word while typing): the orb, not the composer
+    val keyboard = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    LaunchedEffect(sttState == SttState.Listening) {
+        if (sttState == SttState.Listening && typedText != null) {
+            focusManager.clearFocus()
+            keyboard?.hide()
+            typedText = null
+        }
+    }
 
     // closing the keyboard on an empty composer goes back to the orb
     val imeVisible = WindowInsets.isImeVisible

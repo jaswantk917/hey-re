@@ -3,4 +3,4 @@
     android:sessionService="org.stypox.dicio.io.assist.HeyReSessionService"
     android:recognitionService="org.stypox.dicio.io.input.stt_service.SttService"
     android:supportsAssist="true"
-    android:supportsLaunchVoiceAssistFromKeyguard="false" />
+    android:supportsLaunchVoiceAssistFromKeyguard="true" />

@@ -16,3 +16,18 @@ hinglish:
   - (hello|hi|hey|hii)? (hey re|re)? sab badhiya|theek|thik (hai)?
   - namaste|namaskar ji?
   - ram ram (ji)?
+
+# "how many steps today", "aaj kitne steps hue": just the steps
+steps:
+  - how many steps (have|did)? (i)? (walk|walked|take|taken|do|done)? (today|(so far))?
+  - what s|is my step|steps (count)? (today|(so far))?
+  - whats my step|steps (count)? (today|(so far))?
+  - (show)? my step|steps (count)? (today|(so far))?
+  - how much|far (have|did)? i walk|walked (today|(so far))?
+  - steps today
+
+steps_hinglish:
+  - (aaj)? (maine|main|mai)? kitne|kitna step|steps (chale|chala|chal|liye|kiye)? (ho)? (gaye|gaya|gae|gye|gya|hue|hua|huye)? (aaj)? (hai|hain|he)?
+  - (aaj)? (main|mai|maine)? kitna chala|chal (liya|chuka)? (aaj)? (hun|hu|hoon|hai)?
+  - (aaj)? (mere|meri)? step|steps kitne|kitna (hue|hua|huye|hain|hai)? (hain|hai)?
+  - aaj ke step|steps (batao|bata|dikhao)?

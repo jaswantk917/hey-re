@@ -1,0 +1,14 @@
+english:
+  - what (all|else)? can you do (for me)?
+  - what are you able to do
+  - what (all)? (are)? your skills|features|commands
+  - how can you help (me)?
+  - what can i ask|say (you)?
+  - help (me)?
+  - show (me)? (your|all)? skills|commands
+
+# "tum kya kya kar sakte ho", "aap kya kar sakti ho"
+hinglish:
+  - (tum|aap|tu)? kya (kya)? kar sakte|sakti|sakta ho|hai (tum|aap)?
+  - (tum|aap)? kya (kya)? kar lete|loge ho?
+  - tumhe|aapko kya (kya)? aata hai

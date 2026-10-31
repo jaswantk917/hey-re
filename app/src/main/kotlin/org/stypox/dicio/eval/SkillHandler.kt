@@ -29,6 +29,7 @@ import org.stypox.dicio.skills.media.MediaInfo
 import org.stypox.dicio.skills.navigation.NavigationInfo
 import org.stypox.dicio.skills.notify.NotifyInfo
 import org.stypox.dicio.skills.checkin.CheckInInfo
+import org.stypox.dicio.skills.help.HelpInfo
 import org.stypox.dicio.skills.toggle.ToggleInfo
 import org.stypox.dicio.skills.open.OpenInfo
 import org.stypox.dicio.skills.search.SearchInfo
@@ -60,6 +61,7 @@ class SkillHandler @Inject constructor(
         SoundModeInfo,
         ToggleInfo,
         CheckInInfo,
+        HelpInfo { enabledSkillsInfo.value.orEmpty() },
         TimerInfo,
         AlarmInfo,
         CurrentTimeInfo,

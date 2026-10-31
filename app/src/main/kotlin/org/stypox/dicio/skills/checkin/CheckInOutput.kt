@@ -2,6 +2,7 @@ package org.stypox.dicio.skills.checkin
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.res.Resources
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -66,23 +67,23 @@ import org.dicio.skill.skill.SkillOutput
 import org.stypox.dicio.R
 import org.stypox.dicio.io.graphical.Headline
 import org.stypox.dicio.ui.home.groupedItemShape
+import org.stypox.dicio.ui.util.rememberFirstShow
 import java.text.NumberFormat
 import java.time.LocalDateTime
 
 class CheckInOutput(
     private val name: String?,
     private val hinglish: Boolean,
+    // "kitne steps hue": the steps alone, without the greeting
+    private val stepsOnly: Boolean,
     private val initial: CheckIn,
 ) : SkillOutput {
 
     override fun getSpeechOutput(ctx: SkillContext): String {
+        if (stepsOnly) return stepsSpeech(ctx.android.resources, initial.steps)
         val res = ctx.android.resources
         val parts = mutableListOf(greeting(ctx))
-        (initial.steps as? Section.Ready)?.value?.let { steps ->
-            val count = NumberFormat.getInstance().format(steps)
-            parts += res.getString(if (hinglish) R.string.skill_check_in_steps_hi else R.string.skill_check_in_steps, count)
-            Routine.nudge(steps, LocalDateTime.now())?.let { parts += res.getString(it.spoken(hinglish)) }
-        }
+        (initial.steps as? Section.Ready)?.value?.let { parts += stepsSpeech(res, Section.Ready(it)) }
         (initial.tasks as? Section.Ready)?.value?.let { tasks ->
             if (tasks.due.isNotEmpty()) {
                 parts += res.getQuantityString(
@@ -101,6 +102,22 @@ class CheckInOutput(
         return parts.joinToString(" ")
     }
 
+    private fun stepsSpeech(res: Resources, steps: Section<Long>): String = when (steps) {
+        is Section.Ready -> {
+            val count = NumberFormat.getInstance().format(steps.value)
+            listOfNotNull(
+                res.getString(if (hinglish) R.string.skill_check_in_steps_hi else R.string.skill_check_in_steps, count),
+                Routine.nudge(steps.value, LocalDateTime.now())?.let { res.getString(it.spoken(hinglish)) },
+            ).joinToString(" ")
+        }
+        Section.NeedsAccess -> res.getString(
+            if (hinglish) R.string.skill_check_in_steps_need_access_hi else R.string.skill_check_in_steps_need_access
+        )
+        Section.Unavailable -> res.getString(
+            if (hinglish) R.string.skill_check_in_steps_unavailable_hi else R.string.skill_check_in_steps_unavailable
+        )
+    }
+
     private fun greeting(ctx: SkillContext): String {
         val res = ctx.android.resources
         return when {
@@ -115,8 +132,11 @@ class CheckInOutput(
     override fun GraphicalOutput(ctx: SkillContext) {
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
+        val firstShow = rememberFirstShow(this)
         var checkIn by remember { mutableStateOf(initial) }
-        val refresh: () -> Unit = { scope.launch { checkIn = CheckIn.gather(context) } }
+        val refresh: () -> Unit = {
+            scope.launch { checkIn = if (stepsOnly) CheckIn.gatherSteps(context) else CheckIn.gather(context) }
+        }
 
         // notification access is granted in Settings, so look again on the way back
         LifecycleResumeEffect(Unit) {
@@ -132,7 +152,7 @@ class CheckInOutput(
 
         val rows = buildList<@Composable () -> Unit> {
             when (val steps = checkIn.steps) {
-                is Section.Ready -> add { StepsRow(steps.value) }
+                is Section.Ready -> add { StepsRow(steps.value, firstShow) }
                 Section.NeedsAccess -> add {
                     ConnectRow(Icons.AutoMirrored.Filled.DirectionsWalk, R.string.skill_check_in_steps_connect) {
                         healthLauncher.launch(HealthSteps.permissionsToRequest(context))
@@ -169,11 +189,11 @@ class CheckInOutput(
         }
 
         Column {
-            Headline(text = greeting(ctx))
+            Headline(text = if (stepsOnly) stepsSpeech(context.resources, checkIn.steps) else greeting(ctx))
             if (rows.isNotEmpty()) Spacer(modifier = Modifier.height(12.dp))
             rows.forEachIndexed { index, row ->
                 if (index > 0) Spacer(modifier = Modifier.height(2.dp))
-                Arrive(index) {
+                Arrive(index, firstShow) {
                     Surface(
                         shape = groupedItemShape(index, rows.size),
                         color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -189,9 +209,10 @@ class CheckInOutput(
 
 /** Rows rise in one after the other, so the check-in reads top to bottom. */
 @Composable
-private fun Arrive(index: Int, content: @Composable () -> Unit) {
-    val progress = remember { Animatable(0f) }
+private fun Arrive(index: Int, firstShow: Boolean, content: @Composable () -> Unit) {
+    val progress = remember { Animatable(if (firstShow) 0f else 1f) }
     LaunchedEffect(Unit) {
+        if (!firstShow) return@LaunchedEffect
         delay(120L + index * 90L)
         progress.animateTo(1f, spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow))
     }
@@ -205,9 +226,9 @@ private fun Arrive(index: Int, content: @Composable () -> Unit) {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun StepsRow(steps: Long) {
+private fun StepsRow(steps: Long, firstShow: Boolean) {
     val walk = remember(steps) { Routine.nudge(steps, LocalDateTime.now()) }
-    var shown by remember { mutableIntStateOf(0) }
+    var shown by remember { mutableIntStateOf(if (firstShow) 0 else steps.toInt()) }
     LaunchedEffect(steps) { delay(200); shown = steps.toInt() }
     val counted by animateIntAsState(shown, tween(900), label = "steps count")
     val ring by animateFloatAsState(

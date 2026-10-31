@@ -19,11 +19,19 @@ skills:
       - id: location_on
       - id: location_off
 
+  - id: help
+    specificity: medium
+    sentences:
+      - id: english
+      - id: hinglish
+
   - id: check_in
     specificity: medium
     sentences:
       - id: english
       - id: hinglish
+      - id: steps
+      - id: steps_hinglish
 
   - id: current_time
     specificity: high

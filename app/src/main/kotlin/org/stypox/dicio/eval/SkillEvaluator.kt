@@ -18,7 +18,11 @@ import org.stypox.dicio.di.SkillContextInternal
 import org.stypox.dicio.di.SttInputDeviceWrapper
 import org.stypox.dicio.io.graphical.ErrorSkillOutput
 import org.stypox.dicio.io.graphical.MissingPermissionsSkillOutput
+import org.stypox.dicio.R
 import org.stypox.dicio.io.assist.ScreenContext
+import org.stypox.dicio.io.assist.isLocked
+import org.stypox.dicio.io.graphical.HeadlineSpeechSkillOutput
+import org.stypox.dicio.util.getString
 import org.stypox.dicio.io.assist.ScreenSummary
 import org.stypox.dicio.io.input.InputEvent
 import org.stypox.dicio.skills.localbrain.LocalBrain
@@ -29,6 +33,7 @@ import org.stypox.dicio.ui.home.Interaction
 import org.stypox.dicio.ui.home.InteractionLog
 import org.stypox.dicio.ui.home.PendingQuestion
 import org.stypox.dicio.ui.home.QuestionAnswer
+import org.stypox.dicio.sentences.Sentences
 import org.stypox.dicio.util.Hinglish
 import org.stypox.dicio.util.HinglishNumbers
 import org.stypox.dicio.util.RecognizeEverythingSkill
@@ -40,6 +45,9 @@ interface SkillEvaluator {
     val state: StateFlow<InteractionLog>
 
     var permissionRequester: suspend (List<Permission>) -> Boolean
+
+    /** Asks for the phone to be unlocked, from whichever activity is showing; true once it is. */
+    var unlockRequester: suspend () -> Boolean
 
     fun processInputEvent(event: InputEvent)
 }
@@ -66,6 +74,8 @@ class SkillEvaluatorImpl(
 
     // must be kept up to date even when the activity is recreated, for this reason it is `var`
     override var permissionRequester: suspend (List<Permission>) -> Boolean = { false }
+
+    override var unlockRequester: suspend () -> Boolean = { !skillContext.android.isLocked() }
 
     override fun processInputEvent(event: InputEvent) {
         scope.launch {
@@ -141,6 +151,13 @@ class SkillEvaluatorImpl(
                 addInteractionFromPending(MissingPermissionsSkillOutput(skillInfo))
                 return
             }
+            // over the lock screen only what's harmless and not personal runs before unlocking
+            if (skillInfo.id !in LOCK_SCREEN_SKILLS && skillContext.android.isLocked() && !unlockRequester()) {
+                addInteractionFromPending(object : HeadlineSpeechSkillOutput {
+                    override fun getSpeechOutput(ctx: SkillContext) = ctx.getString(R.string.unlock_first)
+                })
+                return
+            }
 
             skillContext.previousOutput =
                 _state.value.interactions.lastOrNull()?.questionsAnswers?.lastOrNull()?.answer
@@ -211,11 +228,18 @@ class SkillEvaluatorImpl(
         val commands = skillHandler.enabledSkillsInfo.value.orEmpty()
             .map { it.sentenceExample(skillContext.android) }
             .filter { it.isNotBlank() }
-        val recent = recentTurns()
+        // the conversation from before the phone was locked isn't for whoever holds it now
+        val recent = if (skillContext.android.isLocked()) listOf() else recentTurns()
         val rewritten = localBrain.rewriteAsCommand(input, commands, recent)
-        val match = rewritten?.let { findBestMatch(listOf(it)) }
+        val match = rewritten?.let { findBestMatch(listOf(it)) }?.second
+        val yesNo = Sentences.UtilYesNo[skillContext.sentencesLanguage]
+        if (rewritten != null && match != null && yesNo != null &&
+            match.skill.correspondingSkillInfo.id in ACTING_SKILLS
+        ) {
+            return Pair(input, confirmGuess(rewritten, match, yesNo))
+        }
         val skill = LocalBrainSkill(localBrain, recent, ScreenContext.snapshot.value)
-        return Pair(input, match?.second ?: skill.scoreAndWrapResult(skillContext, input))
+        return Pair(input, match ?: skill.scoreAndWrapResult(skillContext, input))
     }
 
     /**
@@ -288,6 +312,17 @@ class SkillEvaluatorImpl(
         val TAG = SkillEvaluator::class.simpleName
         // enough for "should I call Maa?" -> "haan karo", short enough for Nano's small context
         private const val RECENT_TURNS = 3
+        // the time, a timer or the torch is fine from the lock screen; calls, messages, switches
+        // and anything showing the owner's day wait for an unlock
+        internal val LOCK_SCREEN_SKILLS = setOf(
+            "current_time", "timer", "alarm", "weather", "calculator", "flashlight", "Joke", "media",
+            "help", "listening", "lyrics", "translation", "sound_mode", "local_brain", "text",
+        )
+
+        // skills that change the phone or reach someone: a guess at them asks first
+        private val ACTING_SKILLS = setOf(
+            "telephone", "message", "phone_toggle", "smart_home", "sound_mode", "alarm", "timer",
+        )
 
         internal val SUMMARY_REQUEST = Regex(
             "summari[sz]e|sum (it|this) up|what'?s (this|on (my|the) screen)|what is (this|on (my|the) screen)|" +

@@ -44,6 +44,7 @@ import org.stypox.dicio.R
 import org.stypox.dicio.io.graphical.Headline
 import org.stypox.dicio.skills.sound.SoundModeSkill.Mode
 import org.stypox.dicio.ui.util.Haptic
+import org.stypox.dicio.ui.util.rememberFirstShow
 import org.stypox.dicio.ui.util.rememberHaptics
 import org.stypox.dicio.util.getString
 
@@ -55,9 +56,11 @@ sealed interface SoundModeOutput : SkillOutput {
         @Composable
         override fun GraphicalOutput(ctx: SkillContext) {
             val haptics = rememberHaptics()
-            val pop = remember { Animatable(0.6f) }
+            val firstShow = rememberFirstShow(this)
+            val pop = remember { Animatable(if (firstShow) 0.6f else 1f) }
             val shake = remember { Animatable(0f) }
             LaunchedEffect(Unit) {
+                if (!firstShow) return@LaunchedEffect
                 haptics.play(if (mode == Mode.Ring || mode == Mode.DndOff) Haptic.ToggleOn else Haptic.ToggleOff)
                 pop.animateTo(1f, spring(dampingRatio = 0.45f, stiffness = Spring.StiffnessMedium))
                 // vibrate mode shows itself: a quick buzz of the icon

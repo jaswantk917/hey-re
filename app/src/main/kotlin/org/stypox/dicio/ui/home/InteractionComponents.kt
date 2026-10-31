@@ -33,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -63,6 +64,7 @@ import org.dicio.skill.context.SkillContext
 import org.dicio.skill.skill.SkillInfo
 import org.dicio.skill.skill.SkillOutput
 import org.stypox.dicio.R
+import org.stypox.dicio.io.graphical.LocalAsk
 import org.stypox.dicio.di.SkillContextImpl
 import org.stypox.dicio.io.input.SttState
 import org.stypox.dicio.io.wake.WakeState
@@ -172,7 +174,9 @@ fun InteractionList(
                 countedItem(canBeAnchor = it.question == null) {
                     AppearOnce(key = "a$interactionIndex-$qaIndex", seen = seen, from = AppearFrom.Start) {
                         AssistantCard(skill = interaction.skill) {
-                            it.answer.GraphicalOutput(ctx = skillContext)
+                            CompositionLocalProvider(LocalAsk provides onSuggestionClick) {
+                                it.answer.GraphicalOutput(ctx = skillContext)
+                            }
                         }
                     }
                 }

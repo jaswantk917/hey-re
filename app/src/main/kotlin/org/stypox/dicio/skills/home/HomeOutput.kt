@@ -53,6 +53,7 @@ import org.stypox.dicio.R
 import org.stypox.dicio.io.graphical.Headline
 import org.stypox.dicio.io.graphical.HeadlineSpeechSkillOutput
 import org.stypox.dicio.ui.util.Haptic
+import org.stypox.dicio.ui.util.rememberFirstShow
 import org.stypox.dicio.ui.util.rememberHaptics
 import org.stypox.dicio.util.RecognizeEverythingSkill
 import org.stypox.dicio.util.getString
@@ -80,7 +81,9 @@ sealed interface HomeOutput : SkillOutput {
         @Composable
         override fun GraphicalOutput(ctx: SkillContext) {
             val haptics = rememberHaptics()
+            val firstShow = rememberFirstShow(this)
             LaunchedEffect(Unit) {
+                if (!firstShow) return@LaunchedEffect
                 // "sab band" is the big moment; one light is just a switch flipping
                 haptics.play(
                     when {

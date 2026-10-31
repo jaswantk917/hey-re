@@ -146,8 +146,10 @@ fun CountdownBar(
     val context = LocalContext.current
     val haptics = rememberHaptics()
     val state = countdown.state
+    // it went through while on screen; not each time the finished card is shown again
+    val wasDone = remember { state == Countdown.State.Done }
     LaunchedEffect(state) {
-        if (state == Countdown.State.Done) haptics.play(Haptic.Success)
+        if (state == Countdown.State.Done && !wasDone) haptics.play(Haptic.Success)
     }
     if (state != Countdown.State.Counting && state != Countdown.State.Waiting) return
 

@@ -1,6 +1,8 @@
 package org.stypox.dicio.skills.notify
 
+import android.app.NotificationManager
 import android.service.notification.NotificationListenerService
+import android.service.notification.StatusBarNotification
 import android.util.Log
 
 open class NotifyHandler: NotificationListenerService() {
@@ -19,9 +21,16 @@ open class NotifyHandler: NotificationListenerService() {
         Instance = null
     }
 
+    // silent ones (promotions, "Silent" in the shade, chats the user muted) aren't worth telling about
+    private fun alerts(sbn: StatusBarNotification): Boolean {
+        val ranking = NotificationListenerService.Ranking()
+        if (!currentRanking.getRanking(sbn.key, ranking)) return true
+        return isAlerting(ranking.importance)
+    }
+
     fun getActiveNotificationsList(): List<Notification> {
         // getActiveNotifications() can only be run in NotificationListenerService() class
-        return getActiveNotifications().mapNotNull { notification ->
+        return getActiveNotifications().filter(::alerts).mapNotNull { notification ->
             val title = notification.notification.extras.getString("android.title")
             val message = notification.notification.extras.getString("android.text")
             if (title.isNullOrBlank() && message.isNullOrBlank()) {
@@ -41,10 +50,10 @@ open class NotifyHandler: NotificationListenerService() {
         }
     }
 
-    /** How many notifications each app has up, skipping ongoing ones and group summaries. */
+    /** How many notifications each app has up, skipping silent and ongoing ones and group summaries. */
     fun appCounts(): Map<String, Int> = activeNotifications
         .filter { sbn ->
-            !sbn.isOngoing && sbn.packageName != packageName &&
+            alerts(sbn) && !sbn.isOngoing && sbn.packageName != packageName &&
                     sbn.notification.flags and android.app.Notification.FLAG_GROUP_SUMMARY == 0 &&
                     sbn.notification.extras.let {
                         !it.getCharSequence("android.title").isNullOrBlank() ||
@@ -60,6 +69,8 @@ open class NotifyHandler: NotificationListenerService() {
         }
         .eachCount()
 }
+
+internal fun isAlerting(importance: Int): Boolean = importance >= NotificationManager.IMPORTANCE_DEFAULT
 
 /**
  * Either [message] or [title] will be non-empty

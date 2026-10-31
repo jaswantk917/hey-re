@@ -14,7 +14,16 @@ import org.stypox.dicio.ui.assist.AssistActivity
  * Being the phone's assistant service (rather than only an ACTION_ASSIST activity) is what lets
  * Android hand over the text and screenshot of the app in front when the gesture summons Hey re.
  */
-class HeyReVoiceService : VoiceInteractionService()
+class HeyReVoiceService : VoiceInteractionService() {
+    // the lock screen's assistant shortcut: the sheet shows over the lock screen
+    override fun onLaunchVoiceAssistFromKeyguard() {
+        startActivity(
+            Intent(this, AssistActivity::class.java)
+                .setAction(Intent.ACTION_ASSIST)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
+    }
+}
 
 class HeyReSessionService : VoiceInteractionSessionService() {
     override fun onNewSession(args: Bundle?): VoiceInteractionSession = HeyReSession(this)

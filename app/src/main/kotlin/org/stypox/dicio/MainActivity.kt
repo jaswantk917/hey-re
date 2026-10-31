@@ -15,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import dev.shreyaspatil.permissionFlow.PermissionFlow
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
@@ -34,6 +35,7 @@ import org.stypox.dicio.io.wake.WakeState.NotLoaded
 import org.stypox.dicio.ui.home.wakeWordPermissions
 import org.stypox.dicio.ui.nav.Navigation
 import org.stypox.dicio.util.BaseActivity
+import org.stypox.dicio.io.assist.requestUnlock
 import java.time.Instant
 import javax.inject.Inject
 
@@ -53,6 +55,9 @@ class MainActivity : BaseActivity() {
     private var wakeServiceJob: Job? = null
 
     private var nextAssistAllowed = Instant.MIN
+
+    // summoned while already open (on Settings, say): back to the conversation to listen there
+    private val summons = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     /**
      * Automatically loads the LLM and the STT when the [ACTION_ASSIST] intent is received. Applies
@@ -91,6 +96,14 @@ class MainActivity : BaseActivity() {
         if (isAssistIntent(intent)) {
             onAssistIntentReceived()
         }
+        if (isAssistIntent(intent) || intent.action == ACTION_WAKE_WORD) {
+            summons.tryEmit(Unit)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        skillEvaluator.unlockRequester = ::requestUnlock
     }
 
     override fun onStart() {
@@ -160,7 +173,7 @@ class MainActivity : BaseActivity() {
                 color = MaterialTheme.colorScheme.background
             ) {
                 // edge to edge: each screen handles the system bar insets itself
-                Navigation()
+                Navigation(summons)
             }
         }
     }

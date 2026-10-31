@@ -17,6 +17,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -25,6 +26,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import org.stypox.dicio.R
 import org.stypox.dicio.settings.MainSettingsScreen
@@ -33,8 +36,11 @@ import org.stypox.dicio.ui.about.AboutScreen
 import org.stypox.dicio.ui.home.HomeScreen
 
 @Composable
-fun Navigation() {
+fun Navigation(summons: Flow<Unit> = emptyFlow()) {
     val navController = rememberNavController()
+    LaunchedEffect(summons) {
+        summons.collect { navController.popBackStack(Home, inclusive = false) }
+    }
     val backIcon = @Composable {
         IconButton(
             onClick = { navController.navigateUp() }

@@ -383,6 +383,14 @@
     <string name="pref_access_shizuku_ok">Ready: phone switches and sending WhatsApp by voice</string>
     <string name="pref_access_shizuku_allow">Not allowed: tap to allow Hey re</string>
     <string name="pref_access_shizuku_start">Not running: tap to open Shizuku and start it</string>
+    <string name="unlock_first">Unlock your phone for that one.</string>
+    <string name="skill_guess_confirm">Did you mean “%1$s”?</string>
+    <string name="skill_guess_do_it">Yes, do it</string>
+    <string name="skill_guess_declined">Okay, I won\'t.</string>
+    <string name="skill_name_help">What I can do</string>
+    <string name="skill_sentence_example_help">What can you do?</string>
+    <string name="skill_help_speech">Here\'s what I can do. Tap one to try it.</string>
+    <string name="skill_help_speech_hi">Yeh sab kar sakta hoon. Kisi pe tap karke try karo.</string>
     <string name="skill_name_check_in">Check-in</string>
     <string name="skill_sentence_example_check_in">Hello, how are you?</string>
     <string name="skill_check_in_hello">Doing great, thanks for asking!</string>
@@ -441,6 +449,10 @@
     </plurals>
     <string name="skill_check_in_notifications_none">No notifications</string>
     <string name="skill_check_in_steps_connect">Show my steps</string>
+    <string name="skill_check_in_steps_need_access">Allow Health Connect and I\'ll tell you your steps.</string>
+    <string name="skill_check_in_steps_need_access_hi">Health Connect allow karo, phir steps bata dunga.</string>
+    <string name="skill_check_in_steps_unavailable">I couldn\'t read your steps right now.</string>
+    <string name="skill_check_in_steps_unavailable_hi">Abhi steps nahi mil paaye.</string>
     <string name="skill_check_in_tasks_connect">Connect Google Tasks</string>
     <string name="skill_check_in_notifications_connect">Count my notifications</string>
     <string name="greeting_morning">Good morning</string>

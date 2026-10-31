@@ -43,6 +43,7 @@ import org.stypox.dicio.R
 import org.stypox.dicio.io.graphical.Headline
 import org.stypox.dicio.io.shell.Shell
 import org.stypox.dicio.ui.util.Haptic
+import org.stypox.dicio.ui.util.rememberFirstShow
 import org.stypox.dicio.ui.util.rememberHaptics
 import org.stypox.dicio.util.getString
 
@@ -69,9 +70,11 @@ class ToggleOutput(
         is Result.Failed -> ctx.getString(R.string.skill_toggle_failed, ctx.getString(toggle.label))
     }
 
+    // kept on the answer, not in the card: scrolling back to it must not flip the switch again
+    private var result by mutableStateOf(initial)
+
     @Composable
     override fun GraphicalOutput(ctx: SkillContext) {
-        var result by remember { mutableStateOf(initial) }
         val status by Shell.status.collectAsState()
         // allowed in Shizuku's dialog: do what was asked
         LaunchedEffect(status) {
@@ -80,7 +83,7 @@ class ToggleOutput(
             }
         }
         when (val current = result) {
-            Result.Done -> Switched(toggle, on)
+            Result.Done -> Switched(toggle, on, rememberFirstShow(this))
             Result.NeedsShizuku -> NeedsShizuku(toggle, status)
             is Result.Failed -> Fallback(toggle, stringResource(R.string.skill_toggle_failed, stringResource(toggle.label)))
         }
@@ -89,11 +92,12 @@ class ToggleOutput(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun Switched(toggle: Toggle, on: Boolean) {
+private fun Switched(toggle: Toggle, on: Boolean, firstShow: Boolean) {
     val haptics = rememberHaptics()
-    val pop = remember { Animatable(0.6f) }
-    val turn = remember { Animatable(if (on) -90f else 90f) }
+    val pop = remember { Animatable(if (firstShow) 0.6f else 1f) }
+    val turn = remember { Animatable(if (!firstShow) 0f else if (on) -90f else 90f) }
     LaunchedEffect(Unit) {
+        if (!firstShow) return@LaunchedEffect
         haptics.play(if (on) Haptic.ToggleOn else Haptic.ToggleOff)
         pop.animateTo(1f, spring(dampingRatio = 0.45f, stiffness = Spring.StiffnessMedium))
     }

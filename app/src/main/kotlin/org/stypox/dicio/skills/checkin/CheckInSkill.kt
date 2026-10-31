@@ -11,10 +11,13 @@ import org.stypox.dicio.ui.home.PhoneProfile
 class CheckInSkill(correspondingSkillInfo: SkillInfo, data: StandardRecognizerData<CheckInSentences>) :
     StandardRecognizerSkill<CheckInSentences>(correspondingSkillInfo, data) {
 
-    override suspend fun generateOutput(ctx: SkillContext, inputData: CheckInSentences): SkillOutput =
-        CheckInOutput(
+    override suspend fun generateOutput(ctx: SkillContext, inputData: CheckInSentences): SkillOutput {
+        val stepsOnly = inputData is CheckInSentences.Steps || inputData is CheckInSentences.StepsHinglish
+        return CheckInOutput(
             name = PhoneProfile.load(ctx.android)?.firstName,
-            hinglish = inputData is CheckInSentences.Hinglish,
-            initial = CheckIn.gather(ctx.android),
+            hinglish = inputData is CheckInSentences.Hinglish || inputData is CheckInSentences.StepsHinglish,
+            stepsOnly = stepsOnly,
+            initial = if (stepsOnly) CheckIn.gatherSteps(ctx.android) else CheckIn.gather(ctx.android),
         )
+    }
 }

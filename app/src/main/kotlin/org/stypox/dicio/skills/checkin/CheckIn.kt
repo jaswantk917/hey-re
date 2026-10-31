@@ -35,6 +35,13 @@ data class CheckIn(
             )
         }
 
+        /** Only the steps, for "kitne steps hue". */
+        suspend fun gatherSteps(context: Context): CheckIn = CheckIn(
+            steps = withTimeoutOrNull(TIMEOUT_MILLIS) { HealthSteps.today(context) } ?: Section.Unavailable,
+            tasks = Section.Unavailable,
+            notifications = Section.Unavailable,
+        )
+
         private fun notifications(context: Context): Section<List<AppCount>> {
             if (context.packageName !in NotificationManagerCompat.getEnabledListenerPackages(context)) {
                 return Section.NeedsAccess

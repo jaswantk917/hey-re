@@ -5,9 +5,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+
+/** Says something to Hey re as if typed, with the tap haptic, for answers with things to tap ("what can you do"). */
+val LocalAsk = staticCompositionLocalOf<(String) -> Unit> { {} }
 
 @Composable
 fun Headline(text: String) {

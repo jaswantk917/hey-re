@@ -46,6 +46,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -59,6 +60,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.stypox.dicio.R
+import org.stypox.dicio.io.graphical.LocalAsk
 import org.stypox.dicio.io.input.InputEvent
 import org.stypox.dicio.ui.home.AppearFrom
 import org.stypox.dicio.ui.home.AppearOnce
@@ -89,6 +91,10 @@ fun AssistSheet(
     val sttState by viewModel.sttInputDevice.uiState.collectAsState()
     val skills by viewModel.skillHandler.enabledSkillsInfo.collectAsState()
     val haptics = rememberHaptics()
+    val ask: (String) -> Unit = {
+        haptics.play(Haptic.Tap)
+        viewModel.skillEvaluator.processInputEvent(InputEvent.Final(listOf(Pair(it, 1.0f))))
+    }
 
     // earlier conversations stay in the full app; the sheet starts empty. Counted per answer,
     // since a follow-up can continue an interaction that started before the sheet opened
@@ -168,7 +174,9 @@ fun AssistSheet(
                         item(key = "a$index") {
                             AppearOnce(key = "a$index", seen = seen, from = AppearFrom.Start) {
                                 AssistantCard(skill = skill) {
-                                    qa.answer.GraphicalOutput(ctx = viewModel.skillContext)
+                                    CompositionLocalProvider(LocalAsk provides ask) {
+                                        qa.answer.GraphicalOutput(ctx = viewModel.skillContext)
+                                    }
                                 }
                             }
                         }
@@ -196,10 +204,7 @@ fun AssistSheet(
                 onTypedTextChange = { typedText = it },
                 onSend = {
                     if (it.isNotBlank()) {
-                        haptics.play(Haptic.Tap)
-                        viewModel.skillEvaluator.processInputEvent(
-                            InputEvent.Final(listOf(Pair(it.trim(), 1.0f)))
-                        )
+                        ask(it.trim())
                         typedText = ""
                     }
                 },

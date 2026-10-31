@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.WindowManager
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -16,6 +17,7 @@ import org.stypox.dicio.di.SttInputDeviceWrapper
 import org.stypox.dicio.eval.SkillEvaluator
 import org.stypox.dicio.skills.home.HomeControl
 import org.stypox.dicio.io.assist.ScreenContext
+import org.stypox.dicio.io.assist.requestUnlock
 import org.stypox.dicio.io.assist.ScreenSummary
 import org.stypox.dicio.io.graphical.Countdown
 import org.stypox.dicio.skills.localbrain.LocalBrain
@@ -67,6 +69,13 @@ class AssistActivity : BaseActivity() {
             return
         }
         homeControl.register(this)
+        // over the lock screen too; what's personal asks for an unlock (SkillEvaluator)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true)
+        } else {
+            @Suppress("DEPRECATION")
+            window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED)
+        }
         if (savedInstanceState == null) {
             startListening()
         }
@@ -84,6 +93,11 @@ class AssistActivity : BaseActivity() {
                 },
             )
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        skillEvaluator.unlockRequester = ::requestUnlock
     }
 
     override fun finish() {

@@ -1,6 +1,5 @@
 package org.stypox.dicio.settings
 
-import android.app.Application
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,7 +17,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LargeFlexibleTopAppBar
@@ -33,18 +31,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.stypox.dicio.R
 import org.stypox.dicio.settings.datastore.Language
 import org.stypox.dicio.settings.datastore.SpeechOutputDevice
 import org.stypox.dicio.settings.datastore.Theme
-import org.stypox.dicio.settings.datastore.UserSettingsModule.Companion.newDataStoreForPreviews
 import org.stypox.dicio.settings.datastore.WakeDevice
 import org.stypox.dicio.settings.ui.SettingsGroup
 import org.stypox.dicio.settings.ui.SettingsItem
-import org.stypox.dicio.ui.theme.AppTheme
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -191,6 +186,7 @@ private fun MainSettingsScreen(
                             viewModel::setSpeakAnswers,
                         )
                     },
+                    { MemorySetting(viewModel) },
                 ),
             )
         }
@@ -226,54 +222,6 @@ private fun MainSettingsScreen(
                         modifier = Modifier.clickable(onClick = navigateToAbout),
                     )
                 },
-            )
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun MainSettingsScreenPreview() {
-    AppTheme {
-        Surface(
-            color = MaterialTheme.colorScheme.background
-        ) {
-            MainSettingsScreen(
-                navigateToSkillSettings = {},
-                navigateToAbout = {},
-                viewModel = MainSettingsViewModel(
-                    application = Application(),
-                    wakeDeviceWrapper = null,
-                    dataStore = newDataStoreForPreviews(),
-                ),
-            )
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun MainSettingsScreenWithTopBarPreview() {
-    AppTheme {
-        Surface(
-            color = MaterialTheme.colorScheme.background
-        ) {
-            MainSettingsScreen(
-                navigationIcon = {
-                    IconButton(onClick = {}) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null,
-                        )
-                    }
-                },
-                navigateToSkillSettings = {},
-                navigateToAbout = {},
-                viewModel = MainSettingsViewModel(
-                    application = Application(),
-                    wakeDeviceWrapper = null,
-                    dataStore = newDataStoreForPreviews()
-                )
             )
         }
     }

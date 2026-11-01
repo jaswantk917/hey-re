@@ -20,6 +20,11 @@ import org.dicio.skill.skill.SkillOutput
 import org.stypox.dicio.di.SkillContextInternal
 import org.stypox.dicio.di.SttInputDeviceWrapper
 import org.stypox.dicio.history.ChatHistory
+import org.stypox.dicio.memory.Memory
+import org.stypox.dicio.memory.MemoryLearner
+import org.stypox.dicio.memory.MemoryInfo
+import org.stypox.dicio.memory.MemoryOutput
+import org.stypox.dicio.memory.MemoryRequest
 import org.stypox.dicio.history.RestoredAnswer
 import org.stypox.dicio.history.SavedChat
 import org.stypox.dicio.history.SavedTurn
@@ -95,6 +100,8 @@ class SkillEvaluatorImpl(
     private val localBrain: LocalBrain,
     private val textReader: TextReader,
     private val chatHistory: ChatHistory,
+    private val memory: Memory,
+    private val memoryLearner: MemoryLearner,
 ) : SkillEvaluator {
 
     private val scope = CoroutineScope(Dispatchers.Default)
@@ -139,6 +146,7 @@ class SkillEvaluatorImpl(
         ScreenContext.forgetImage()
         _state.value = InteractionLog(interactions = listOf(), pendingQuestion = null)
         _chatId.value = 0L
+        learnFromFinishedChats()
     }
 
     override fun openChat(chat: SavedChat) {
@@ -169,7 +177,16 @@ class SkillEvaluatorImpl(
         val log = _state.value
         if (log.pendingQuestion == null && log.interactions.isNotEmpty() && lastAnswerAt != 0L &&
             System.currentTimeMillis() - lastAnswerAt > SESSION_GAP_MILLIS
-        ) newChat()
+        ) newChat() else learnFromFinishedChats()
+    }
+
+    /** Reads the chats that ended for facts worth remembering, giving way to anything the person asks. */
+    private fun learnFromFinishedChats() {
+        scope.launch {
+            delay(LEARN_DELAY_MILLIS)
+            if (skillContext.android.isLocked()) return@launch
+            memoryLearner.learn(_chatId.value) { _state.value.pendingQuestion != null }
+        }
     }
 
     /** Saves the conversation so far, as words and images: the cards themselves can't outlive the app. */
@@ -298,7 +315,8 @@ class SkillEvaluatorImpl(
 
     private suspend fun evaluateMatchingSkill(utterances: List<String>) {
         val (chosenInput, chosenSkill) = try {
-            askAboutScreen(utterances[0])
+            askMemory(utterances[0])
+                ?: askAboutScreen(utterances[0])
                 ?: findBestMatch(utterances)
                 ?: askLocalBrain(utterances[0])
                 ?: Pair(utterances[0], skillRanker.getFallbackSkill(skillContext, utterances[0]))
@@ -449,8 +467,33 @@ class SkillEvaluatorImpl(
         ) {
             return Pair(input, confirmGuess(rewritten, match, yesNo))
         }
-        val skill = LocalBrainSkill(localBrain, recent, ScreenContext.snapshot.value)
+        val skill = LocalBrainSkill(localBrain, recent, ScreenContext.snapshot.value) { question ->
+            if (skillContext.android.isLocked()) listOf() else memory.relevantTo(question, System.currentTimeMillis())
+        }
         return Pair(input, match ?: skill.scoreAndWrapResult(skillContext, input))
+    }
+
+    /** "yaad rakhna ki…", "what do you remember about me": straight to the memory, no model in between. */
+    private suspend fun askMemory(input: String): Pair<String, SkillWithResult<*>>? {
+        val request = MemoryRequest.parse(input) ?: return null
+        val found = if (request is MemoryRequest.Parsed.Where) {
+            memory.load()
+            Memory.mentioning(memory.facts.value, request.item).takeIf { it.isNotEmpty() } ?: return null
+        } else listOf()
+        val skill = object : RecognizeEverythingSkill(MemoryInfo) {
+            override suspend fun generateOutput(ctx: SkillContext, inputData: String): SkillOutput = when (request) {
+                is MemoryRequest.Parsed.Remember -> {
+                    memory.add(request.fact, System.currentTimeMillis())
+                    MemoryOutput.Remembered(request.fact)
+                }
+                MemoryRequest.Parsed.Recall -> {
+                    memory.load()
+                    MemoryOutput.Recalled(memory.facts.value.map { it.text })
+                }
+                is MemoryRequest.Parsed.Where -> MemoryOutput.Found(found)
+            }
+        }
+        return Pair(input, skill.scoreAndWrapResult(skillContext, input))
     }
 
     /**
@@ -534,6 +577,8 @@ class SkillEvaluatorImpl(
         private const val IDLE_BRIEF_DELAY_MILLIS = 1_500L
         // half an hour away and it's a new conversation
         private const val SESSION_GAP_MILLIS = 30 * 60_000L
+        // a moment for the screen to settle before Nano is kept busy
+        private const val LEARN_DELAY_MILLIS = 3_000L
         // reopening the app a minute later shouldn't stack up the same brief
         private const val IDLE_BRIEF_EVERY_MILLIS = 10 * 60_000L
         // the time, a timer or the torch is fine from the lock screen; calls, messages, switches
@@ -620,7 +665,11 @@ class SkillEvaluatorModule {
         localBrain: LocalBrain,
         textReader: TextReader,
         chatHistory: ChatHistory,
+        memory: Memory,
+        memoryLearner: MemoryLearner,
     ): SkillEvaluator {
-        return SkillEvaluatorImpl(skillContext, skillHandler, sttInputDevice, localBrain, textReader, chatHistory)
+        return SkillEvaluatorImpl(
+            skillContext, skillHandler, sttInputDevice, localBrain, textReader, chatHistory, memory, memoryLearner
+        )
     }
 }

@@ -17,6 +17,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.stypox.dicio.io.assist.Article
 import org.stypox.dicio.io.assist.ScreenSnapshot
+import org.stypox.dicio.memory.Memory
 
 /**
  * Gemini Nano through AICore (Pixel 9 and newer). AICore only runs it while Hey re is the app in
@@ -78,9 +79,10 @@ class GeminiNanoBrain : LocalBrain {
         input: String,
         recent: List<LocalBrain.Turn>,
         screen: ScreenSnapshot?,
+        memory: List<String>,
     ): String? = generate(
         system = """
-            You are Hey re, a friendly voice assistant running fully offline on a phone.
+            You are Hey re, a friendly voice assistant on the person's phone.
             Answer in at most two short sentences of plain text, no lists or markdown, since the
             answer is read out loud. Reply in the language the person used: English if they wrote
             English, Hindi if they wrote Hindi, and Hinglish in Roman letters only if they mixed
@@ -88,9 +90,7 @@ class GeminiNanoBrain : LocalBrain {
             You can only talk: you can't set reminders, timers or alarms, send messages or change
             anything on the phone, so never say you did or will. If asked to, say you couldn't
             and suggest saying it as a command, like "remind me in 2 hours to bring the clothes".
-            You have no internet. Only when the question itself needs live information like news,
-            prices, scores or today's weather, say briefly that you can't check that offline.
-        """.trimIndent() + screen?.let { "\n\n" + screenContext(it) }.orEmpty(),
+        """.trimIndent() + memoryContext(memory) + screen?.let { "\n\n" + screenContext(it) }.orEmpty(),
         prompt = withHistory(input, recent),
         image = screen?.takeIf { it.text.length < MIN_SCREEN_TEXT }?.screenshot,
         temperature = ANSWER_TEMPERATURE,
@@ -148,6 +148,44 @@ class GeminiNanoBrain : LocalBrain {
         maxTokens = SUMMARY_TOKENS,
     )?.trim()?.takeIf { it.isNotEmpty() }
 
+    override suspend fun rememberFrom(messages: List<String>, known: List<String>): List<String>? = generate(
+        system = """
+            You keep a short memory for a voice assistant about the person who uses it. From the
+            person's own messages below, write down at most $MAX_LEARNED lasting facts about them or
+            their life that would help in a future chat: the people in it and how they're related,
+            places they live or work, routines, preferences, things they own, plans with a date.
+            One short fact per line, in English, about "they" (like "Their sister lives in Pune."
+            or "They prefer tea to coffee."). Leave out what they asked about, one-off requests,
+            anything only true today, and anything already known. Never guess.
+            If nothing is worth keeping, reply with exactly NONE.
+        """.trimIndent(),
+        prompt = buildString {
+            if (known.isNotEmpty()) {
+                appendLine("Already known:")
+                known.forEach { appendLine("- $it") }
+                appendLine()
+            }
+            appendLine("Their messages:")
+            messages.forEach { appendLine("- $it") }
+        },
+        temperature = 0f,
+        maxTokens = MEMORY_TOKENS,
+    )?.let { Memory.parseFacts(it, MAX_LEARNED) }
+
+    override suspend fun compactMemory(facts: List<String>): List<String>? = generate(
+        system = """
+            Below is everything a voice assistant remembers about the person, oldest first.
+            Rewrite it as a shorter list: merge facts that say the same thing, and where two
+            disagree keep only the later one. Keep every other fact as it is and add nothing new.
+            One fact per line, no numbering.
+        """.trimIndent(),
+        prompt = facts.joinToString("\n") { "- $it" },
+        temperature = 0f,
+        maxTokens = COMPACT_TOKENS,
+    )?.let { Memory.parseFacts(it, facts.size) }
+        // a rewrite that lost nearly everything went wrong rather than merged
+        ?.takeIf { it.size in (facts.size / 2) until facts.size }
+
     private suspend fun generate(
         system: String,
         prompt: String,
@@ -192,6 +230,9 @@ class GeminiNanoBrain : LocalBrain {
         // less text than this (a photo, a game, a video) and the screenshot says more
         private const val MIN_SCREEN_TEXT = 40
         private const val TOP_K = 16
+        private const val MAX_LEARNED = 3
+        private const val MEMORY_TOKENS = 100
+        private const val COMPACT_TOKENS = 900
     }
 }
 
@@ -205,6 +246,13 @@ internal fun withHistory(input: String, recent: List<LocalBrain.Turn>): String =
         }
         append("Person now says: ").append(input)
     }
+
+/** What's remembered about the person, for answers that fit them; empty when nothing is. */
+internal fun memoryContext(memory: List<String>): String = if (memory.isEmpty()) "" else buildString {
+    append("\n\nWhat you remember about the person from earlier chats. Use it only when it helps")
+    appendLine(" the answer, and never list it back to them:")
+    memory.forEach { appendLine("- $it") }
+}.trimEnd()
 
 /** The screen's text as the model sees it, with the app it came from. */
 internal fun screenContext(screen: ScreenSnapshot): String = buildString {

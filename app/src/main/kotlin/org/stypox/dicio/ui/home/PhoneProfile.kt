@@ -2,7 +2,6 @@ package org.stypox.dicio.ui.home
 
 import android.Manifest
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.ContactsContract
@@ -49,8 +48,6 @@ data class PhoneProfile(val name: String, val photo: Uri?) {
                 }
             }?.also { cached = it }
         }
-
-        fun openIntent(): Intent = Intent(Intent.ACTION_VIEW, ContactsContract.Profile.CONTENT_URI)
     }
 }
 

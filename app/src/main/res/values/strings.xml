@@ -408,7 +408,6 @@
     <string name="skill_find_hub_recalled">Your %1$s: %2$s</string>
     <string name="skill_find_hub_not_remembered">I don\'t know where your %1$s is</string>
     <string name="skill_find_hub_remember_hint">Next time, say \"remember my %1$s is in the drawer\"</string>
-    <string name="skill_find_hub_remembered">Got it, your %1$s: %2$s</string>
     <string name="skill_find_hub_ringing">Ringing your %1$s</string>
     <string name="skill_find_hub_stopped">Stopped ringing your %1$s</string>
     <string name="skill_find_hub_no_device">I couldn\'t find a device called %1$s</string>
@@ -539,6 +538,43 @@
     <string name="pref_speak_answers_title">Speak answers</string>
     <string name="pref_speak_answers_on">Answers are read aloud on the assistant\'s own volume</string>
     <string name="pref_speak_answers_off">Answers only show on screen</string>
+    <string name="pref_memory_title">Memory</string>
+    <string name="memory_remembered">Got it, I\'ll remember that</string>
+    <string name="memory_remembered_hint">Saved on this phone; change it in Settings, Memory</string>
+    <string name="memory_nothing">I don\'t remember anything about you yet</string>
+    <string name="memory_nothing_hint">Tell me things in chats, or say "yaad rakhna ki…"</string>
+    <plurals name="memory_recalled">
+        <item quantity="one">Here\'s the %d thing I remember about you</item>
+        <item quantity="other">Here are the %d things I remember about you</item>
+    </plurals>
+    <string name="memory_found_hint">From what you told me earlier</string>
+    <string name="memory_edit_hint">Correct or forget any of these in Settings, Memory</string>
+    <string name="pref_memory_empty">Nothing yet: it learns from what you tell it in chats</string>
+    <plurals name="pref_memory_count">
+        <item quantity="one">%d thing it remembers about you</item>
+        <item quantity="other">%d things it remembers about you</item>
+    </plurals>
+    <string name="pref_memory_explanation">Learned from your own words when a chat ends, kept only on this phone. Tap one to correct it, swipe it away to forget it.</string>
+    <string name="pref_memory_forget">Forget this</string>
+    <string name="pref_memory_add">Add a fact</string>
+    <string name="pref_memory_edit">Edit fact</string>
+    <string name="pref_memory_add_hint">e.g. My sister lives in Pune</string>
+    <string name="pref_memory_save">Save</string>
+    <string name="pref_memory_compact">Compact</string>
+    <string name="pref_memory_compacting">Merging duplicates…</string>
+    <string name="pref_memory_compacted">Merged %1$d facts into %2$d</string>
+    <plurals name="pref_memory_learn">
+        <item quantity="one">Learn from %d chat</item>
+        <item quantity="other">Learn from %d chats</item>
+    </plurals>
+    <string name="pref_memory_learning">Reading your chats…</string>
+    <plurals name="pref_memory_learned">
+        <item quantity="one">Learned %d new thing</item>
+        <item quantity="other">Learned %d new things</item>
+    </plurals>
+    <string name="pref_memory_learned_nothing">Nothing new worth remembering</string>
+    <string name="pref_memory_not_now">Gemini Nano isn\'t ready right now, try again in a bit</string>
+    <string name="pref_memory_forget_all">Forget everything</string>
     <string name="history_title">Your chats</string>
     <string name="history_open">Earlier chats</string>
     <string name="history_new_chat">New chat</string>

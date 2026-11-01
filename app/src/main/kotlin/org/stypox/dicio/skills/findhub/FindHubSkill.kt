@@ -9,8 +9,8 @@ import org.stypox.dicio.io.shell.AppFunctions.Outcome
 import org.stypox.dicio.sentences.Sentences.FindHub as Said
 
 /**
- * "Mere keys kahan hain", "ring my watch": a device Find Hub knows is located or rung; anything
- * else is looked up among the things Find Hub was told to remember.
+ * "Mere watch kahan hai", "ring my watch": a device Find Hub knows is located or rung. Where
+ * things were put is Hey re's own memory, asked before this (SkillEvaluator.askMemory).
  */
 class FindHubSkill(correspondingSkillInfo: SkillInfo, data: StandardRecognizerData<Said>) :
     StandardRecognizerSkill<Said>(correspondingSkillInfo, data) {
@@ -18,13 +18,6 @@ class FindHubSkill(correspondingSkillInfo: SkillInfo, data: StandardRecognizerDa
     override suspend fun generateOutput(ctx: SkillContext, inputData: Said): SkillOutput {
         return when (inputData) {
             is Said.Where -> where(clean(inputData.item) ?: return FindHubOutput.NotUnderstood)
-            is Said.Remember -> {
-                val said = clean(inputData.item) ?: return FindHubOutput.NotUnderstood
-                val place = inputData.place?.trim()?.takeIf { it.isNotEmpty() }
-                val (item, where) = if (place != null) said to place
-                else splitPlace(said) ?: return FindHubOutput.NotUnderstood
-                remember(item, where)
-            }
             is Said.Ring -> ring(clean(inputData.item) ?: return FindHubOutput.NotUnderstood, true)
             is Said.StopRing -> ring(clean(inputData.item) ?: return FindHubOutput.NotUnderstood, false)
         }
@@ -51,13 +44,6 @@ class FindHubSkill(correspondingSkillInfo: SkillInfo, data: StandardRecognizerDa
         }
     }
 
-    private suspend fun remember(item: String, place: String): SkillOutput =
-        when (FindHub.remember(item, place)) {
-            is Outcome.Done -> FindHubOutput.Remembered(item, place)
-            Outcome.NoShizuku -> FindHubOutput.NeedsShizuku
-            is Outcome.Failed -> FindHubOutput.Failed
-        }
-
     private suspend fun ring(item: String, start: Boolean): SkillOutput {
         val devices = when (val outcome = FindHub.devices()) {
             Outcome.NoShizuku -> return FindHubOutput.NeedsShizuku
@@ -71,25 +57,6 @@ class FindHubSkill(correspondingSkillInfo: SkillInfo, data: StandardRecognizerDa
             Outcome.NoShizuku -> FindHubOutput.NeedsShizuku
             is Outcome.Failed -> FindHubOutput.Failed
         }
-    }
-
-    companion object {
-        /**
-         * "chabi drawer mein" -> chabi, drawer mein: the grammar can't tell where the thing ends
-         * and the place begins in Hinglish, but the place ends in mein/pe/upar ("almari ke upar").
-         */
-        internal fun splitPlace(text: String): Pair<String, String>? {
-            val words = text.split(Regex("\\s+"))
-            val at = words.indexOfFirst { it.lowercase() in PLACE_WORDS }
-            var start = at - 1
-            if (start > 0 && words[start].lowercase() in setOf("ke", "ki", "ka")) start -= 1
-            if (at < 0 || start <= 0) return null
-            return words.subList(0, start).joinToString(" ") to words.subList(start, words.size).joinToString(" ")
-        }
-
-        private val PLACE_WORDS = setOf(
-            "mein", "me", "men", "pe", "par", "andar", "neeche", "niche", "upar", "paas", "peeche", "bagal",
-        )
     }
 
     // "my keys" and "keys" are the same thing to Find Hub

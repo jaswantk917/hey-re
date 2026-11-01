@@ -25,7 +25,7 @@ It's a personal fork of [Dicio](https://github.com/Stypox/dicio-android), built 
 | **Google Home.** Your lights, plugs and cooler, now or later | _lights band karo_ · _cooler band karo ek ghante baad_ |
 | **Phone switches** (through Shizuku). Wi-Fi, Bluetooth, mobile data, hotspot, airplane mode, Battery Saver, dark mode, Night Light, auto-rotate and location | _wifi band karo_ · _dark mode chalu kar do_ |
 | **Sound** | _phone silent kar do_ · _dnd on karo_ |
-| **Find Hub** (through Shizuku). Where your devices are, ringing them, and where you put things | _meri chabi kahan hai_ · _yaad rakhna ki passport almari mein hai_ · _ring my watch_ |
+| **Find Hub** (through Shizuku). Where your devices are, and ringing them | _mera watch kahan hai_ · _ring my watch_ |
 | **Phone status** (through Shizuku). Battery, storage and brightness, from Settings itself | _battery kitni hai_ · _storage kitna bacha hai_ · _brightness kam karo_ |
 | **Time, timers and alarms** | _kitne baje hain_ · _paanch minute ka timer lagao_ · _subah 7 baje ka alarm laga do_ |
 | **Reminders**, as a Clock timer or alarm labelled with what to remember | _2 ghante mein yaad dilana ki chhat se kapde lane hain_ · _remind me to take medicine at 9 pm_ |
@@ -35,6 +35,7 @@ It's a personal fork of [Dicio](https://github.com/Stypox/dicio-android), built 
 | **What needs you.** Summon Hey re and say nothing, or ask: missed calls, people writing again or asking something, live updates like a delivery, tasks due, low battery or storage. Each is scored on its own and only the top few show, or none | _kuch important hai_ · _what did i miss_ |
 | **Everything else from Dicio**: weather, search, lyrics, translation, calculator, jokes, media, torch, opening apps, directions | _aaj mausam kaisa hai_ · _gaana rok do_ · _youtube kholo_ · _torch jala do_ |
 | **Your chats.** Conversations worth keeping (questions, images, searches; not torch or timers) are saved on the phone and survive updates. Half an hour away starts a fresh screen; the history button brings any chat back to carry on, a swipe forgets it | the ✎ and history buttons up top |
+| **Memory.** Hey re learns lasting facts from your own words when a chat ends (never from its own answers), and Gemini Nano uses the ones that fit each question. Tell it directly, ask where you put something, or see, correct, add and compact everything in Settings → Memory | _yaad rakhna ki passport almari mein hai_ · _passport kahan hai_ · _mere baare mein kya yaad hai_ |
 | **What it can do** | _tum kya kya kar sakte ho_ |
 
 ### Gemini Nano

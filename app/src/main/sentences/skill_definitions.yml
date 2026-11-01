@@ -35,12 +35,6 @@ skills:
         captures:
           - id: item
             type: string
-      - id: remember
-        captures:
-          - id: item
-            type: string
-          - id: place
-            type: string
       - id: ring
         captures:
           - id: item

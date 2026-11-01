@@ -1,8 +1,6 @@
 package org.stypox.dicio.ui.home
 
 import android.Manifest
-import android.content.ActivityNotFoundException
-import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -150,10 +148,7 @@ fun HomeTopBar(
                 Icon(Icons.Outlined.History, contentDescription = stringResource(R.string.history_open))
             }
         }
-        IconButton(onClick = onSettingsClick, shapes = IconButtonDefaults.shapes()) {
-            Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.settings))
-        }
-        ProfileButton()
+        ProfileButton(onSettingsClick)
     }
 }
 
@@ -167,12 +162,20 @@ private fun TopBarAction(visible: Boolean, content: @Composable () -> Unit) {
     ) { content() }
 }
 
-/** The phone owner's photo (or initial), which pops in once read; a tap opens their own card. */
+/**
+ * The phone owner's photo (or initial), which pops in once read and opens Settings; a gear
+ * instead while there's no profile to show.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun ProfileButton() {
-    val profile = rememberPhoneProfile() ?: return
-    val context = LocalContext.current
+private fun ProfileButton(onSettingsClick: () -> Unit) {
+    val profile = rememberPhoneProfile()
+    if (profile == null) {
+        IconButton(onClick = onSettingsClick, shapes = IconButtonDefaults.shapes()) {
+            Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.settings))
+        }
+        return
+    }
     val haptics = rememberHaptics()
     val pop = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
@@ -181,11 +184,7 @@ private fun ProfileButton() {
     IconButton(
         onClick = {
             haptics.play(Haptic.Tap)
-            try {
-                context.startActivity(PhoneProfile.openIntent())
-            } catch (e: ActivityNotFoundException) {
-                Log.w("ProfileButton", "No app shows the profile", e)
-            }
+            onSettingsClick()
         },
         shapes = IconButtonDefaults.shapes(),
         modifier = Modifier.graphicsLayer {
@@ -209,7 +208,7 @@ private fun ProfileButton() {
             if (profile.photo != null) {
                 AsyncImage(
                     model = profile.photo,
-                    contentDescription = profile.name,
+                    contentDescription = stringResource(R.string.settings),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.matchParentSize(),
                 )

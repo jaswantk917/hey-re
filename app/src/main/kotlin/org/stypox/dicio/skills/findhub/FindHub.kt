@@ -51,14 +51,6 @@ object FindHub {
         AppFunctions.call(PACKAGE, function("recallLocation"), buildJsonObject { put("personalItem", item) })
             .map { value -> memo(value as? Map<*, *>) }
 
-    suspend fun remember(item: String, place: String): Outcome = AppFunctions.call(
-        PACKAGE, function("rememberAboutPersonalItem"),
-        buildJsonObject {
-            put("personalItem", item)
-            put("location", place)
-        },
-    )
-
     /** The device [said] names ("watch", "Pixel 9", "mera phone"), if any. */
     fun match(said: String, devices: List<Device>): Device? {
         val words = said.lowercase().split(Regex("[^\\p{L}\\p{N}]+")).filter { it.length > 1 }.toSet()

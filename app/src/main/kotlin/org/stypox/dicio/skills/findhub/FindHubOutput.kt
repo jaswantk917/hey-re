@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.PhoneAndroid
@@ -55,9 +54,7 @@ import org.stypox.dicio.io.graphical.HeadlineSpeechSkillOutput
 import org.stypox.dicio.io.graphical.LocalAsk
 import org.stypox.dicio.io.graphical.Subtitle
 import org.stypox.dicio.io.shell.ShizukuPrompt
-import org.stypox.dicio.ui.util.Haptic
 import org.stypox.dicio.ui.util.rememberFirstShow
-import org.stypox.dicio.ui.util.rememberHaptics
 import org.stypox.dicio.util.getString
 
 sealed interface FindHubOutput : SkillOutput {
@@ -129,25 +126,6 @@ sealed interface FindHubOutput : SkillOutput {
                         Headline(text = memo)
                         Subtitle(text = item)
                     }
-                }
-            }
-        }
-    }
-
-    class Remembered(private val item: String, private val place: String) : FindHubOutput {
-        override fun getSpeechOutput(ctx: SkillContext) = ctx.getString(R.string.skill_find_hub_remembered, item, place)
-
-        @Composable
-        override fun GraphicalOutput(ctx: SkillContext) {
-            val firstShow = rememberFirstShow(this)
-            val haptics = rememberHaptics()
-            LaunchedEffect(Unit) { if (firstShow) haptics.play(Haptic.Success) }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Badge(Icons.Default.CheckCircle, firstShow)
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Headline(text = place)
-                    Subtitle(text = item)
                 }
             }
         }

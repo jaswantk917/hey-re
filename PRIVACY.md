@@ -12,6 +12,8 @@ Hey re stores your preferences, the conversation you had with it and debugging l
 
 **Chats** worth keeping are saved in the app's own storage on the phone, with their images, and never leave it; swipe one away in the history to delete it, or clear the app's storage to delete them all.
 
+**Memory**: the facts Hey re learns from what you say in chats, or that you tell it to remember, are kept in the app's storage on the phone and only ever go to Gemini Nano on the phone. Settings → Memory shows every one; tap to correct, swipe to forget, or forget everything.
+
 **Images** you take, pick or paste are read on the phone (ML Kit text recognition and Gemini Nano) and kept only in the conversation; a photo you take sits in the app's cache until the next one replaces it.
 
 **Contacts** are read to call or message the person you name, and to show your own name and photo on the home screen.

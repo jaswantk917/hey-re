@@ -11,6 +11,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.stypox.dicio.di.WakeDeviceWrapper
 import org.stypox.dicio.io.wake.oww.OpenWakeWordDevice
+import org.stypox.dicio.memory.Fact
+import org.stypox.dicio.memory.Memory
+import org.stypox.dicio.memory.MemoryLearner
+import org.stypox.dicio.eval.SkillEvaluator
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import org.stypox.dicio.settings.datastore.Language
 import org.stypox.dicio.settings.datastore.SpeechOutputDevice
 import org.stypox.dicio.settings.datastore.Theme
@@ -23,8 +30,60 @@ import javax.inject.Inject
 class MainSettingsViewModel @Inject constructor(
     application: Application,
     private val wakeDeviceWrapper: WakeDeviceWrapper?,
-    private val dataStore: DataStore<UserSettings>
+    private val dataStore: DataStore<UserSettings>,
+    private val memory: Memory,
+    private val memoryLearner: MemoryLearner,
+    skillEvaluator: SkillEvaluator,
 ) : AndroidViewModel(application) {
+    val facts: StateFlow<List<Fact>> = memory.facts
+    val pendingChats: StateFlow<Int> = memoryLearner.pendingChats(skillEvaluator.chatId)
+        .map { it.size }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+    private val _memoryWork = MutableStateFlow<MemoryWork>(MemoryWork.Idle)
+    val memoryWork: StateFlow<MemoryWork> = _memoryWork
+    private val currentChatId = skillEvaluator.chatId
+
+    init {
+        viewModelScope.launch { memory.load() }
+    }
+
+    fun forget(fact: Fact) {
+        viewModelScope.launch { memory.forget(fact) }
+    }
+
+    fun forgetAll() {
+        viewModelScope.launch { memory.forgetAll() }
+    }
+
+    fun addFact(text: String) {
+        viewModelScope.launch { memory.add(text.trim(), System.currentTimeMillis()) }
+    }
+
+    fun editFact(fact: Fact, text: String) {
+        viewModelScope.launch { memory.edit(fact, text.trim()) }
+    }
+
+    fun learnFromChats() {
+        if (_memoryWork.value.isRunning) return
+        viewModelScope.launch {
+            _memoryWork.value = MemoryWork.Learning
+            _memoryWork.value = when (val result = memoryLearner.learn(currentChatId.value)) {
+                is MemoryLearner.Result.Learned -> MemoryWork.Learned(result.chats, result.facts)
+                is MemoryLearner.Result.Interrupted -> MemoryWork.Learned(result.chats, result.facts, finished = false)
+                MemoryLearner.Result.NoModel, MemoryLearner.Result.Busy -> MemoryWork.NotNow
+            }
+        }
+    }
+
+    fun compactMemory() {
+        if (_memoryWork.value.isRunning) return
+        viewModelScope.launch {
+            val before = facts.value.size
+            _memoryWork.value = MemoryWork.Compacting
+            _memoryWork.value = memoryLearner.compact()?.let { MemoryWork.Compacted(before, it) } ?: MemoryWork.NotNow
+        }
+    }
+
     // run blocking because the settings screen cannot start if settings have not been loaded yet
     val settingsState = dataStore.data
         .toStateFlowDistinctBlockingFirst(viewModelScope)
@@ -70,4 +129,17 @@ class MainSettingsViewModel @Inject constructor(
             if (value) SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_ANDROID_TTS else SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_NOTHING
         )
     }
+}
+
+/** What the memory buttons in Settings are doing, or what they last did. */
+sealed interface MemoryWork {
+    data object Idle : MemoryWork
+    data object Learning : MemoryWork
+    data object Compacting : MemoryWork
+    data class Learned(val chats: Int, val facts: Int, val finished: Boolean = true) : MemoryWork
+    data class Compacted(val before: Int, val after: Int) : MemoryWork
+    // Nano isn't ready, or is busy with something else
+    data object NotNow : MemoryWork
+
+    val isRunning get() = this == Learning || this == Compacting
 }

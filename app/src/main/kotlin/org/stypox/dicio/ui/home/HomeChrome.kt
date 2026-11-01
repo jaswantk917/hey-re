@@ -59,6 +59,7 @@ import androidx.compose.material.icons.outlined.AddComment
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material3.FilledIconToggleButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Keyboard
@@ -173,7 +174,11 @@ fun ChatModeButton(on: Boolean, onChange: (Boolean) -> Unit) {
             onChange(it)
         },
         shapes = IconButtonDefaults.toggleableShapes(),
-        colors = IconButtonDefaults.filledIconToggleButtonColors(containerColor = Color.Transparent),
+        // off, it looks like the plain buttons beside it; only on does it fill in
+        colors = IconButtonDefaults.filledIconToggleButtonColors(
+            containerColor = Color.Transparent,
+            contentColor = LocalContentColor.current,
+        ),
     ) {
         Icon(
             if (on) Icons.Filled.Forum else Icons.Outlined.Forum,

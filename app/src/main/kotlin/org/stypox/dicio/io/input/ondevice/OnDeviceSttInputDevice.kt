@@ -61,6 +61,9 @@ class OnDeviceSttInputDevice(
     private var locale: Locale
     // the offline language packs on the phone, null until asked (or if the phone can't tell)
     private var installedLanguages: Set<String>? = null
+    // names and Hinglish to lean towards (BiasingWords), refreshed in the background
+    @Volatile
+    private var biasing = arrayListOf<String>()
 
     private val _uiState = MutableStateFlow<SttState>(SttState.Loaded)
     override val uiState: StateFlow<SttState> = _uiState
@@ -70,6 +73,7 @@ class OnDeviceSttInputDevice(
         locale = firstLocale
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             mainHandler.post { checkInstalledLanguages() }
+            refreshBiasing()
         }
         scope.launch {
             nextLocaleFlow.collect {
@@ -209,6 +213,11 @@ class OnDeviceSttInputDevice(
         )
     }
 
+    // ready for the next listen: a new contact or app counts from then on
+    private fun refreshBiasing() {
+        scope.launch { biasing = BiasingWords.gather(context) }
+    }
+
     private fun recognizerIntent(language: String = languageTag()) = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
         putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
         putExtra(RecognizerIntent.EXTRA_LANGUAGE, language)
@@ -224,6 +233,10 @@ class OnDeviceSttInputDevice(
             RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,
             (silencesBeforeStop.value - 1) * SILENCE_UNIT_MILLIS,
         )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && biasing.isNotEmpty()) {
+            putStringArrayListExtra(RecognizerIntent.EXTRA_BIASING_STRINGS, biasing)
+            refreshBiasing()
+        }
         val hinglishInstalled = installedLanguages?.containsAll(HINGLISH_LANGUAGES) == true
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && isIndian() && hinglishInstalled) {
             // Hinglish: let the model hop between Hindi and Indian English within one sentence

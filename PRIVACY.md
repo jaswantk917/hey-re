@@ -6,6 +6,8 @@ Hey re is a fork of [Dicio](https://github.com/Stypox/dicio-android); this polic
 
 Hey re stores your preferences, the conversation you had with it and debugging logs, in the app's private storage. None of it is sent anywhere. The logs contain no personal details.
 
+**Words to listen for.** To hear names right, the on-device recognizer is given your favourite and most-contacted contacts' names and your apps' names along with each listen; they stay on the phone.
+
 **Voice.** Speech is recognized on the phone, either by Android's on-device recognizer (Pixel build) or by Vosk (both builds). No audio is ever sent to a server. Vosk's language model is downloaded once, the first time it's needed.
 
 **Gemini Nano** (Pixel build) runs on the phone through Android's AICore. Hey re gives it what you said and the last few exchanges of the conversation. When you summon Hey re over another app, it also gives Nano that app's on-screen text, or a screenshot if there's little text, so you can ask about it. Android only hands Hey re the screen when you summon it. None of this leaves the phone, and none of it is kept after the answer. Over the lock screen, Nano doesn't see your earlier conversation.

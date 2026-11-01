@@ -33,6 +33,9 @@ interface SttInputDeviceWrapper {
     fun onClick(eventListener: (InputEvent) -> Unit)
 
     fun reinitializeToReleaseResources()
+
+    /** Waits longer through pauses before it stops listening (chat mode), or the usual time. */
+    fun setPatient(patient: Boolean)
 }
 
 class SttInputDeviceWrapperImpl(
@@ -85,6 +88,11 @@ class SttInputDeviceWrapperImpl(
 
     override fun onClick(eventListener: (InputEvent) -> Unit) {
         sttInputDevice.onClick(eventListener)
+    }
+
+    override fun setPatient(patient: Boolean) {
+        silencesBeforeStop.value =
+            if (patient) SttInputDevice.CHAT_STT_SILENCE_DURATION else SttInputDevice.DEFAULT_STT_SILENCE_DURATION
     }
 
     override fun reinitializeToReleaseResources() {

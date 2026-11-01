@@ -18,6 +18,9 @@ class FakeSttInputDeviceWrapper : SttInputDeviceWrapper {
     override fun cancelListening() {
     }
 
+    override fun setPatient(patient: Boolean) {
+    }
+
     override fun onClick(eventListener: (InputEvent) -> Unit) {
     }
 

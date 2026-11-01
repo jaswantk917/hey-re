@@ -138,6 +138,7 @@ class SkillEvaluatorImpl(
 
     override fun setChatMode(on: Boolean) {
         _chatMode.value = on
+        sttInputDevice.setPatient(on)
     }
 
     private val _chatId = MutableStateFlow(0L)
@@ -162,7 +163,7 @@ class SkillEvaluatorImpl(
         ScreenContext.forgetImage()
         _state.value = InteractionLog(interactions = listOf(), pendingQuestion = null)
         _chatId.value = 0L
-        _chatMode.value = false
+        setChatMode(false)
         learnFromFinishedChats()
     }
 

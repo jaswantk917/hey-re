@@ -85,6 +85,9 @@ fun HomeScreen(
         interactionLog = interactionsState.value,
         sttState = sttState.value,
         onSttClick = {
+            // quiet first: listening over Hey re's own voice, the recognizer takes the moment it
+            // falls silent for the end of what was said
+            viewModel.speechOutputDevice.stopSpeaking()
             viewModel.sttInputDevice.onClick(viewModel.skillEvaluator::processInputEvent)
         },
         wakeState = wakeState.value,

@@ -219,6 +219,11 @@ class OnDeviceSttInputDevice(
             RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,
             silencesBeforeStop.value * SILENCE_UNIT_MILLIS,
         )
+        // without this the recognizer may call it done at its own, much shorter pause
+        putExtra(
+            RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,
+            (silencesBeforeStop.value - 1) * SILENCE_UNIT_MILLIS,
+        )
         val hinglishInstalled = installedLanguages?.containsAll(HINGLISH_LANGUAGES) == true
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && isIndian() && hinglishInstalled) {
             // Hinglish: let the model hop between Hindi and Indian English within one sentence

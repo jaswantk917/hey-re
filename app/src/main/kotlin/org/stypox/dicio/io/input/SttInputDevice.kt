@@ -17,6 +17,9 @@ interface SttInputDevice {
     suspend fun destroy()
 
     companion object {
-        const val DEFAULT_STT_SILENCE_DURATION = 2
+        // a breath mid-sentence ("kal... Maa ko call karna") mustn't end it
+        const val DEFAULT_STT_SILENCE_DURATION = 3
+        // chat mode: someone thinking aloud pauses longer than someone giving a command
+        const val CHAT_STT_SILENCE_DURATION = 5
     }
 }

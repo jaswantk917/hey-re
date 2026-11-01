@@ -83,6 +83,9 @@ class AndroidTtsSpeechDevice(
 
     override fun stopSpeaking() {
         textToSpeech?.stop()
+        // cut off, the answer never finishes: what was to follow it (opening the mic again) is
+        // dropped rather than left to fire after some later answer, maybe mid-listen
+        runnablesWhenFinished.clear()
     }
 
     override val isSpeaking: Boolean

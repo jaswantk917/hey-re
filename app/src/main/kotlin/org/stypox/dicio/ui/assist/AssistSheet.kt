@@ -213,6 +213,8 @@ fun AssistSheet(
                     }
                 },
                 onSttClick = {
+                    // quiet first, as on the home screen
+                    viewModel.speechOutputDevice.stopSpeaking()
                     viewModel.sttInputDevice.onClick(viewModel.skillEvaluator::processInputEvent)
                 },
                 onOrbLongClick = { haptics.play(Haptic.Spin) },

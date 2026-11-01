@@ -529,6 +529,10 @@
     <string name="try_saying">Try saying</string>
     <string name="see_all_skills">See all</string>
     <string name="tap_to_talk">Tap to talk</string>
+    <string name="tap_to_chat">Tap to chat</string>
+    <string name="chat_mode_on">Chat mode: just talk, no commands</string>
+    <string name="chat_mode_off">Leave chat mode</string>
+    <string name="chat_mode_hint">Chat about anything…</string>
     <string name="heard_nothing">Didn\'t catch that, tap to try again</string>
     <string name="thinking">Thinking…</string>
     <string name="type_instead">Type instead</string>

@@ -30,4 +30,6 @@ class FakeSkillEvaluator : SkillEvaluator {
     override fun openChat(chat: org.stypox.dicio.history.SavedChat) {}
     override fun deleteChat(id: Long) {}
     override fun startFreshIfStale() {}
+    override val chatMode = kotlinx.coroutines.flow.MutableStateFlow(false)
+    override fun setChatMode(on: Boolean) {}
 }

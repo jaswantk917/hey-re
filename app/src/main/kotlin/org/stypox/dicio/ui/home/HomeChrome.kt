@@ -56,6 +56,9 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddComment
+import androidx.compose.material.icons.outlined.Forum
+import androidx.compose.material.icons.filled.Forum
+import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Keyboard
@@ -109,6 +112,8 @@ import org.stypox.dicio.ui.util.loadingProgressString
 @Composable
 fun HomeTopBar(
     showTitle: Boolean,
+    chatMode: Boolean,
+    onChatModeChange: (Boolean) -> Unit,
     canStartNewChat: Boolean,
     onNewChat: () -> Unit,
     hasHistory: Boolean,
@@ -138,6 +143,7 @@ fun HomeTopBar(
             )
         }
         Spacer(modifier = Modifier.weight(1f))
+        ChatModeButton(chatMode, onChatModeChange)
         TopBarAction(visible = canStartNewChat) {
             IconButton(onClick = onNewChat, shapes = IconButtonDefaults.shapes()) {
                 Icon(Icons.Outlined.AddComment, contentDescription = stringResource(R.string.history_new_chat))
@@ -149,6 +155,30 @@ fun HomeTopBar(
             }
         }
         ProfileButton(onSettingsClick)
+    }
+}
+
+/**
+ * Chat mode on or off: filled while everything said goes to the model as conversation rather than
+ * being taken as a command.
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun ChatModeButton(on: Boolean, onChange: (Boolean) -> Unit) {
+    val haptics = rememberHaptics()
+    FilledIconToggleButton(
+        checked = on,
+        onCheckedChange = {
+            haptics.play(if (it) Haptic.ToggleOn else Haptic.ToggleOff)
+            onChange(it)
+        },
+        shapes = IconButtonDefaults.toggleableShapes(),
+        colors = IconButtonDefaults.filledIconToggleButtonColors(containerColor = Color.Transparent),
+    ) {
+        Icon(
+            if (on) Icons.Filled.Forum else Icons.Outlined.Forum,
+            contentDescription = stringResource(if (on) R.string.chat_mode_off else R.string.chat_mode_on),
+        )
     }
 }
 
@@ -235,6 +265,7 @@ fun HomeDock(
     onPasteImage: (Uri) -> Unit,
     onToggleTyping: () -> Unit,
     modifier: Modifier = Modifier,
+    chatMode: Boolean = false,
 ) {
     val microphonePermission by rememberPermissionState(Manifest.permission.RECORD_AUDIO)
     val launcher = rememberPermissionFlowRequestLauncher()
@@ -275,6 +306,7 @@ fun HomeDock(
                 onSend = onSend,
                 onPasteImage = onPasteImage,
                 onSpeakInstead = if (sttState != null) onToggleTyping else null,
+                chatMode = chatMode,
             )
         } else {
             VoiceDock(
@@ -285,6 +317,7 @@ fun HomeDock(
                 onTakePhoto = onTakePhoto,
                 onChoosePhoto = onChoosePhoto,
                 onTypeInstead = onToggleTyping,
+                chatMode = chatMode,
             )
         }
     }
@@ -300,12 +333,13 @@ private fun VoiceDock(
     onTakePhoto: () -> Unit,
     onChoosePhoto: () -> Unit,
     onTypeInstead: () -> Unit,
+    chatMode: Boolean,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        DockStatus(sttState)
+        DockStatus(sttState, chatMode)
         Spacer(modifier = Modifier.height(10.dp))
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -384,7 +418,8 @@ private fun ImageButton(onTakePhoto: () -> Unit, onChoosePhoto: () -> Unit) {
 
 /** One line above the orb that says what tapping it will do, or how the voice model is coming along. */
 @Composable
-private fun DockStatus(sttState: SttState?) {
+private fun DockStatus(sttState: SttState?, chatMode: Boolean) {
+    val tapTo = stringResource(if (chatMode) R.string.tap_to_chat else R.string.tap_to_talk)
     val context = LocalContext.current
     val text = when (sttState) {
         null -> ""
@@ -398,9 +433,8 @@ private fun DockStatus(sttState: SttState?) {
         SttState.Downloaded -> stringResource(R.string.stt_unzip)
         is SttState.Unzipping -> stringResource(R.string.unzipping)
         is SttState.ErrorUnzipping -> stringResource(R.string.error_unzipping)
-        SttState.NotLoaded, is SttState.Loaded -> stringResource(R.string.tap_to_talk)
-        is SttState.Loading -> if (sttState.thenStartListening)
-            stringResource(R.string.thinking) else stringResource(R.string.tap_to_talk)
+        SttState.NotLoaded, is SttState.Loaded -> tapTo
+        is SttState.Loading -> if (sttState.thenStartListening) stringResource(R.string.thinking) else tapTo
         is SttState.ErrorLoading -> stringResource(R.string.error_loading)
         SttState.Listening -> stringResource(R.string.listening)
         SttState.WaitingForResult -> stringResource(R.string.thinking)
@@ -464,6 +498,7 @@ private fun Composer(
     onSend: (String) -> Unit,
     onPasteImage: (Uri) -> Unit,
     onSpeakInstead: (() -> Unit)?,
+    chatMode: Boolean,
 ) {
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
@@ -509,7 +544,7 @@ private fun Composer(
                     Box(contentAlignment = Alignment.CenterStart) {
                         if (state.text.isEmpty()) {
                             Text(
-                                text = stringResource(R.string.text_input_hint),
+                                text = stringResource(if (chatMode) R.string.chat_mode_hint else R.string.text_input_hint),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )

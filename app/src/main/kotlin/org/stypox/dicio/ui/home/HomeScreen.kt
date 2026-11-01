@@ -77,6 +77,7 @@ fun HomeScreen(
     val topBarBlur = viewModel.dataStore.data.map { it.useTopBarBlur }.collectAsState(true)
     val chats = viewModel.chatHistory.chats.collectAsState()
     val chatId = viewModel.skillEvaluator.chatId.collectAsState()
+    val chatMode = viewModel.skillEvaluator.chatMode.collectAsState()
 
     HomeScreen(
         skillContext = viewModel.skillContext,
@@ -103,6 +104,8 @@ fun HomeScreen(
         onNewChat = viewModel.skillEvaluator::newChat,
         onOpenChat = viewModel.skillEvaluator::openChat,
         onDeleteChat = { viewModel.skillEvaluator.deleteChat(it.id) },
+        chatMode = chatMode.value,
+        onChatModeChange = viewModel.skillEvaluator::setChatMode,
     )
 }
 
@@ -130,6 +133,8 @@ fun HomeScreen(
     onNewChat: () -> Unit = {},
     onOpenChat: (SavedChat) -> Unit = {},
     onDeleteChat: (SavedChat) -> Unit = {},
+    chatMode: Boolean = false,
+    onChatModeChange: (Boolean) -> Unit = {},
 ) {
     // null while talking, the text being typed while in typing mode
     var typedText by rememberSaveable { mutableStateOf<String?>(null) }
@@ -247,6 +252,8 @@ fun HomeScreen(
         HomeTopBar(
             showTitle = interactionCount > 0 || interactionLog.pendingQuestion != null,
             onSettingsClick = onSettingsClick,
+            chatMode = chatMode,
+            onChatModeChange = onChatModeChange,
             canStartNewChat = interactionCount > 0 && interactionLog.pendingQuestion == null,
             onNewChat = {
                 haptics.play(Haptic.Tap)
@@ -270,6 +277,7 @@ fun HomeScreen(
             onTakePhoto = imagePickers.takePhoto,
             onChoosePhoto = imagePickers.choosePhoto,
             onPasteImage = imagePickers.pasteImage,
+            chatMode = chatMode,
             onToggleTyping = {
                 haptics.play(Haptic.Tap)
                 typedText = if (typedText == null) "" else null

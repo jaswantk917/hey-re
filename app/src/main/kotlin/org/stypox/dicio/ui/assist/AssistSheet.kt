@@ -65,6 +65,7 @@ import org.stypox.dicio.io.input.InputEvent
 import org.stypox.dicio.ui.home.AppearFrom
 import org.stypox.dicio.ui.home.AppearOnce
 import org.stypox.dicio.ui.home.AssistantCard
+import org.stypox.dicio.ui.home.ChatModeButton
 import org.stypox.dicio.ui.home.HomeDock
 import org.stypox.dicio.ui.home.HomeScreenViewModel
 import org.stypox.dicio.ui.home.LoadingAnswerCard
@@ -110,6 +111,7 @@ fun AssistSheet(
     val isHappy = rememberHappyOnNewAnswer(interactionLog)
     SttHaptics(sttState)
     val imagePickers = rememberImagePickers(viewModel.skillEvaluator::processImage)
+    val chatMode by viewModel.skillEvaluator.chatMode.collectAsState()
 
     OverlaySheet(onDismiss = onDismiss) {
         Column(
@@ -127,6 +129,7 @@ fun AssistSheet(
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f),
                 )
+                ChatModeButton(chatMode, viewModel.skillEvaluator::setChatMode)
                 IconButton(onClick = onOpenApp, shapes = IconButtonDefaults.shapes()) {
                     Icon(Icons.Default.OpenInFull, contentDescription = stringResource(R.string.assist_open_app))
                 }
@@ -216,6 +219,7 @@ fun AssistSheet(
                 onTakePhoto = imagePickers.takePhoto,
                 onChoosePhoto = imagePickers.choosePhoto,
                 onPasteImage = imagePickers.pasteImage,
+                chatMode = chatMode,
                 onToggleTyping = {
                     haptics.play(Haptic.Tap)
                     typedText = if (typedText == null) "" else null

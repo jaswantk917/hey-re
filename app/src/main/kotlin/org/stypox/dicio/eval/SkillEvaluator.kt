@@ -92,6 +92,14 @@ interface SkillEvaluator {
 
     /** Back after a while away: the old conversation gives way to a fresh screen. */
     fun startFreshIfStale()
+
+    /**
+     * Chat mode: everything said goes to the on-device model as conversation, never guessed as a
+     * command. Lasts for the current chat.
+     */
+    val chatMode: StateFlow<Boolean>
+
+    fun setChatMode(on: Boolean)
 }
 
 class SkillEvaluatorImpl(
@@ -125,6 +133,13 @@ class SkillEvaluatorImpl(
 
     override var unlockRequester: suspend () -> Boolean = { !skillContext.android.isLocked() }
 
+    private val _chatMode = MutableStateFlow(false)
+    override val chatMode: StateFlow<Boolean> = _chatMode
+
+    override fun setChatMode(on: Boolean) {
+        _chatMode.value = on
+    }
+
     private val _chatId = MutableStateFlow(0L)
     override val chatId: StateFlow<Long> = _chatId
     @Volatile
@@ -147,6 +162,7 @@ class SkillEvaluatorImpl(
         ScreenContext.forgetImage()
         _state.value = InteractionLog(interactions = listOf(), pendingQuestion = null)
         _chatId.value = 0L
+        _chatMode.value = false
         learnFromFinishedChats()
     }
 
@@ -330,6 +346,7 @@ class SkillEvaluatorImpl(
         val (chosenInput, chosenSkill) = try {
             askMemory(utterances[0])
                 ?: askAboutScreen(utterances[0])
+                ?: chatWithLocalBrain(utterances[0])
                 ?: findBestMatch(utterances)
                 ?: askLocalBrain(utterances[0])
                 ?: Pair(utterances[0], skillRanker.getFallbackSkill(skillContext, utterances[0]))
@@ -486,6 +503,19 @@ class SkillEvaluatorImpl(
             if (skillContext.android.isLocked()) listOf() else memory.relevantTo(question, System.currentTimeMillis())
         }
         return Pair(input, match ?: skill.scoreAndWrapResult(skillContext, input))
+    }
+
+    /** In chat mode, straight to the model: no grammar match and no guessing a command. */
+    private suspend fun chatWithLocalBrain(input: String): Pair<String, SkillWithResult<*>>? {
+        if (!_chatMode.value || !localBrain.isReady()) return null
+        _state.value = _state.value.copy(
+            pendingQuestion = _state.value.pendingQuestion?.copy(skillBeingEvaluated = LocalBrainInfo)
+        )
+        val locked = skillContext.android.isLocked()
+        val skill = LocalBrainSkill(localBrain, if (locked) listOf() else recentTurns(talkOnly = true)) { question ->
+            if (locked) listOf() else memory.relevantTo(question, System.currentTimeMillis())
+        }
+        return Pair(input, skill.scoreAndWrapResult(skillContext, input))
     }
 
     /** "yaad rakhna ki…", "what do you remember about me": straight to the memory, no model in between. */

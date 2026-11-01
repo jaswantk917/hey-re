@@ -55,6 +55,12 @@ class GeminiNanoBrainTest : StringSpec({
         cleanAnswer("You:") shouldBe null
     }
 
+    "it doesn't greet with its own name" {
+        cleanAnswer("Hey re! For Malayalam thrillers, try Drishyam.") shouldBe "For Malayalam thrillers, try Drishyam."
+        cleanAnswer("Hey re, kal baarish hogi.") shouldBe "Kal baarish hogi."
+        cleanAnswer("Hey reading lovers will like this.") shouldBe "Hey reading lovers will like this."
+    }
+
     "a repeat of an earlier answer is caught, label or not" {
         sameAnswer("You: I couldn't calculate your request.", "I couldn't calculate your request") shouldBe true
         sameAnswer("Try Goa in winter.", "Try Manali in summer.") shouldBe false

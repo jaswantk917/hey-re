@@ -103,7 +103,8 @@ class GeminiNanoBrain : LocalBrain {
             English, Hindi if they wrote Hindi, and Hinglish in Roman letters only if they mixed
             Hindi words into their message.
             Questions, advice, ideas and recommendations (places to visit, movies, what to cook)
-            you answer yourself, directly and helpfully.
+            you answer yourself, directly and helpfully. Start with the answer itself, never
+            with a greeting or your own name.
             You can't act on the phone: set reminders, timers or alarms, send messages or change
             settings, so never say you did or will. Only when they ask you to do one of those,
             say you couldn't and suggest saying it as a command, like "remind me in 2 hours to
@@ -299,10 +300,14 @@ internal fun memoryContext(memory: List<String>): String = if (memory.isEmpty())
 
 /**
  * The reply without the "You:" it sometimes starts with, copying the conversation's labels
- * ([withHistory]); null when nothing is left.
+ * ([withHistory]), or the "Hey re!" it greets with, taking its own name for a greeting; null
+ * when nothing is left.
  */
 internal fun cleanAnswer(reply: String): String? =
-    reply.trim().replace(Regex("^((you|hey re|assistant)\\s*:\\s*)+", RegexOption.IGNORE_CASE), "").trim()
+    reply.trim()
+        .replace(Regex("^(((you|assistant)\\s*:|hey re\\s*[:!,.])\\s*)+", RegexOption.IGNORE_CASE), "")
+        .trim()
+        .replaceFirstChar { it.uppercase() }
         .takeIf { it.isNotEmpty() }
 
 /** The same answer give or take case, spaces and punctuation. */

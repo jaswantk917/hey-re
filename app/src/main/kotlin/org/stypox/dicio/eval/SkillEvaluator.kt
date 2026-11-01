@@ -19,6 +19,10 @@ import org.dicio.skill.skill.Permission
 import org.dicio.skill.skill.SkillOutput
 import org.stypox.dicio.di.SkillContextInternal
 import org.stypox.dicio.di.SttInputDeviceWrapper
+import org.stypox.dicio.history.ChatHistory
+import org.stypox.dicio.history.RestoredAnswer
+import org.stypox.dicio.history.SavedChat
+import org.stypox.dicio.history.SavedTurn
 import org.stypox.dicio.io.graphical.ErrorSkillOutput
 import org.stypox.dicio.io.graphical.MissingPermissionsSkillOutput
 import org.stypox.dicio.io.input.SttState
@@ -68,6 +72,20 @@ interface SkillEvaluator {
 
     /** An image the person showed (camera, gallery, pasted): read it, say what it is, keep it to ask about. */
     fun processImage(image: Bitmap)
+
+    /** The saved chat being added to, or 0 before anything worth saving was said. */
+    val chatId: StateFlow<Long>
+
+    /** Clears the screen for a new conversation; the last one is in the history if it was worth keeping. */
+    fun newChat()
+
+    /** Brings back an earlier conversation, to read or carry on. */
+    fun openChat(chat: SavedChat)
+
+    fun deleteChat(id: Long)
+
+    /** Back after a while away: the old conversation gives way to a fresh screen. */
+    fun startFreshIfStale()
 }
 
 class SkillEvaluatorImpl(
@@ -76,9 +94,12 @@ class SkillEvaluatorImpl(
     private val sttInputDevice: SttInputDeviceWrapper,
     private val localBrain: LocalBrain,
     private val textReader: TextReader,
+    private val chatHistory: ChatHistory,
 ) : SkillEvaluator {
 
     private val scope = CoroutineScope(Dispatchers.Default)
+    // one at a time and in order, so an older copy of the chat never overwrites a newer one
+    private val historyScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
 
     private val skillRanker: SkillRanker
         get() = skillHandler.skillRanker.value
@@ -95,6 +116,87 @@ class SkillEvaluatorImpl(
     override var permissionRequester: suspend (List<Permission>) -> Boolean = { false }
 
     override var unlockRequester: suspend () -> Boolean = { !skillContext.android.isLocked() }
+
+    private val _chatId = MutableStateFlow(0L)
+    override val chatId: StateFlow<Long> = _chatId
+    @Volatile
+    private var lastAnswerAt = 0L
+
+    init {
+        // an update or a restart mid-conversation picks it up where it was
+        scope.launch {
+            val latest = chatHistory.load().firstOrNull() ?: return@launch
+            val log = _state.value
+            if (log.interactions.isEmpty() && log.pendingQuestion == null &&
+                System.currentTimeMillis() - latest.updatedAt < SESSION_GAP_MILLIS
+            ) openChat(latest)
+        }
+    }
+
+    override fun newChat() {
+        if (_state.value.pendingQuestion != null) return
+        skillRanker.removeAllBatches()
+        ScreenContext.forgetImage()
+        _state.value = InteractionLog(interactions = listOf(), pendingQuestion = null)
+        _chatId.value = 0L
+    }
+
+    override fun openChat(chat: SavedChat) {
+        scope.launch {
+            val skills = (skillHandler.allSkillInfoList + LocalBrainInfo + ImageInfo).associateBy { it.id }
+            val interactions = chat.turns.map { turn ->
+                val image = turn.image?.let { chatHistory.image(it) }
+                Interaction(
+                    skill = skills[turn.skillId],
+                    questionsAnswers = listOf(QuestionAnswer(turn.question, RestoredAnswer(turn, image))),
+                )
+            }
+            if (_state.value.pendingQuestion != null) return@launch
+            skillRanker.removeAllBatches()
+            ScreenContext.forgetImage()
+            _state.value = InteractionLog(interactions = interactions, pendingQuestion = null)
+            _chatId.value = chat.id
+            lastAnswerAt = System.currentTimeMillis()
+        }
+    }
+
+    override fun deleteChat(id: Long) {
+        historyScope.launch { chatHistory.delete(id) }
+        if (id == _chatId.value) newChat()
+    }
+
+    override fun startFreshIfStale() {
+        val log = _state.value
+        if (log.pendingQuestion == null && log.interactions.isNotEmpty() && lastAnswerAt != 0L &&
+            System.currentTimeMillis() - lastAnswerAt > SESSION_GAP_MILLIS
+        ) newChat()
+    }
+
+    /** Saves the conversation so far, as words and images: the cards themselves can't outlive the app. */
+    private fun rememberChat() {
+        val now = System.currentTimeMillis()
+        lastAnswerAt = now
+        if (_chatId.value == 0L) _chatId.value = now
+        val id = _chatId.value
+        val turns = mutableListOf<SavedTurn>()
+        val images = mutableMapOf<Int, Bitmap>()
+        for (interaction in _state.value.interactions) {
+            for (qa in interaction.questionsAnswers) {
+                val answer = qa.answer
+                if (answer is RestoredAnswer) {
+                    turns += answer.turn
+                    continue
+                }
+                if (answer is ErrorSkillOutput || answer is MissingPermissionsSkillOutput ||
+                    interaction.skill?.id == BriefInfo.id
+                ) continue
+                (answer as? ImageOutput)?.let { images[turns.size] = it.image }
+                val text = runCatching { answer.getSpeechOutput(skillContext) }.getOrDefault("")
+                turns += SavedTurn(qa.question, text, interaction.skill?.id)
+            }
+        }
+        historyScope.launch { chatHistory.save(SavedChat(id, now, turns), images) }
+    }
 
     // set on summon, dropped as soon as anything is heard: only a quiet summon gets the brief
     @Volatile
@@ -297,6 +399,7 @@ class SkillEvaluatorImpl(
             return
         }
         if (onlyIfSomething && output.isEmpty) return
+        lastAnswerAt = System.currentTimeMillis()
         val log = _state.value
         _state.value = log.copy(
             interactions = log.interactions + Interaction(
@@ -421,6 +524,7 @@ class SkillEvaluatorImpl(
             },
             pendingQuestion = null,
         )
+        rememberChat()
     }
 
     companion object {
@@ -428,6 +532,8 @@ class SkillEvaluatorImpl(
         // enough for "should I call Maa?" -> "haan karo", short enough for Nano's small context
         private const val RECENT_TURNS = 3
         private const val IDLE_BRIEF_DELAY_MILLIS = 1_500L
+        // half an hour away and it's a new conversation
+        private const val SESSION_GAP_MILLIS = 30 * 60_000L
         // reopening the app a minute later shouldn't stack up the same brief
         private const val IDLE_BRIEF_EVERY_MILLIS = 10 * 60_000L
         // the time, a timer or the torch is fine from the lock screen; calls, messages, switches
@@ -513,7 +619,8 @@ class SkillEvaluatorModule {
         sttInputDevice: SttInputDeviceWrapper,
         localBrain: LocalBrain,
         textReader: TextReader,
+        chatHistory: ChatHistory,
     ): SkillEvaluator {
-        return SkillEvaluatorImpl(skillContext, skillHandler, sttInputDevice, localBrain, textReader)
+        return SkillEvaluatorImpl(skillContext, skillHandler, sttInputDevice, localBrain, textReader, chatHistory)
     }
 }

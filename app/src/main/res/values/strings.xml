@@ -536,6 +536,19 @@
     <string name="speak_instead">Speak instead</string>
     <string name="send">Send</string>
     <string name="what_i_can_do">What I can do</string>
+    <string name="pref_speak_answers_title">Speak answers</string>
+    <string name="pref_speak_answers_on">Answers are read aloud on the assistant\'s own volume</string>
+    <string name="pref_speak_answers_off">Answers only show on screen</string>
+    <string name="history_title">Your chats</string>
+    <string name="history_open">Earlier chats</string>
+    <string name="history_new_chat">New chat</string>
+    <string name="history_delete">Forget this chat</string>
+    <string name="history_today">Today</string>
+    <string name="history_yesterday">Yesterday</string>
+    <plurals name="history_answers">
+        <item quantity="one">%d answer</item>
+        <item quantity="other">%d answers</item>
+    </plurals>
     <string name="more_options">More options</string>
     <string name="orb_description">Talk to Hey re</string>
     <string name="voice_setup_title">Let\'s get your voice ready</string>

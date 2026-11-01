@@ -1,9 +1,6 @@
 package org.stypox.dicio.di
 
 import android.content.Context
-import android.media.AudioAttributes
-import android.media.MediaPlayer
-import androidx.datastore.core.DataStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,27 +12,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
-import org.stypox.dicio.R
 import org.stypox.dicio.io.input.InputEvent
 import org.stypox.dicio.io.input.SttInputDevice
 import org.stypox.dicio.io.input.SttState
-import org.stypox.dicio.io.input.external_popup.ExternalPopupInputDevice
 import org.stypox.dicio.io.input.ondevice.OnDeviceSttInputDevice
 import org.stypox.dicio.io.input.vosk.VoskInputDevice
-import org.stypox.dicio.settings.datastore.InputDevice
-import org.stypox.dicio.settings.datastore.InputDevice.INPUT_DEVICE_EXTERNAL_POPUP
-import org.stypox.dicio.settings.datastore.InputDevice.INPUT_DEVICE_NOTHING
-import org.stypox.dicio.settings.datastore.InputDevice.INPUT_DEVICE_ON_DEVICE
-import org.stypox.dicio.settings.datastore.InputDevice.INPUT_DEVICE_UNSET
-import org.stypox.dicio.settings.datastore.InputDevice.INPUT_DEVICE_VOSK
-import org.stypox.dicio.settings.datastore.InputDevice.UNRECOGNIZED
-import org.stypox.dicio.settings.datastore.SttPlaySound
-import org.stypox.dicio.settings.datastore.UserSettings
-import org.stypox.dicio.util.distinctUntilChangedBlockingFirst
-import org.stypox.dicio.util.toStateFlowDistinctBlockingFirst
 
 
 interface SttInputDeviceWrapper {
@@ -54,146 +37,63 @@ interface SttInputDeviceWrapper {
 
 class SttInputDeviceWrapperImpl(
     @param:ApplicationContext private val appContext: Context,
-    dataStore: DataStore<UserSettings>,
     private val localeManager: LocaleManager,
     private val okHttpClient: OkHttpClient,
-    private val activityForResultManager: ActivityForResultManager,
 ) : SttInputDeviceWrapper {
     private val scope = CoroutineScope(Dispatchers.Default)
 
-    private var inputDeviceSetting: InputDevice
-    private var sttPlaySoundSetting: SttPlaySound
-    private val silencesBeforeStop: StateFlow<Int>
-    private var sttInputDevice: SttInputDevice?
+    private val silencesBeforeStop = MutableStateFlow(SttInputDevice.DEFAULT_STT_SILENCE_DURATION)
+    private var sttInputDevice: SttInputDevice = buildInputDevice()
 
     // null means that the user has not enabled any STT input device
     private val _uiState: MutableStateFlow<SttState?> = MutableStateFlow(null)
     override val uiState: StateFlow<SttState?> = _uiState
     private var uiStateJob: Job? = null
 
-
     init {
-        // Run blocking, because the data store is always available right away since LocaleManager
-        // also initializes in a blocking way from the same data store.
-        val (firstSettings, nextSettingsFlow) = dataStore.data
-            .map { Pair(it.inputDevice, it.sttPlaySound) }
-            .distinctUntilChangedBlockingFirst()
-
-        inputDeviceSetting = firstSettings.first
-        sttPlaySoundSetting = firstSettings.second
-        silencesBeforeStop = dataStore.data.map(SttInputDevice::getSttSilenceDurationOrDefault)
-            .toStateFlowDistinctBlockingFirst(scope)
-        sttInputDevice = buildInputDevice(inputDeviceSetting)
         scope.launch {
             restartUiStateJob()
         }
-
-        scope.launch {
-            nextSettingsFlow.collect { (inputDevice, sttPlaySound) ->
-                sttPlaySoundSetting = sttPlaySound
-                if (inputDeviceSetting != inputDevice) {
-                    changeInputDeviceTo(inputDevice)
-                }
-            }
-        }
     }
 
-    private suspend fun changeInputDeviceTo(setting: InputDevice) {
-        val prevSttInputDevice = sttInputDevice
-        inputDeviceSetting = setting
-        sttInputDevice = buildInputDevice(setting)
-        prevSttInputDevice?.destroy()
-        restartUiStateJob()
-    }
-
-    private fun buildInputDevice(setting: InputDevice): SttInputDevice? {
-        return when (setting) {
-            UNRECOGNIZED,
-            INPUT_DEVICE_UNSET -> if (OnDeviceSttInputDevice.isAvailable(appContext)) {
-                // the phone's own recognizer is far better where it exists, and needs no download
-                OnDeviceSttInputDevice(appContext, localeManager, silencesBeforeStop)
-            } else {
-                VoskInputDevice(appContext, okHttpClient, localeManager, silencesBeforeStop)
-            }
-            INPUT_DEVICE_ON_DEVICE -> if (OnDeviceSttInputDevice.isAvailable(appContext)) {
-                OnDeviceSttInputDevice(appContext, localeManager, silencesBeforeStop)
-            } else {
-                VoskInputDevice(appContext, okHttpClient, localeManager, silencesBeforeStop)
-            }
-            INPUT_DEVICE_VOSK -> VoskInputDevice(appContext, okHttpClient, localeManager, silencesBeforeStop)
-            INPUT_DEVICE_EXTERNAL_POPUP ->
-                ExternalPopupInputDevice(appContext, activityForResultManager, localeManager)
-            INPUT_DEVICE_NOTHING -> null
-        }
+    // the phone's own recognizer where it exists (far better, and no download), Vosk elsewhere
+    private fun buildInputDevice(): SttInputDevice = if (OnDeviceSttInputDevice.isAvailable(appContext)) {
+        OnDeviceSttInputDevice(appContext, localeManager, silencesBeforeStop)
+    } else {
+        VoskInputDevice(appContext, okHttpClient, localeManager, silencesBeforeStop)
     }
 
     private suspend fun restartUiStateJob() {
         uiStateJob?.cancel()
         val newSttInputDevice = sttInputDevice
-        if (newSttInputDevice == null) {
-            uiStateJob = null
-            _uiState.emit(null)
-        } else {
-            uiStateJob = scope.launch {
-                newSttInputDevice.uiState.collect {
-                    _uiState.emit(it)
-                    if (it == SttState.Listening) {
-                        playSound(R.raw.listening_sound)
-                    }
-                }
-            }
+        uiStateJob = scope.launch {
+            newSttInputDevice.uiState.collect { _uiState.emit(it) }
         }
-    }
-
-    private fun playSound(resid: Int) {
-        val attributes = AudioAttributes.Builder()
-            .setUsage(
-                when (sttPlaySoundSetting) {
-                    SttPlaySound.STT_PLAY_SOUND_NOTIFICATION -> AudioAttributes.USAGE_NOTIFICATION
-                    SttPlaySound.STT_PLAY_SOUND_ALARM -> AudioAttributes.USAGE_ALARM
-                    SttPlaySound.STT_PLAY_SOUND_MEDIA -> AudioAttributes.USAGE_MEDIA
-                    // haptics already say when listening starts and stops; sound is opt-in
-                    SttPlaySound.UNRECOGNIZED,
-                    SttPlaySound.STT_PLAY_SOUND_UNSET,
-                    SttPlaySound.STT_PLAY_SOUND_NONE -> return
-                }
-            )
-            .build()
-        val mediaPlayer = MediaPlayer.create(appContext, resid, attributes, 0)
-        mediaPlayer.setVolume(0.75f, 0.75f)
-        mediaPlayer.setOnCompletionListener { it.release() }
-        mediaPlayer.start()
-    }
-
-    private fun wrapEventListener(eventListener: (InputEvent) -> Unit): (InputEvent) -> Unit = {
-        if (it is InputEvent.None) {
-            scope.launch {
-                playSound(R.raw.listening_no_input_sound)
-            }
-        }
-        eventListener(it)
     }
 
     override fun tryLoad(thenStartListeningEventListener: ((InputEvent) -> Unit)?): Boolean {
-        return sttInputDevice?.tryLoad(if (thenStartListeningEventListener != null) {
-            wrapEventListener(thenStartListeningEventListener)
-        } else { null }) ?: false
+        return sttInputDevice.tryLoad(thenStartListeningEventListener)
     }
 
     override fun stopListening() {
-        sttInputDevice?.stopListening()
+        sttInputDevice.stopListening()
     }
 
     override fun cancelListening() {
-        sttInputDevice?.cancelListening()
+        sttInputDevice.cancelListening()
     }
 
     override fun onClick(eventListener: (InputEvent) -> Unit) {
-        sttInputDevice?.onClick(wrapEventListener(eventListener))
+        sttInputDevice.onClick(eventListener)
     }
 
     override fun reinitializeToReleaseResources() {
-        scope.launch { changeInputDeviceTo(inputDeviceSetting) }
+        scope.launch {
+            val previous = sttInputDevice
+            sttInputDevice = buildInputDevice()
+            previous.destroy()
+            restartUiStateJob()
+        }
     }
 }
 
@@ -204,13 +104,9 @@ class SttInputDeviceWrapperModule {
     @Singleton
     fun provideInputDeviceWrapper(
         @ApplicationContext appContext: Context,
-        dataStore: DataStore<UserSettings>,
         localeManager: LocaleManager,
         okHttpClient: OkHttpClient,
-        activityForResultManager: ActivityForResultManager,
     ): SttInputDeviceWrapper {
-        return SttInputDeviceWrapperImpl(
-            appContext, dataStore, localeManager, okHttpClient, activityForResultManager
-        )
+        return SttInputDeviceWrapperImpl(appContext, localeManager, okHttpClient)
     }
 }

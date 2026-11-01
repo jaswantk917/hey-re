@@ -11,10 +11,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.stypox.dicio.di.WakeDeviceWrapper
 import org.stypox.dicio.io.wake.oww.OpenWakeWordDevice
-import org.stypox.dicio.settings.datastore.InputDevice
 import org.stypox.dicio.settings.datastore.Language
 import org.stypox.dicio.settings.datastore.SpeechOutputDevice
-import org.stypox.dicio.settings.datastore.SttPlaySound
 import org.stypox.dicio.settings.datastore.Theme
 import org.stypox.dicio.settings.datastore.UserSettings
 import org.stypox.dicio.settings.datastore.WakeDevice
@@ -65,18 +63,11 @@ class MainSettingsViewModel @Inject constructor(
         updateData { it.setDynamicColors(value) }
     fun setTopBarBlur(value: Boolean) =
         updateData { it.setTopBarBlur(value) }
-    fun setInputDevice(value: InputDevice) =
-        updateData { it.setInputDevice(value) }
     fun setWakeDevice(value: WakeDevice) =
         updateData { it.setWakeDevice(value) }
-    fun setSpeechOutputDevice(value: SpeechOutputDevice) =
-        updateData { it.setSpeechOutputDevice(value) }
-    fun setTtsVoice(value: String) =
-        updateData { it.setTtsVoice(value) }
-    fun setSttPlaySound(value: SttPlaySound) =
-        updateData { it.setSttPlaySound(value) }
-    fun setSttSilenceDuration(value: Int) =
-        updateData { it.setSttSilenceDuration(value) }
-    fun setAutoFinishSttPopup(value: Boolean) =
-        updateData { it.setAutoFinishSttPopup(value) }
+    fun setSpeakAnswers(value: Boolean) = updateData {
+        it.setSpeechOutputDevice(
+            if (value) SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_ANDROID_TTS else SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_NOTHING
+        )
+    }
 }

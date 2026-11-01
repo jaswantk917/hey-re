@@ -78,6 +78,8 @@ class AssistActivity : BaseActivity() {
             return
         }
         showsSheet = true
+        // before the sheet counts what it already has, so a stale chat never hides the new answers
+        if (savedInstanceState == null) skillEvaluator.startFreshIfStale()
         homeControl.register(this)
         // over the lock screen too; what's personal asks for an unlock (SkillEvaluator)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {

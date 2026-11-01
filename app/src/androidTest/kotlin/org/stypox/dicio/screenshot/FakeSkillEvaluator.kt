@@ -25,4 +25,9 @@ class FakeSkillEvaluator : SkillEvaluator {
     override fun briefIfIdle() {}
 
     override fun processImage(image: android.graphics.Bitmap) {}
+    override val chatId = kotlinx.coroutines.flow.MutableStateFlow(0L)
+    override fun newChat() {}
+    override fun openChat(chat: org.stypox.dicio.history.SavedChat) {}
+    override fun deleteChat(id: Long) {}
+    override fun startFreshIfStale() {}
 }

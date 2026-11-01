@@ -25,6 +25,24 @@ fun Headline(text: String) {
     )
 }
 
+/** An answer's words: headline-sized when it's a few, easy-reading body text when it runs on. */
+@Composable
+fun AnswerText(text: String) {
+    if (text.length <= SHORT_ANSWER_CHARS) {
+        Headline(text = text)
+    } else {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 6.dp, vertical = 4.dp),
+        )
+    }
+}
+
+private const val SHORT_ANSWER_CHARS = 80
+
 @Composable
 fun Subtitle(text: String) {
     Text(

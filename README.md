@@ -34,6 +34,7 @@ It's a personal fork of [Dicio](https://github.com/Stypox/dicio-android), built 
 | **Notifications**, without the silent ones | _mere notifications batao_ |
 | **What needs you.** Summon Hey re and say nothing, or ask: missed calls, people writing again or asking something, live updates like a delivery, tasks due, low battery or storage. Each is scored on its own and only the top few show, or none | _kuch important hai_ · _what did i miss_ |
 | **Everything else from Dicio**: weather, search, lyrics, translation, calculator, jokes, media, torch, opening apps, directions | _aaj mausam kaisa hai_ · _gaana rok do_ · _youtube kholo_ · _torch jala do_ |
+| **Your chats.** Conversations worth keeping (questions, images, searches; not torch or timers) are saved on the phone and survive updates. Half an hour away starts a fresh screen; the history button brings any chat back to carry on, a swipe forgets it | the ✎ and history buttons up top |
 | **What it can do** | _tum kya kya kar sakte ho_ |
 
 ### Gemini Nano

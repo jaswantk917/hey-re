@@ -10,6 +10,8 @@ Hey re stores your preferences, the conversation you had with it and debugging l
 
 **Gemini Nano** (Pixel build) runs on the phone through Android's AICore. Hey re gives it what you said and the last few exchanges of the conversation. When you summon Hey re over another app, it also gives Nano that app's on-screen text, or a screenshot if there's little text, so you can ask about it. Android only hands Hey re the screen when you summon it. None of this leaves the phone, and none of it is kept after the answer. Over the lock screen, Nano doesn't see your earlier conversation.
 
+**Chats** worth keeping are saved in the app's own storage on the phone, with their images, and never leave it; swipe one away in the history to delete it, or clear the app's storage to delete them all.
+
 **Images** you take, pick or paste are read on the phone (ML Kit text recognition and Gemini Nano) and kept only in the conversation; a photo you take sits in the app's cache until the next one replaces it.
 
 **Contacts** are read to call or message the person you name, and to show your own name and photo on the home screen.

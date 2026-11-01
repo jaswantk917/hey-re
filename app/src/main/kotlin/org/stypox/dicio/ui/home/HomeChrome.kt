@@ -26,7 +26,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -56,11 +55,11 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AddComment
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.outlined.Settings
@@ -80,13 +79,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -112,7 +111,10 @@ import org.stypox.dicio.ui.util.loadingProgressString
 @Composable
 fun HomeTopBar(
     showTitle: Boolean,
-    onShowSkills: () -> Unit,
+    canStartNewChat: Boolean,
+    onNewChat: () -> Unit,
+    hasHistory: Boolean,
+    onShowHistory: () -> Unit,
     onSettingsClick: () -> Unit,
 ) {
     Row(
@@ -138,14 +140,31 @@ fun HomeTopBar(
             )
         }
         Spacer(modifier = Modifier.weight(1f))
-        IconButton(onClick = onShowSkills, shapes = IconButtonDefaults.shapes()) {
-            Icon(Icons.Default.AutoAwesome, contentDescription = stringResource(R.string.what_i_can_do))
+        TopBarAction(visible = canStartNewChat) {
+            IconButton(onClick = onNewChat, shapes = IconButtonDefaults.shapes()) {
+                Icon(Icons.Outlined.AddComment, contentDescription = stringResource(R.string.history_new_chat))
+            }
+        }
+        TopBarAction(visible = hasHistory) {
+            IconButton(onClick = onShowHistory, shapes = IconButtonDefaults.shapes()) {
+                Icon(Icons.Outlined.History, contentDescription = stringResource(R.string.history_open))
+            }
         }
         IconButton(onClick = onSettingsClick, shapes = IconButtonDefaults.shapes()) {
             Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.settings))
         }
         ProfileButton()
     }
+}
+
+/** A top bar button that pops in when it has something to do and out when it doesn't. */
+@Composable
+private fun TopBarAction(visible: Boolean, content: @Composable () -> Unit) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = scaleIn(MaterialTheme.motionScheme.fastSpatialSpec()) + fadeIn(MaterialTheme.motionScheme.fastEffectsSpec()),
+        exit = scaleOut(MaterialTheme.motionScheme.fastSpatialSpec()) + fadeOut(MaterialTheme.motionScheme.fastEffectsSpec()),
+    ) { content() }
 }
 
 /** The phone owner's photo (or initial), which pops in once read; a tap opens their own card. */

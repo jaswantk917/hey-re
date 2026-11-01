@@ -5,8 +5,6 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -22,15 +20,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -40,12 +37,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.stypox.dicio.R
-import org.stypox.dicio.io.input.SttInputDevice
-import org.stypox.dicio.io.input.ondevice.OnDeviceSttInputDevice
-import org.stypox.dicio.settings.datastore.InputDevice
 import org.stypox.dicio.settings.datastore.Language
 import org.stypox.dicio.settings.datastore.SpeechOutputDevice
-import org.stypox.dicio.settings.datastore.SttPlaySound
 import org.stypox.dicio.settings.datastore.Theme
 import org.stypox.dicio.settings.datastore.UserSettingsModule.Companion.newDataStoreForPreviews
 import org.stypox.dicio.settings.datastore.WakeDevice
@@ -107,12 +100,6 @@ private fun MainSettingsScreen(
         WakeDevice.WAKE_DEVICE_UNSET -> WakeDevice.WAKE_DEVICE_NOTHING
         else -> device
     }
-    val speechOutput = when (val speechOutputDevice = settings.speechOutputDevice) {
-        SpeechOutputDevice.UNRECOGNIZED,
-        SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_UNSET ->
-            SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_ANDROID_TTS
-        else -> speechOutputDevice
-    }
     val isHeyDicio by viewModel.isHeyDicio.collectAsState(true)
 
     val seen = remember { mutableSetOf<Any>() }
@@ -166,20 +153,6 @@ private fun MainSettingsScreen(
                 index = 2,
                 title = stringResource(R.string.pref_listening),
                 rows = listOfNotNull(
-                    {
-                        inputDevice().Render(
-                            when (val inputDevice = settings.inputDevice) {
-                                InputDevice.UNRECOGNIZED,
-                                InputDevice.INPUT_DEVICE_UNSET ->
-                                    if (OnDeviceSttInputDevice.isAvailable(context))
-                                        InputDevice.INPUT_DEVICE_ON_DEVICE
-                                    else
-                                        InputDevice.INPUT_DEVICE_VOSK
-                                else -> inputDevice
-                            },
-                            viewModel::setInputDevice,
-                        )
-                    },
                     { wakeDevice().Render(wakeDevice, viewModel::setWakeDevice) },
                     if (wakeDevice == WakeDevice.WAKE_DEVICE_OWW) {
                         {
@@ -202,23 +175,6 @@ private fun MainSettingsScreen(
                             }
                         }
                     } else null,
-                    {
-                        sttPlaySound().Render(
-                            when (val sttPlaySound = settings.sttPlaySound) {
-                                SttPlaySound.UNRECOGNIZED,
-                                SttPlaySound.STT_PLAY_SOUND_UNSET -> SttPlaySound.STT_PLAY_SOUND_NONE
-                                else -> sttPlaySound
-                            },
-                            viewModel::setSttPlaySound
-                        )
-                    },
-                    {
-                        sttSilenceDuration().Render(
-                            SttInputDevice.getSttSilenceDurationOrDefault(settings),
-                            viewModel::setSttSilenceDuration
-                        )
-                    },
-                    { sttAutoFinish().Render(settings.autoFinishSttPopup, viewModel::setAutoFinishSttPopup) },
                 ),
             )
         }
@@ -229,10 +185,12 @@ private fun MainSettingsScreen(
                 index = 3,
                 title = stringResource(R.string.pref_speaking),
                 rows = listOfNotNull(
-                    { speechOutputDevice().Render(speechOutput, viewModel::setSpeechOutputDevice) },
-                    if (speechOutput == SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_ANDROID_TTS) {
-                        { TtsVoiceSetting(settings.ttsVoice, viewModel::setTtsVoice) }
-                    } else null,
+                    {
+                        speakAnswers().Render(
+                            settings.speechOutputDevice != SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_NOTHING,
+                            viewModel::setSpeakAnswers,
+                        )
+                    },
                 ),
             )
         }

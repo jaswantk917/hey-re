@@ -135,10 +135,12 @@ class GeminiNanoBrain : LocalBrain {
     override suspend fun describeImage(image: Bitmap, text: String?): String? = generate(
         system = """
             You are Hey re, a voice assistant on the person's phone. They just showed you an image.
-            In one or two short sentences of plain text, say what it is and the one thing in it
-            most worth knowing (a total on a bill, a date on a notice, what a message asks). No
-            lists or markdown. Write in English, or in Hinglish in Roman letters if the image's
-            text is mostly in Hindi.
+            In one or two short sentences of plain text, name what it is as specifically as you
+            can ("Poha with cauliflower and peanuts in a kadhai", "An electricity bill for October"),
+            then add the one detail that matters, if any (the total on a bill, the date on a notice,
+            what a message asks). Never open with "This is a picture of" or "The image shows", and
+            never say "the most important thing". No lists or markdown. Write in English, or in
+            Hinglish in Roman letters if the image's text is mostly in Hindi.
         """.trimIndent(),
         prompt = if (text.isNullOrBlank()) "Here is the image." else "Here is the image. Its text reads:\n" + text.take(MAX_IMAGE_TEXT),
         image = image,

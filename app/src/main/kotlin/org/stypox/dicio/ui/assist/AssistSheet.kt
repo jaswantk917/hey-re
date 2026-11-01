@@ -39,7 +39,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,14 +46,14 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -69,7 +68,7 @@ import org.stypox.dicio.ui.home.AssistantCard
 import org.stypox.dicio.ui.home.HomeDock
 import org.stypox.dicio.ui.home.HomeScreenViewModel
 import org.stypox.dicio.ui.home.LoadingAnswerCard
-import org.stypox.dicio.ui.home.SkillsSheet
+import org.stypox.dicio.history.RestoredAnswer
 import org.stypox.dicio.ui.home.SttHaptics
 import org.stypox.dicio.ui.home.UserBubble
 import org.stypox.dicio.ui.home.orbMood
@@ -91,7 +90,6 @@ fun AssistSheet(
     val viewModel: HomeScreenViewModel = hiltViewModel()
     val interactionLog by viewModel.skillEvaluator.state.collectAsState()
     val sttState by viewModel.sttInputDevice.uiState.collectAsState()
-    val skills by viewModel.skillHandler.enabledSkillsInfo.collectAsState()
     val haptics = rememberHaptics()
     val ask: (String) -> Unit = {
         haptics.play(Haptic.Tap)
@@ -104,10 +102,10 @@ fun AssistSheet(
         interaction.questionsAnswers.map { interaction.skill to it }
     }
     val firstAnswer = rememberSaveable { allAnswers.size }
-    val answers = allAnswers.drop(firstAnswer)
+    // a chat brought back from the history after the sheet opened belongs to the full app too
+    val answers = allAnswers.drop(firstAnswer).filter { (_, qa) -> qa.answer !is RestoredAnswer }
     val pendingQuestion = interactionLog.pendingQuestion
     var typedText by rememberSaveable { mutableStateOf<String?>(null) }
-    var showSkillsSheet by rememberSaveable { mutableStateOf(false) }
 
     val isHappy = rememberHappyOnNewAnswer(interactionLog)
     SttHaptics(sttState)
@@ -129,15 +127,6 @@ fun AssistSheet(
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f),
                 )
-                IconButton(
-                    onClick = {
-                        haptics.play(Haptic.Tap)
-                        showSkillsSheet = true
-                    },
-                    shapes = IconButtonDefaults.shapes(),
-                ) {
-                    Icon(Icons.Default.AutoAwesome, contentDescription = stringResource(R.string.what_i_can_do))
-                }
                 IconButton(onClick = onOpenApp, shapes = IconButtonDefaults.shapes()) {
                     Icon(Icons.Default.OpenInFull, contentDescription = stringResource(R.string.assist_open_app))
                 }
@@ -233,18 +222,6 @@ fun AssistSheet(
                 },
             )
         }
-    }
-
-    val skillList = skills
-    if (showSkillsSheet && skillList != null) {
-        SkillsSheet(
-            skills = skillList,
-            onSkillClick = {
-                showSkillsSheet = false
-                viewModel.skillEvaluator.processInputEvent(InputEvent.Final(listOf(Pair(it, 1.0f))))
-            },
-            onDismiss = { showSkillsSheet = false },
-        )
     }
 }
 

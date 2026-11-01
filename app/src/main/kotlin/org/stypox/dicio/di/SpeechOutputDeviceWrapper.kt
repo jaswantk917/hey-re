@@ -12,14 +12,7 @@ import kotlinx.coroutines.launch
 import org.dicio.skill.context.SpeechOutputDevice
 import org.stypox.dicio.io.speech.AndroidTtsSpeechDevice
 import org.stypox.dicio.io.speech.NothingSpeechDevice
-import org.stypox.dicio.io.speech.SnackbarSpeechDevice
-import org.stypox.dicio.io.speech.ToastSpeechDevice
-import org.stypox.dicio.settings.datastore.SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_ANDROID_TTS
 import org.stypox.dicio.settings.datastore.SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_NOTHING
-import org.stypox.dicio.settings.datastore.SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_SNACKBAR
-import org.stypox.dicio.settings.datastore.SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_TOAST
-import org.stypox.dicio.settings.datastore.SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_UNSET
-import org.stypox.dicio.settings.datastore.SpeechOutputDevice.UNRECOGNIZED
 import org.stypox.dicio.settings.datastore.UserSettings
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,9 +22,6 @@ class SpeechOutputDeviceWrapper @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val dataStore: DataStore<UserSettings>,
     private val localeManager: LocaleManager,
-    // this is always instantiated, but will do nothing if
-    // it is not the speech device chosen by the user
-    private val snackbarSpeechDevice: SnackbarSpeechDevice,
 ) : SpeechOutputDevice {
 
     // instantiate SpeechOutputDevices on the main thread
@@ -42,23 +32,15 @@ class SpeechOutputDeviceWrapper @Inject constructor(
         scope.launch {
             dataStore.data
                 .combine(localeManager.locale) { userSettings, locale ->
-                    Triple(userSettings.speechOutputDevice, locale, userSettings.ttsVoice)
+                    Pair(userSettings.speechOutputDevice != SPEECH_OUTPUT_DEVICE_NOTHING, locale)
                 }
                 .distinctUntilChanged()
-                .collect { (setting, locale, voiceName) ->
+                .collect { (speaks, locale) ->
                     // TODO avoid using locale here, but delegate listening to locale changes to
                     //  AndroidTtsSpeechDevice, or in alternative make it so that
                     //  SttInputDeviceWrapper works the same way
                     val prevDevice = wrappedSpeechDevice
-                    wrappedSpeechDevice = when (setting) {
-                        null,
-                        UNRECOGNIZED,
-                        SPEECH_OUTPUT_DEVICE_UNSET,
-                        SPEECH_OUTPUT_DEVICE_ANDROID_TTS -> AndroidTtsSpeechDevice(context, locale, voiceName)
-                        SPEECH_OUTPUT_DEVICE_NOTHING -> NothingSpeechDevice()
-                        SPEECH_OUTPUT_DEVICE_TOAST -> ToastSpeechDevice(context)
-                        SPEECH_OUTPUT_DEVICE_SNACKBAR -> snackbarSpeechDevice
-                    }
+                    wrappedSpeechDevice = if (speaks) AndroidTtsSpeechDevice(context, locale) else NothingSpeechDevice()
                     prevDevice.cleanup()
                 }
         }

@@ -17,19 +17,17 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -56,6 +54,7 @@ import org.stypox.dicio.di.SkillContextImpl
 import org.stypox.dicio.io.input.InputEvent
 import org.stypox.dicio.io.input.SttState
 import org.stypox.dicio.io.wake.WakeState
+import org.stypox.dicio.history.SavedChat
 import org.stypox.dicio.settings.useTopBarBlur
 import org.stypox.dicio.ui.theme.AppTheme
 import org.stypox.dicio.ui.util.Haptic
@@ -76,6 +75,8 @@ fun HomeScreen(
     val sttState = viewModel.sttInputDevice.uiState.collectAsState()
     val wakeState = viewModel.wakeDevice.state.collectAsState()
     val topBarBlur = viewModel.dataStore.data.map { it.useTopBarBlur }.collectAsState(true)
+    val chats = viewModel.chatHistory.chats.collectAsState()
+    val chatId = viewModel.skillEvaluator.chatId.collectAsState()
 
     HomeScreen(
         skillContext = viewModel.skillContext,
@@ -94,11 +95,14 @@ fun HomeScreen(
             viewModel.skillEvaluator.processInputEvent(InputEvent.Final(listOf(Pair(it, 1.0f))))
         },
         onSettingsClick = onSettingsClick,
-        snackbarHost = {
-            SnackbarHost(hostState = viewModel.snackbarHostState)
-        },
         topBarBlur = topBarBlur.value,
         onImage = viewModel.skillEvaluator::processImage,
+        chats = chats.value,
+        currentChatId = chatId.value,
+        loadChatImage = viewModel.chatHistory::image,
+        onNewChat = viewModel.skillEvaluator::newChat,
+        onOpenChat = viewModel.skillEvaluator::openChat,
+        onDeleteChat = { viewModel.skillEvaluator.deleteChat(it.id) },
     )
 }
 
@@ -117,14 +121,20 @@ fun HomeScreen(
     onWakeDisable: () -> Unit,
     onManualUserInput: (String) -> Unit,
     onSettingsClick: () -> Unit,
-    snackbarHost: @Composable () -> Unit,
     // off in Settings: a solid bar instead of the conversation blurring beneath it
     topBarBlur: Boolean = true,
     onImage: (Bitmap) -> Unit = {},
+    chats: List<SavedChat> = listOf(),
+    currentChatId: Long = 0L,
+    loadChatImage: suspend (String) -> Bitmap? = { null },
+    onNewChat: () -> Unit = {},
+    onOpenChat: (SavedChat) -> Unit = {},
+    onDeleteChat: (SavedChat) -> Unit = {},
 ) {
     // null while talking, the text being typed while in typing mode
     var typedText by rememberSaveable { mutableStateOf<String?>(null) }
     var showSkillsSheet by rememberSaveable { mutableStateOf(false) }
+    var showHistory by rememberSaveable { mutableStateOf(false) }
     val haptics = rememberHaptics()
     val density = LocalDensity.current
 
@@ -237,9 +247,15 @@ fun HomeScreen(
         HomeTopBar(
             showTitle = interactionCount > 0 || interactionLog.pendingQuestion != null,
             onSettingsClick = onSettingsClick,
-            onShowSkills = {
+            canStartNewChat = interactionCount > 0 && interactionLog.pendingQuestion == null,
+            onNewChat = {
                 haptics.play(Haptic.Tap)
-                showSkillsSheet = true
+                onNewChat()
+            },
+            hasHistory = chats.isNotEmpty(),
+            onShowHistory = {
+                haptics.play(Haptic.Tap)
+                showHistory = true
             },
         )
 
@@ -264,15 +280,20 @@ fun HomeScreen(
                 .imePadding()
                 .onSizeChanged { dockHeight = with(density) { it.height.toDp() } },
         )
+    }
 
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(bottom = dockHeight),
-        ) {
-            snackbarHost()
-        }
+    if (showHistory) {
+        HistorySheet(
+            chats = chats,
+            currentChatId = currentChatId,
+            loadImage = loadChatImage,
+            onOpen = {
+                showHistory = false
+                onOpenChat(it)
+            },
+            onDelete = onDeleteChat,
+            onDismiss = { showHistory = false },
+        )
     }
 
     if (showSkillsSheet && skills != null) {
@@ -404,7 +425,6 @@ private fun HomeScreenPreview(@PreviewParameter(InteractionLogPreviews::class) i
             onWakeDisable = {},
             onManualUserInput = {},
             onSettingsClick = {},
-            snackbarHost = {},
         )
     }
 }

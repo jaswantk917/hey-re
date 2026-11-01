@@ -132,8 +132,11 @@ class ChatHistory(private val dir: File) {
         // what makes a chat worth keeping: something asked and answered, not a switch flipped
         private val CONVERSATION_SKILLS = setOf("local_brain", "image", "search", "translation", "lyrics")
 
+        /** Answers that are talk rather than a command's result ("I could not calculate your request"). */
+        fun isConversation(skillId: String?) = skillId in CONVERSATION_SKILLS
+
         internal fun isMeaningful(turns: List<SavedTurn>) =
-            turns.any { it.skillId in CONVERSATION_SKILLS && it.answer.isNotBlank() }
+            turns.any { isConversation(it.skillId) && it.answer.isNotBlank() }
 
         /** [chat] in place of its older self, newest first, and the chats that no longer fit. */
         internal fun upsert(chats: List<SavedChat>, chat: SavedChat): Pair<List<SavedChat>, List<SavedChat>> {

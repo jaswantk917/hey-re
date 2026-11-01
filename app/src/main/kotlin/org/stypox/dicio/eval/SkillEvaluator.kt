@@ -8,6 +8,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -181,12 +182,20 @@ class SkillEvaluatorImpl(
     }
 
     /** Reads the chats that ended for facts worth remembering, giving way to anything the person asks. */
+    private var learning: Job? = null
+
     private fun learnFromFinishedChats() {
-        scope.launch {
+        learning?.cancel()
+        learning = scope.launch {
             delay(LEARN_DELAY_MILLIS)
             if (skillContext.android.isLocked()) return@launch
             memoryLearner.learn(_chatId.value) { _state.value.pendingQuestion != null }
         }
+    }
+
+    /** Nano takes one request at a time: the person's question goes first, the chat is read another time. */
+    private fun stopLearning() {
+        learning?.cancel()
     }
 
     /** Saves the conversation so far, as words and images: the cards themselves can't outlive the app. */
@@ -244,6 +253,7 @@ class SkillEvaluatorImpl(
 
     override fun processImage(image: Bitmap) {
         briefOnSilence = false
+        stopLearning()
         scope.launch {
             _state.value = _state.value.copy(
                 pendingQuestion = PendingQuestion(
@@ -270,7 +280,10 @@ class SkillEvaluatorImpl(
     }
 
     override fun processInputEvent(event: InputEvent) {
-        if (event is InputEvent.Final || event is InputEvent.Partial) briefOnSilence = false
+        if (event is InputEvent.Final || event is InputEvent.Partial) {
+            briefOnSilence = false
+            stopLearning()
+        }
         scope.launch {
             suspendProcessInputEvent(event)
         }
@@ -468,7 +481,8 @@ class SkillEvaluatorImpl(
         ) {
             return Pair(input, confirmGuess(rewritten, match, yesNo))
         }
-        val skill = LocalBrainSkill(localBrain, recent, ScreenContext.snapshot.value) { question ->
+        val talk = if (skillContext.android.isLocked()) listOf() else recentTurns(talkOnly = true)
+        val skill = LocalBrainSkill(localBrain, talk, ScreenContext.snapshot.value) { question ->
             if (skillContext.android.isLocked()) listOf() else memory.relevantTo(question, System.currentTimeMillis())
         }
         return Pair(input, match ?: skill.scoreAndWrapResult(skillContext, input))
@@ -521,14 +535,19 @@ class SkillEvaluatorImpl(
             _state.value = _state.value.copy(
                 pendingQuestion = _state.value.pendingQuestion?.copy(skillBeingEvaluated = LocalBrainInfo)
             )
-            LocalBrainSkill(localBrain, recentTurns(), screen)
+            LocalBrainSkill(localBrain, recentTurns(talkOnly = true), screen)
         } else {
             return null
         }
         return Pair(input, skill.scoreAndWrapResult(skillContext, input))
     }
 
-    private fun recentTurns(): List<LocalBrain.Turn> = _state.value.interactions
+    /**
+     * The last few exchanges; [talkOnly] leaves out commands' results, which Nano otherwise
+     * repeats as its own answer ("I could not calculate your request" to "suggest places").
+     */
+    private fun recentTurns(talkOnly: Boolean = false): List<LocalBrain.Turn> = _state.value.interactions
+        .filter { !talkOnly || ChatHistory.isConversation(it.skill?.id) }
         .flatMap { it.questionsAnswers }
         .takeLast(RECENT_TURNS)
         .mapNotNull { qa ->
@@ -578,8 +597,8 @@ class SkillEvaluatorImpl(
         private const val IDLE_BRIEF_DELAY_MILLIS = 1_500L
         // half an hour away and it's a new conversation
         private const val SESSION_GAP_MILLIS = 30 * 60_000L
-        // a moment for the screen to settle before Nano is kept busy
-        private const val LEARN_DELAY_MILLIS = 3_000L
+        // only once the person seems done for now; anything they say cancels it (stopLearning)
+        private const val LEARN_DELAY_MILLIS = 10_000L
         // reopening the app a minute later shouldn't stack up the same brief
         private const val IDLE_BRIEF_EVERY_MILLIS = 10 * 60_000L
         // the time, a timer or the torch is fine from the lock screen; calls, messages, switches

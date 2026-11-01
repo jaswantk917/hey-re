@@ -82,6 +82,19 @@ class GeminiNanoBrain : LocalBrain {
         recent: List<LocalBrain.Turn>,
         screen: ScreenSnapshot?,
         memory: List<String>,
+    ): String? {
+        val reply = answerWith(input, recent, screen, memory)
+        // once a bad answer is in the conversation, Nano tends to repeat it; asked afresh it answers
+        return if (reply != null && recent.any { sameAnswer(it.assistant, reply) }) {
+            answerWith(input, listOf(), screen, memory)
+        } else reply
+    }
+
+    private suspend fun answerWith(
+        input: String,
+        recent: List<LocalBrain.Turn>,
+        screen: ScreenSnapshot?,
+        memory: List<String>,
     ): String? = generate(
         system = """
             You are Hey re, a friendly voice assistant on the person's phone.
@@ -89,15 +102,18 @@ class GeminiNanoBrain : LocalBrain {
             answer is read out loud. Reply in the language the person used: English if they wrote
             English, Hindi if they wrote Hindi, and Hinglish in Roman letters only if they mixed
             Hindi words into their message.
-            You can only talk: you can't set reminders, timers or alarms, send messages or change
-            anything on the phone, so never say you did or will. If asked to, say you couldn't
-            and suggest saying it as a command, like "remind me in 2 hours to bring the clothes".
+            Questions, advice, ideas and recommendations (places to visit, movies, what to cook)
+            you answer yourself, directly and helpfully.
+            You can't act on the phone: set reminders, timers or alarms, send messages or change
+            settings, so never say you did or will. Only when they ask you to do one of those,
+            say you couldn't and suggest saying it as a command, like "remind me in 2 hours to
+            bring the clothes".
         """.trimIndent() + memoryContext(memory) + screen?.let { "\n\n" + screenContext(it) }.orEmpty(),
         prompt = withHistory(input, recent),
         image = screen?.takeIf { it.text.length < MIN_SCREEN_TEXT }?.screenshot,
         temperature = ANSWER_TEMPERATURE,
         maxTokens = ANSWER_TOKENS,
-    )?.trim()?.takeIf { it.isNotEmpty() }
+    )?.let(::cleanAnswer)
 
     override suspend fun summarizeScreen(screen: ScreenSnapshot): String? {
         val useText = screen.text.length >= MIN_SCREEN_TEXT
@@ -280,6 +296,20 @@ internal fun memoryContext(memory: List<String>): String = if (memory.isEmpty())
     appendLine(" the answer, and never list it back to them:")
     memory.forEach { appendLine("- $it") }
 }.trimEnd()
+
+/**
+ * The reply without the "You:" it sometimes starts with, copying the conversation's labels
+ * ([withHistory]); null when nothing is left.
+ */
+internal fun cleanAnswer(reply: String): String? =
+    reply.trim().replace(Regex("^((you|hey re|assistant)\\s*:\\s*)+", RegexOption.IGNORE_CASE), "").trim()
+        .takeIf { it.isNotEmpty() }
+
+/** The same answer give or take case, spaces and punctuation. */
+internal fun sameAnswer(a: String, b: String): Boolean {
+    fun plain(text: String) = text.lowercase().filter { it.isLetterOrDigit() }
+    return plain(cleanAnswer(a) ?: a) == plain(b)
+}
 
 /** The screen's text as the model sees it, with the app it came from. */
 internal fun screenContext(screen: ScreenSnapshot): String = buildString {

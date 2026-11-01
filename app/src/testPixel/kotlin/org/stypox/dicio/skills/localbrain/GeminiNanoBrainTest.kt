@@ -48,6 +48,18 @@ class GeminiNanoBrainTest : StringSpec({
         withHistory("what time is it", listOf()) shouldBe "what time is it"
     }
 
+    "the label it copies from the conversation is taken off" {
+        cleanAnswer("You: I am sorry, I couldn't help.") shouldBe "I am sorry, I couldn't help."
+        cleanAnswer("you : You: Try Goa in winter.") shouldBe "Try Goa in winter."
+        cleanAnswer("Your best bet is Goa.") shouldBe "Your best bet is Goa."
+        cleanAnswer("You:") shouldBe null
+    }
+
+    "a repeat of an earlier answer is caught, label or not" {
+        sameAnswer("You: I couldn't calculate your request.", "I couldn't calculate your request") shouldBe true
+        sameAnswer("Try Goa in winter.", "Try Manali in summer.") shouldBe false
+    }
+
     "the screen goes in with the app it came from" {
         screenContext(ScreenSnapshot("com.whatsapp", "WhatsApp", "Maa: khana kha liya?")) shouldBe
             "What is on their screen right now (in WhatsApp), for when they ask about \"this\" or the screen:\n" +

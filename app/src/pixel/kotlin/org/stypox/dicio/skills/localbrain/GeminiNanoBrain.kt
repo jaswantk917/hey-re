@@ -65,7 +65,9 @@ class GeminiNanoBrain : LocalBrain {
                 Use the conversation so far to fill in what the person leaves out: after
                 "Should I call Maa?", "haan karo" means "call Maa".
                 Greetings, thanks and small talk ("hello", "how are you", "thank you") are not
-                commands, and neither is anything only loosely related to a command: reply NONE.
+                commands, nor are questions asking for advice, ideas or recommendations ("which
+                movie should I watch", "what should I cook"), nor anything only loosely related to
+                a command: reply NONE.
                 If none of them fits, reply with exactly NONE.
             """.trimIndent(),
             prompt = withHistory(input, recent),

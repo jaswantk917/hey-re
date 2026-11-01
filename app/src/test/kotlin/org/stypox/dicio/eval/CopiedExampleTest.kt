@@ -44,4 +44,11 @@ class CopiedExampleTest : StringSpec({
         SkillEvaluatorImpl.mentionsLight("yahan bahut andhera hai") shouldBe true
         SkillEvaluatorImpl.mentionsLight("phone ki light jalao") shouldBe true
     }
+
+    "media is only guessed when playback was asked for" {
+        SkillEvaluatorImpl.mentionsMediaControl("which movie should i watch") shouldBe false
+        SkillEvaluatorImpl.mentionsMediaControl("can you suggest me some movies to watch") shouldBe false
+        SkillEvaluatorImpl.mentionsMediaControl("ye gaana aage badhao, agla lagao") shouldBe true
+        SkillEvaluatorImpl.mentionsMediaControl("video rok do") shouldBe true
+    }
 })

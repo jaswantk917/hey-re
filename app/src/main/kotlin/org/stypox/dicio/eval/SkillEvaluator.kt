@@ -461,6 +461,7 @@ class SkillEvaluatorImpl(
             ?.takeUnless { flipsOnOff(it, Hinglish.romanize(input)) }
         val match = rewritten?.let { findBestMatch(listOf(it)) }?.second
             ?.takeUnless { it.skill.correspondingSkillInfo.id == "flashlight" && !mentionsLight(Hinglish.romanize(input)) }
+            ?.takeUnless { it.skill.correspondingSkillInfo.id == "media" && !mentionsMediaControl(Hinglish.romanize(input)) }
         val yesNo = Sentences.UtilYesNo[skillContext.sentencesLanguage]
         if (rewritten != null && match != null && yesNo != null &&
             match.skill.correspondingSkillInfo.id in ACTING_SKILLS
@@ -623,6 +624,14 @@ class SkillEvaluatorImpl(
         /** Nano has heard "ek selfie lo" as "Torch jala do"; the torch is only for asking about a light. */
         internal fun mentionsLight(input: String) = words(input).any { it in LIGHT_WORDS }
 
+        /** Nano has heard "which movie should I watch" as "play the next movie"; media is for playback words. */
+        internal fun mentionsMediaControl(input: String) = words(input).any { it in MEDIA_CONTROL_WORDS }
+
+        private val MEDIA_CONTROL_WORDS = setOf(
+            "play", "pause", "resume", "unpause", "next", "skip", "previous", "replay", "rewind", "stop",
+            "chalao", "chala", "bajao", "baja", "lagao", "laga", "rok", "roko", "ruk", "agla", "aglaa",
+            "pichla", "pichhla", "band",
+        )
         private val LIGHT_WORDS = setOf("torch", "flash", "flashlight", "light", "lite", "roshni", "batti", "andhera")
         private val ON_WORDS = setOf("on", "chalu", "chala", "chalao", "jala", "jalao", "start")
         private val OFF_WORDS = setOf("off", "band", "bujha", "bujhao", "stop")

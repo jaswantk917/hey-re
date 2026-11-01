@@ -186,6 +186,9 @@ private fun MainSettingsScreen(
                             viewModel::setSpeakAnswers,
                         )
                     },
+                    if (settings.speechOutputDevice != SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_NOTHING) {
+                        { TtsVoiceSetting(settings.ttsVoice, viewModel::setTtsVoice) }
+                    } else null,
                     { MemorySetting(viewModel) },
                 ),
             )

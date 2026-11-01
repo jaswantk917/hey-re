@@ -32,15 +32,15 @@ class SpeechOutputDeviceWrapper @Inject constructor(
         scope.launch {
             dataStore.data
                 .combine(localeManager.locale) { userSettings, locale ->
-                    Pair(userSettings.speechOutputDevice != SPEECH_OUTPUT_DEVICE_NOTHING, locale)
+                    Triple(userSettings.speechOutputDevice != SPEECH_OUTPUT_DEVICE_NOTHING, locale, userSettings.ttsVoice)
                 }
                 .distinctUntilChanged()
-                .collect { (speaks, locale) ->
+                .collect { (speaks, locale, voiceName) ->
                     // TODO avoid using locale here, but delegate listening to locale changes to
                     //  AndroidTtsSpeechDevice, or in alternative make it so that
                     //  SttInputDeviceWrapper works the same way
                     val prevDevice = wrappedSpeechDevice
-                    wrappedSpeechDevice = if (speaks) AndroidTtsSpeechDevice(context, locale) else NothingSpeechDevice()
+                    wrappedSpeechDevice = if (speaks) AndroidTtsSpeechDevice(context, locale, voiceName) else NothingSpeechDevice()
                     prevDevice.cleanup()
                 }
         }

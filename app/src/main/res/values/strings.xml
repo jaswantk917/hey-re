@@ -561,6 +561,11 @@
     <string name="pref_memory_add_hint">e.g. My sister lives in Pune</string>
     <string name="pref_memory_save">Save</string>
     <string name="pref_memory_compact">Compact</string>
+    <string name="pref_memory_import">Import</string>
+    <string name="pref_memory_import_explanation">Paste notes about yourself, or what another assistant remembers about you. Gemini Nano turns them into facts on this phone.</string>
+    <string name="pref_memory_import_hint">My sister lives in Pune. I work night shifts on weekends…</string>
+    <string name="pref_memory_import_confirm">Read it</string>
+    <string name="pref_memory_importing">Reading part %1$d of %2$d…</string>
     <string name="pref_memory_compacting">Merging duplicates…</string>
     <string name="pref_memory_compacted">Merged %1$d facts into %2$d</string>
     <plurals name="pref_memory_learn">

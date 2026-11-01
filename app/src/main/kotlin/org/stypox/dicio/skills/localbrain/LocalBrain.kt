@@ -65,6 +65,12 @@ interface LocalBrain {
      */
     suspend fun rememberFrom(messages: List<String>, known: List<String>): List<String>?
 
+    /**
+     * Lasting facts from [notes] the person wrote or pasted about themselves (to set up the
+     * memory), leaving out what's [known]; null if the model couldn't run.
+     */
+    suspend fun factsFromNotes(notes: String, known: List<String>): List<String>?
+
     /** [facts] merged into a shorter list, the later one winning where two disagree; null on failure. */
     suspend fun compactMemory(facts: List<String>): List<String>?
 
@@ -85,6 +91,7 @@ object NoLocalBrain : LocalBrain {
     override suspend fun summarizeArticle(article: Article.Page): String? = null
     override suspend fun describeImage(image: Bitmap, text: String?): String? = null
     override suspend fun rememberFrom(messages: List<String>, known: List<String>): List<String>? = null
+    override suspend fun factsFromNotes(notes: String, known: List<String>): List<String>? = null
     override suspend fun compactMemory(facts: List<String>): List<String>? = null
 }
 

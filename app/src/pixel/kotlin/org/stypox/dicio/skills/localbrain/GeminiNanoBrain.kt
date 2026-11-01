@@ -172,6 +172,29 @@ class GeminiNanoBrain : LocalBrain {
         maxTokens = MEMORY_TOKENS,
     )?.let { Memory.parseFacts(it, MAX_LEARNED) }
 
+    override suspend fun factsFromNotes(notes: String, known: List<String>): List<String>? = generate(
+        system = """
+            The person is setting up their voice assistant's memory with notes about themselves,
+            or with what another assistant remembered about them. Turn the notes into short,
+            lasting facts about them: the people in their life and how they're related, places,
+            work, routines, preferences, things they own, dates. One fact per line, in English,
+            about "they", keeping names, places and numbers exactly as written. Leave out
+            instructions about how to reply, anything already known, and anything not in the
+            notes. Never guess. If there's nothing to keep, reply with exactly NONE.
+        """.trimIndent(),
+        prompt = buildString {
+            if (known.isNotEmpty()) {
+                appendLine("Already known:")
+                known.forEach { appendLine("- $it") }
+                appendLine()
+            }
+            appendLine("Their notes:")
+            append(notes)
+        },
+        temperature = 0f,
+        maxTokens = NOTES_TOKENS,
+    )?.let { Memory.parseFacts(it, MAX_FROM_NOTES) }
+
     override suspend fun compactMemory(facts: List<String>): List<String>? = generate(
         system = """
             Below is everything a voice assistant remembers about the person, oldest first.
@@ -233,6 +256,8 @@ class GeminiNanoBrain : LocalBrain {
         private const val MAX_LEARNED = 3
         private const val MEMORY_TOKENS = 100
         private const val COMPACT_TOKENS = 900
+        private const val MAX_FROM_NOTES = 12
+        private const val NOTES_TOKENS = 450
     }
 }
 

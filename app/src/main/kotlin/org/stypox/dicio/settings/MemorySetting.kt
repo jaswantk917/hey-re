@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoFixHigh
+import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Psychology
 import androidx.compose.material.icons.outlined.School
@@ -78,6 +79,7 @@ fun MemorySetting(viewModel: MainSettingsViewModel) {
     // the fact being edited, or a blank one being added
     var editing by remember { mutableStateOf<Fact?>(null) }
     var adding by rememberSaveable { mutableStateOf(false) }
+    var importing by rememberSaveable { mutableStateOf(false) }
     val haptics = rememberHaptics()
 
     SettingsItem(
@@ -148,6 +150,17 @@ fun MemorySetting(viewModel: MainSettingsViewModel) {
                 Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.padding(end = 6.dp))
                 Text(stringResource(R.string.pref_memory_add))
             }
+            OutlinedButton(
+                onClick = {
+                    haptics.play(Haptic.Tap)
+                    importing = true
+                },
+                enabled = !work.isRunning,
+                shapes = ButtonDefaults.shapes(),
+            ) {
+                Icon(Icons.Outlined.ContentPaste, contentDescription = null, modifier = Modifier.padding(end = 6.dp))
+                Text(stringResource(R.string.pref_memory_import))
+            }
         }
         WorkStatus(work)
 
@@ -194,6 +207,15 @@ fun MemorySetting(viewModel: MainSettingsViewModel) {
             onDismiss = { editing = null },
         )
     }
+    if (importing) {
+        ImportDialog(
+            onImport = {
+                viewModel.importMemory(it)
+                importing = false
+            },
+            onDismiss = { importing = false },
+        )
+    }
     if (adding) {
         FactDialog(
             initial = "",
@@ -212,7 +234,9 @@ fun MemorySetting(viewModel: MainSettingsViewModel) {
 private fun WorkStatus(work: MemoryWork) {
     val haptics = rememberHaptics()
     LaunchedEffect(work) {
-        if (work is MemoryWork.Learned || work is MemoryWork.Compacted) haptics.play(Haptic.Success)
+        if (work is MemoryWork.Learned || work is MemoryWork.Compacted || work is MemoryWork.Imported) {
+            haptics.play(Haptic.Success)
+        }
     }
     AnimatedVisibility(
         visible = work != MemoryWork.Idle,
@@ -228,6 +252,9 @@ private fun WorkStatus(work: MemoryWork) {
                     is MemoryWork.Learned -> if (work.facts == 0) stringResource(R.string.pref_memory_learned_nothing)
                     else pluralStringResource(R.plurals.pref_memory_learned, work.facts, work.facts)
                     is MemoryWork.Compacted -> stringResource(R.string.pref_memory_compacted, work.before, work.after)
+                    is MemoryWork.Importing -> stringResource(R.string.pref_memory_importing, work.done + 1, work.total)
+                    is MemoryWork.Imported -> if (work.facts == 0) stringResource(R.string.pref_memory_learned_nothing)
+                    else pluralStringResource(R.plurals.pref_memory_learned, work.facts, work.facts)
                     MemoryWork.NotNow -> stringResource(R.string.pref_memory_not_now)
                     MemoryWork.Idle -> ""
                 },
@@ -290,6 +317,42 @@ private fun FactRow(
             )
         }
     }
+}
+
+/** A big box to paste notes about yourself, or another assistant's memory, into. */
+@Composable
+private fun ImportDialog(onImport: (String) -> Unit, onDismiss: () -> Unit) {
+    var text by rememberSaveable { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.pref_memory_import)) },
+        text = {
+            Column {
+                Text(
+                    text = stringResource(R.string.pref_memory_import_explanation),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 12.dp),
+                )
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    placeholder = { Text(stringResource(R.string.pref_memory_import_hint)) },
+                    minLines = 6,
+                    maxLines = 12,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onImport(text) }, enabled = text.isNotBlank()) {
+                Text(stringResource(R.string.pref_memory_import_confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) }
+        },
+    )
 }
 
 @Composable

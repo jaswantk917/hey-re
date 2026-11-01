@@ -79,3 +79,21 @@ class MemoryTest : StringSpec({
         dir.deleteRecursively()
     }
 })
+
+class MemoryChunksTest : StringSpec({
+    "notes are cut at line breaks into parts that fit" {
+        val notes = "My sister lives in Pune.\n\nI like tea.\nI work weekends."
+        Memory.chunks(notes, 30) shouldBe listOf("My sister lives in Pune.", "I like tea.\nI work weekends.")
+    }
+
+    "a long line is cut at sentences, and nothing is lost" {
+        val line = "First sentence here. Second one is here. Third."
+        val parts = Memory.chunks(line, 25)
+        parts.forEach { (it.length <= 25) shouldBe true }
+        parts.joinToString(" ").replace("\n", " ") shouldBe line
+    }
+
+    "empty notes have no parts" {
+        Memory.chunks("  \n\n ", 100) shouldBe listOf()
+    }
+})

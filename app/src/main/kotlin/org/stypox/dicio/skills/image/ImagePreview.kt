@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,6 +51,8 @@ fun ImagePreview(image: Bitmap, description: String?, firstShow: Boolean) {
         contentDescription = description,
         contentScale = ContentScale.Crop,
         modifier = Modifier
+            // lined up with the answer's text below, and clear of the card's header above
+            .padding(start = 6.dp, end = 6.dp, top = 6.dp)
             .fillMaxWidth()
             .aspectRatio((image.width.toFloat() / image.height).coerceIn(MIN_RATIO, MAX_RATIO))
             .graphicsLayer {
@@ -57,7 +60,7 @@ fun ImagePreview(image: Bitmap, description: String?, firstShow: Boolean) {
                 scaleY = appear.value
                 alpha = ((appear.value - 0.9f) * 10f).coerceIn(0f, 1f)
             }
-            .clip(RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(20.dp))
             .clickable {
                 haptics.play(Haptic.Tap)
                 open = true

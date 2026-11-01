@@ -25,6 +25,7 @@ private class FakeBrain(private val failAfter: Int = Int.MAX_VALUE) : LocalBrain
         readMessages += messages
         return listOf("They said: ${messages.first()}")
     }
+    override suspend fun factsFromNotes(notes: String, known: List<String>) = notes.lines().map { "They said: $it" }
     override suspend fun compactMemory(facts: List<String>) = facts.take(facts.size - 1)
 }
 
@@ -79,5 +80,23 @@ class MemoryLearnerTest : StringSpec({
         memory.facts.value.size shouldBe 1
         memory.edit(memory.facts.value[0], "They prefer coffee now.")
         memory.facts.value.map { it.text } shouldBe listOf("They prefer coffee now.")
+    }
+})
+
+class MemoryImportTest : StringSpec({
+    "pasted notes become facts a part at a time" {
+        val dir = Files.createTempDirectory("import").toFile().also { it.deleteOnExit() }
+        val memory = Memory(dir.resolve("memory"))
+        val learner = MemoryLearner(memory, ChatHistory(dir.resolve("history")), FakeBrain())
+        val parts = mutableListOf<Pair<Int, Int>>()
+        val notes = (1..200).joinToString("\n") { "Line number $it about me." }
+
+        val result = learner.import(notes) { done, total -> parts += done to total }
+
+        // past the cap older facts make way, then the long list is merged: the count is what's kept
+        (result as MemoryLearner.Result.Learned).facts shouldBe memory.facts.value.size
+        (memory.facts.value.size <= Memory.MAX_FACTS) shouldBe true
+        parts.first() shouldBe (0 to parts.size)
+        (parts.size > 1) shouldBe true
     }
 })

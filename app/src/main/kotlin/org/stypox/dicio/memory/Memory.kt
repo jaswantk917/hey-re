@@ -78,6 +78,15 @@ class Memory(private val dir: File) {
         fresh.size
     }
 
+    /** Facts from the person's imported notes; how many were new. */
+    suspend fun addAll(texts: List<String>, now: Long): Int = lock.withLock {
+        loadLocked()
+        val known = _facts.value.map { normalized(it.text) }.toMutableSet()
+        val fresh = texts.filter { known.add(normalized(it)) }.map { Fact(it, null, now) }
+        write(capped(_facts.value + fresh))
+        fresh.size
+    }
+
     /** A fact the person wrote themselves, in Settings. */
     suspend fun add(text: String, now: Long) = lock.withLock {
         loadLocked()
@@ -172,6 +181,29 @@ class Memory(private val dir: File) {
             .toSet()
 
         private fun normalized(text: String) = text.lowercase().filter { it.isLetterOrDigit() }
+
+        /**
+         * [text] cut at line breaks (or sentences, for a long line) into parts of at most
+         * [maxChars], each small enough for Nano to read beside what it already knows.
+         */
+        internal fun chunks(text: String, maxChars: Int): List<String> {
+            val pieces = text.lines().map { it.trim() }.filter { it.isNotEmpty() }.flatMap { line ->
+                if (line.length <= maxChars) listOf(line)
+                else line.split(Regex("(?<=[.!?।])\\s+")).flatMap { it.chunked(maxChars) }
+            }
+            val parts = mutableListOf<String>()
+            val current = StringBuilder()
+            for (piece in pieces) {
+                if (current.isNotEmpty() && current.length + 1 + piece.length > maxChars) {
+                    parts += current.toString()
+                    current.clear()
+                }
+                if (current.isNotEmpty()) current.append('\n')
+                current.append(piece)
+            }
+            if (current.isNotEmpty()) parts += current.toString()
+            return parts
+        }
 
         /** Over [MAX_FACTS], the ones used least recently go first. */
         internal fun capped(facts: List<Fact>): List<Fact> =

@@ -75,6 +75,19 @@ class MainSettingsViewModel @Inject constructor(
         }
     }
 
+    fun importMemory(notes: String) {
+        if (_memoryWork.value.isRunning || notes.isBlank()) return
+        viewModelScope.launch {
+            _memoryWork.value = MemoryWork.Importing(0, 1)
+            val result = memoryLearner.import(notes) { done, total -> _memoryWork.value = MemoryWork.Importing(done, total) }
+            _memoryWork.value = when (result) {
+                is MemoryLearner.Result.Learned -> MemoryWork.Imported(result.facts)
+                is MemoryLearner.Result.Interrupted -> MemoryWork.Imported(result.facts, finished = false)
+                MemoryLearner.Result.NoModel, MemoryLearner.Result.Busy -> MemoryWork.NotNow
+            }
+        }
+    }
+
     fun compactMemory() {
         if (_memoryWork.value.isRunning) return
         viewModelScope.launch {
@@ -124,6 +137,8 @@ class MainSettingsViewModel @Inject constructor(
         updateData { it.setTopBarBlur(value) }
     fun setWakeDevice(value: WakeDevice) =
         updateData { it.setWakeDevice(value) }
+    fun setTtsVoice(value: String) =
+        updateData { it.setTtsVoice(value) }
     fun setSpeakAnswers(value: Boolean) = updateData {
         it.setSpeechOutputDevice(
             if (value) SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_ANDROID_TTS else SpeechOutputDevice.SPEECH_OUTPUT_DEVICE_NOTHING
@@ -138,8 +153,10 @@ sealed interface MemoryWork {
     data object Compacting : MemoryWork
     data class Learned(val chats: Int, val facts: Int, val finished: Boolean = true) : MemoryWork
     data class Compacted(val before: Int, val after: Int) : MemoryWork
+    data class Importing(val done: Int, val total: Int) : MemoryWork
+    data class Imported(val facts: Int, val finished: Boolean = true) : MemoryWork
     // Nano isn't ready, or is busy with something else
     data object NotNow : MemoryWork
 
-    val isRunning get() = this == Learning || this == Compacting
+    val isRunning get() = this == Learning || this == Compacting || this is Importing
 }

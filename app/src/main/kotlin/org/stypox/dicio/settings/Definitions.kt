@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Hearing
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.filled.InvertColors
 import androidx.compose.material.icons.filled.Language
@@ -14,6 +15,7 @@ import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import org.stypox.dicio.R
+import org.stypox.dicio.settings.datastore.InputDevice
 import org.stypox.dicio.settings.datastore.Language
 import org.stypox.dicio.settings.datastore.Theme
 import org.stypox.dicio.settings.datastore.WakeDevice
@@ -120,6 +122,25 @@ fun wakeDevice() = ListSetting(
             name = stringResource(R.string.pref_wake_method_disabled),
         )
     )
+)
+
+@Composable
+fun speechRecognizer() = ListSetting(
+    title = stringResource(R.string.pref_speech_recognizer_title),
+    icon = Icons.Default.Mic,
+    description = stringResource(R.string.pref_speech_recognizer_summary),
+    possibleValues = listOf(
+        ListSetting.Value(
+            value = InputDevice.INPUT_DEVICE_UNSET,
+            name = stringResource(R.string.pref_speech_recognizer_phone),
+            description = stringResource(R.string.pref_speech_recognizer_phone_summary),
+        ),
+        ListSetting.Value(
+            value = InputDevice.INPUT_DEVICE_SHRUTI,
+            name = stringResource(R.string.pref_speech_recognizer_shruti),
+            description = stringResource(R.string.pref_speech_recognizer_shruti_summary),
+        ),
+    ),
 )
 
 @Composable

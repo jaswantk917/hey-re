@@ -1,5 +1,7 @@
 package org.stypox.dicio.settings
 
+import org.stypox.dicio.io.input.shruti.ShrutiSttInputDevice
+import org.stypox.dicio.settings.datastore.InputDevice
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -148,6 +150,17 @@ private fun MainSettingsScreen(
                 index = 2,
                 title = stringResource(R.string.pref_listening),
                 rows = listOfNotNull(
+                    if (ShrutiSttInputDevice.isAvailable()) {
+                        {
+                            speechRecognizer().Render(
+                                if (settings.inputDevice == InputDevice.INPUT_DEVICE_SHRUTI) InputDevice.INPUT_DEVICE_SHRUTI
+                                else InputDevice.INPUT_DEVICE_UNSET,
+                                viewModel::setInputDevice,
+                            )
+                        }
+                    } else {
+                        null
+                    },
                     { wakeDevice().Render(wakeDevice, viewModel::setWakeDevice) },
                     if (wakeDevice == WakeDevice.WAKE_DEVICE_OWW) {
                         {

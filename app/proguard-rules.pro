@@ -19,3 +19,6 @@
 
 # Shell.run reaches Shizuku.newProcess by reflection
 -keep class rikka.shizuku.** { *; }
+
+# Shruti's JNI functions are looked up by class and method name
+-keep class org.stypox.dicio.io.input.shruti.Needle { *; }

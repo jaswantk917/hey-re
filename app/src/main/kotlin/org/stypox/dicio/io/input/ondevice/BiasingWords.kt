@@ -15,15 +15,16 @@ import kotlinx.coroutines.withContext
  * going only to the on-device recognizer.
  */
 object BiasingWords {
-    suspend fun gather(context: Context): ArrayList<String> = withContext(Dispatchers.IO) {
-        words(contacts(context), apps(context))
+    // Shruti writes Hindi in Devanagari, so Hey re's romanised words would only mislead it
+    suspend fun gather(context: Context, withCommands: Boolean = true): ArrayList<String> = withContext(Dispatchers.IO) {
+        words(contacts(context), apps(context), withCommands)
     }
 
     /** Hey re's words first, then contacts, then apps, each once, up to [MAX_WORDS]. */
-    internal fun words(contacts: List<String>, apps: List<String>): ArrayList<String> {
+    internal fun words(contacts: List<String>, apps: List<String>, withCommands: Boolean = true): ArrayList<String> {
         val seen = mutableSetOf<String>()
         val firstNames = contacts.mapNotNull { it.split(' ').firstOrNull()?.takeIf { first -> first != it } }
-        return (COMMAND_WORDS + contacts + firstNames + apps)
+        return ((if (withCommands) COMMAND_WORDS else listOf()) + contacts + firstNames + apps)
             .map { it.trim() }
             .filter { it.length in MIN_CHARS..MAX_CHARS && seen.add(it.lowercase()) }
             .take(MAX_WORDS)

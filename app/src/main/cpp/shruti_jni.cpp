@@ -1,0 +1,84 @@
+// JNI bridge to the needle engine running the Shruti speech model (ShrutiSttInputDevice).
+// needle is process-global and not thread-safe: Kotlin calls all of this from one thread.
+
+#include <jni.h>
+#include <cstring>
+#include <string>
+#include <vector>
+#include "needle.h"
+
+namespace {
+
+constexpr int OUT_CAPACITY = 64 * 1024;
+
+std::string text(JNIEnv* env, jstring value) {
+    if (value == nullptr) return {};
+    const char* chars = env->GetStringUTFChars(value, nullptr);
+    std::string result(chars);
+    env->ReleaseStringUTFChars(value, chars);
+    return result;
+}
+
+// needle answers in UTF-8 JSON, which NewStringUTF can't take whole (it wants modified UTF-8,
+// and Devanagari is fine but emoji or a stray byte would not be): go through a Java String
+jstring json(JNIEnv* env, const std::vector<char>& out) {
+    const auto length = static_cast<jsize>(strnlen(out.data(), out.size()));
+    jbyteArray bytes = env->NewByteArray(length);
+    env->SetByteArrayRegion(bytes, 0, length, reinterpret_cast<const jbyte*>(out.data()));
+    jclass stringClass = env->FindClass("java/lang/String");
+    jmethodID constructor = env->GetMethodID(stringClass, "<init>", "([BLjava/lang/String;)V");
+    return static_cast<jstring>(env->NewObject(stringClass, constructor, bytes, env->NewStringUTF("UTF-8")));
+}
+
+jstring failure(JNIEnv* env) {
+    const char* error = needle_last_error();
+    return env->NewStringUTF(error != nullptr ? error : "needle failed");
+}
+
+}  // namespace
+
+extern "C" {
+
+// the model bytes must outlive the engine, so they come in a direct buffer Kotlin never frees
+JNIEXPORT jint JNICALL
+Java_org_stypox_dicio_io_input_shruti_Needle_load(JNIEnv* env, jobject, jobject model) {
+    auto* bytes = static_cast<const unsigned char*>(env->GetDirectBufferAddress(model));
+    return needle_load(bytes, static_cast<unsigned long long>(env->GetDirectBufferCapacity(model)));
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_stypox_dicio_io_input_shruti_Needle_lastError(JNIEnv* env, jobject) {
+    return failure(env);
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_stypox_dicio_io_input_shruti_Needle_transcribe(
+    JNIEnv* env, jobject, jfloatArray pcm, jint samples, jstring keywords) {
+    std::vector<char> out(OUT_CAPACITY, 0);
+    const std::string words = text(env, keywords);
+    jfloat* audio = env->GetFloatArrayElements(pcm, nullptr);
+    const int result = needle_transcribe(
+        audio, samples, nullptr, words.empty() ? nullptr : words.c_str(), 0, out.data(), OUT_CAPACITY);
+    env->ReleaseFloatArrayElements(pcm, audio, JNI_ABORT);
+    return result < 0 ? nullptr : json(env, out);
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_stypox_dicio_io_input_shruti_Needle_streamProcess(
+    JNIEnv* env, jobject, jfloatArray pcm, jint samples, jstring keywords) {
+    std::vector<char> out(OUT_CAPACITY, 0);
+    const std::string words = text(env, keywords);
+    jfloat* audio = env->GetFloatArrayElements(pcm, nullptr);
+    const int result = needle_stream_transcribe_process(
+        audio, samples, nullptr, words.empty() ? nullptr : words.c_str(), out.data(), OUT_CAPACITY);
+    env->ReleaseFloatArrayElements(pcm, audio, JNI_ABORT);
+    return result < 0 ? nullptr : json(env, out);
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_stypox_dicio_io_input_shruti_Needle_streamStop(JNIEnv* env, jobject) {
+    std::vector<char> out(OUT_CAPACITY, 0);
+    return needle_stream_transcribe_stop(out.data(), OUT_CAPACITY) < 0 ? nullptr : json(env, out);
+}
+
+}  // extern "C"

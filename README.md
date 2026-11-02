@@ -68,8 +68,10 @@ Android 16 lets apps publish tools for assistants ("app functions"): Find Hub pu
 
 | Flavor | For | Speech to text |
 |---|---|---|
-| `pixel` | Pixel 9 and newer (arm64), with Gemini Nano | Android's on-device recognizer, Vosk as a fallback |
-| `foss` | Any Android 8+ phone, no Google AI | [Vosk](https://github.com/alphacep/vosk-api/) (~50 MB model, downloaded when first needed) |
+| `pixel` | Pixel 9 and newer (arm64), with Gemini Nano | Android's on-device recognizer, Vosk as a fallback; or Shruti |
+| `foss` | Any Android 8+ phone, no Google AI | [Vosk](https://github.com/alphacep/vosk-api/) (~50 MB model, downloaded when first needed); or Shruti on arm64 |
+
+Both builds bundle [Shruti](https://huggingface.co/udgamlabs/Shruti) (30 MB), a speech model for Hindi, English and Hinglish, run by the [needle engine](https://huggingface.co/Cactus-Compute/needle3) on arm64 phones. Pick it under Settings → Listening → Speech recognizer.
 
 ```sh
 ./gradlew :app:assemblePixelRelease   # app/build/outputs/apk/pixel/release/
@@ -95,5 +97,7 @@ Speech is recognized on the phone, and Gemini Nano runs on the phone. Steps, tas
 ## Credits and license
 
 Hey re is built on [Dicio](https://github.com/Stypox/dicio-android) by Stypox and its contributors, together with [dicio-sentences-compiler](https://github.com/Stypox/dicio-sentences-compiler) and [dicio-numbers](https://github.com/Stypox/dicio-numbers). To contribute to Dicio itself (translations, new skills), see [its documentation](https://dicio.stypox.org/).
+
+Speech recognition can use Udgam Labs' [Shruti](https://huggingface.co/udgamlabs/Shruti) model ([NOTICE](app/src/main/assets/shruti/NOTICE)) in Cactus Compute's [needle engine](https://huggingface.co/Cactus-Compute/needle3), both Apache-2.0.
 
 Like Dicio, Hey re is licensed under the [GNU GPL v3](LICENSE).

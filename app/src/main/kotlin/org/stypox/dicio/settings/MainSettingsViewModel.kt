@@ -18,6 +18,7 @@ import org.stypox.dicio.eval.SkillEvaluator
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import org.stypox.dicio.settings.datastore.InputDevice
 import org.stypox.dicio.settings.datastore.Language
 import org.stypox.dicio.settings.datastore.SpeechOutputDevice
 import org.stypox.dicio.settings.datastore.Theme
@@ -137,6 +138,8 @@ class MainSettingsViewModel @Inject constructor(
         updateData { it.setTopBarBlur(value) }
     fun setWakeDevice(value: WakeDevice) =
         updateData { it.setWakeDevice(value) }
+    fun setInputDevice(value: InputDevice) =
+        updateData { it.setInputDevice(value) }
     fun setTtsVoice(value: String) =
         updateData { it.setTtsVoice(value) }
     fun setSpeakAnswers(value: Boolean) = updateData {

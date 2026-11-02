@@ -37,7 +37,22 @@ android {
         testInstrumentationRunner = "org.stypox.dicio.CustomTestRunner"
 
         vectorDrawables.useSupportLibrary = true
+
+        // Shruti's engine is C++ and brings no runtime of its own
+        externalNativeBuild { cmake { arguments += "-DANDROID_STL=c++_static" } }
     }
+
+    ndkVersion = "28.2.13676358"
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
+    }
+
+    // read whole into memory at startup; stored uncompressed it reads faster and the APK
+    // barely grows, since the 4-bit weights don't compress
+    androidResources { noCompress += "cact" }
 
     // the key lives outside the repo; F-Droid signs its own builds
     val releaseKeystore = providers.gradleProperty("HEYRE_KEYSTORE").orNull

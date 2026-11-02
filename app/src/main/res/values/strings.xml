@@ -539,6 +539,12 @@
     <string name="speak_instead">Speak instead</string>
     <string name="send">Send</string>
     <string name="what_i_can_do">What I can do</string>
+    <string name="pref_speech_recognizer_title">Speech recognizer</string>
+    <string name="pref_speech_recognizer_summary">What turns your voice into text. Both stay on the phone</string>
+    <string name="pref_speech_recognizer_phone">Phone\'s own</string>
+    <string name="pref_speech_recognizer_phone_summary">Google\'s recognizer built into the phone</string>
+    <string name="pref_speech_recognizer_shruti">Shruti</string>
+    <string name="pref_speech_recognizer_shruti_summary">Made for Hindi, English and Hinglish, by Udgam Labs. Fully offline, inside Hey re</string>
     <string name="pref_speak_answers_title">Speak answers</string>
     <string name="pref_speak_answers_on">Answers are read aloud on the assistant\'s own volume</string>
     <string name="pref_speak_answers_off">Answers only show on screen</string>

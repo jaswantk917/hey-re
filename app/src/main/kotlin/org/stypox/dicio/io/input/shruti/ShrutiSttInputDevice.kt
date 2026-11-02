@@ -135,6 +135,7 @@ class ShrutiSttInputDevice(
         val endpointer = Endpointer(silencesBeforeStop.value * MILLIS_PER_SILENCE)
         val frame = FloatArray(FRAME_SAMPLES)
         var fed = 0
+        var passEvery = STREAM_SAMPLES
         val committed = StringBuilder()
         var nothingSaid = false
         record.startRecording()
@@ -152,10 +153,14 @@ class ShrutiSttInputDevice(
                 }
                 // what's been said so far, about once a second; the recorder keeps the audio
                 // that arrives meanwhile
-                if (endpointer.speechBegan && heard.size - fed >= STREAM_SAMPLES) {
+                if (endpointer.speechBegan && heard.size - fed >= passEvery) {
                     val passStartedAt = SystemClock.elapsedRealtime()
                     val json = Needle.streamProcess(heard.from(fed), heard.size - fed, LANGUAGE, keywords)
-                    Log.i(TAG, "Live pass over ${heard.size * 1000L / SAMPLE_RATE} ms took ${SystemClock.elapsedRealtime() - passStartedAt} ms")
+                    val passMillis = SystemClock.elapsedRealtime() - passStartedAt
+                    Log.i(TAG, "Live pass over ${heard.size * 1000L / SAMPLE_RATE} ms took $passMillis ms")
+                    // each pass rereads everything said, so passes slow down as it grows; spacing
+                    // them out keeps the recording, and noticing the pause, from falling behind
+                    passEvery = maxOf(STREAM_SAMPLES, (passMillis * 2 * SAMPLE_RATE / 1000).toInt())
                     fed = heard.size
                     if (json != null && !cancelled) {
                         val words = JSONObject(json)

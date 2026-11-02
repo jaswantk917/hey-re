@@ -48,9 +48,9 @@ class OnDeviceSttInputDevice(
     private val scope = CoroutineScope(Dispatchers.Default)
     private var recognizer: SpeechRecognizer? = null
     private var listener: ((InputEvent) -> Unit)? = null
-    // the recognizer sometimes shows words while listening, then ends with an empty result or a
-    // "no match": the user saw what they said, so that's what gets used
-    private var lastPartial: String? = null
+    // the recognizer sometimes shows words while listening, then ends with an empty result or an
+    // error: the user saw what they said, so that's what gets used
+    private var transcript = Transcript()
     // the recognizer gives up ~2s after opening if nobody spoke, too soon to answer "should I
     // call?"; it is quietly restarted until the user speaks, stops it, or MAX_WAIT_MILLIS pass
     private var waitingSince = 0L
@@ -142,7 +142,7 @@ class OnDeviceSttInputDevice(
             recognizer = null
         }
         listener = eventListener
-        lastPartial = null
+        transcript = Transcript()
         speechBegan = false
         stopRequested = false
         retriedBusy = false
@@ -315,29 +315,32 @@ class OnDeviceSttInputDevice(
         override fun onBeginningOfSpeech() {
             Log.i(TAG, "Speech began")
             speechBegan = true
+            if (!stopRequested) _uiState.value = SttState.Listening
         }
 
         override fun onRmsChanged(rmsdB: Float) {}
 
         override fun onBufferReceived(buffer: ByteArray?) {}
 
+        // only a pause: the recognizer keeps listening until the full silence, so it isn't
+        // thinking yet unless the user stopped it
         override fun onEndOfSpeech() {
             Log.i(TAG, "Speech ended")
-            _uiState.value = SttState.WaitingForResult
+            transcript.pause()
+            if (stopRequested) _uiState.value = SttState.WaitingForResult
         }
 
         override fun onPartialResults(partialResults: Bundle?) {
             val best = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 ?.firstOrNull()?.takeIf { it.isNotBlank() } ?: return
-            lastPartial = best
-            listener?.invoke(InputEvent.Partial(best))
+            listener?.invoke(InputEvent.Partial(transcript.partial(best)))
         }
 
         override fun onResults(results: Bundle?) {
             _uiState.value = SttState.Loaded
             val texts = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 ?.filter { it.isNotBlank() }
-            Log.i(TAG, "Results: ${texts?.size} texts, keys=${results?.keySet()}, partial=${lastPartial != null}")
+            Log.i(TAG, "Results: ${texts?.size} texts, keys=${results?.keySet()}, partial=${transcript.heard != null}")
             if (texts.isNullOrEmpty()) {
                 finishWithLastPartialOr(InputEvent.None)
                 return
@@ -349,7 +352,7 @@ class OnDeviceSttInputDevice(
                     texts.mapIndexed { i, text ->
                         // the recognizer reports -1 when it has no confidence to give; keep order
                         val score = scores?.getOrNull(i)?.takeIf { it >= 0f } ?: (1f - i * 0.1f)
-                        Pair(text, score)
+                        Pair(transcript.final(text), score)
                     }
                 )
             )
@@ -359,13 +362,13 @@ class OnDeviceSttInputDevice(
             Log.w(TAG, "Recognition error $error")
             val heardNoWords = error == SpeechRecognizer.ERROR_NO_MATCH ||
                     error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT
-            if (heardNoWords && lastPartial == null && !speechBegan && !stopRequested &&
+            if (heardNoWords && transcript.heard == null && !speechBegan && !stopRequested &&
                 SystemClock.elapsedRealtime() - waitingSince < MAX_WAIT_MILLIS
             ) {
                 recognizer?.startListening(recognizerIntent())
                 return
             }
-            if (heardNoWords && lastPartial != null) {
+            if (transcript.heard != null) {
                 _uiState.value = SttState.Loaded
                 finishWithLastPartialOr(InputEvent.None)
                 return
@@ -417,9 +420,9 @@ class OnDeviceSttInputDevice(
     }
 
     private fun finishWithLastPartialOr(fallback: InputEvent) {
-        val partial = lastPartial
-        lastPartial = null
-        listener?.invoke(if (partial != null) InputEvent.Final(listOf(Pair(partial, 1f))) else fallback)
+        val heard = transcript.heard
+        transcript = Transcript()
+        listener?.invoke(if (heard != null) InputEvent.Final(listOf(Pair(heard, 1f))) else fallback)
     }
 
     class RecognizerException(val code: Int) : Exception("Speech recognizer error $code")

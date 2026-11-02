@@ -9,6 +9,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -114,6 +116,22 @@ class SkillEvaluatorImpl(
 ) : SkillEvaluator {
 
     private val scope = CoroutineScope(Dispatchers.Default)
+    // what was said and shown, one at a time and in order: a late partial or the next question
+    // never rewrites the question still being answered
+    private val inputs = Channel<suspend () -> Unit>(Channel.UNLIMITED).also { inputs ->
+        scope.launch {
+            for (input in inputs) {
+                try {
+                    input()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (throwable: Throwable) {
+                    // never stop listening to what comes next because one input failed
+                    Log.e(TAG, "Could not handle input", throwable)
+                }
+            }
+        }
+    }
     // one at a time and in order, so an older copy of the chat never overwrites a newer one
     private val historyScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
 
@@ -271,7 +289,7 @@ class SkillEvaluatorImpl(
     override fun processImage(image: Bitmap) {
         briefOnSilence = false
         stopLearning()
-        scope.launch {
+        inputs.trySend input@{
             _state.value = _state.value.copy(
                 pendingQuestion = PendingQuestion(
                     userInput = skillContext.android.getString(R.string.skill_image_question),
@@ -287,7 +305,7 @@ class SkillEvaluatorImpl(
                 ImageOutput(image, description, text)
             } catch (e: Exception) {
                 addErrorInteractionFromPending(e)
-                return@launch
+                return@input
             }
             addInteractionFromPending(output)
             output.getSpeechOutput(skillContext).takeIf { it.isNotBlank() }?.let {
@@ -301,9 +319,7 @@ class SkillEvaluatorImpl(
             briefOnSilence = false
             stopLearning()
         }
-        scope.launch {
-            suspendProcessInputEvent(event)
-        }
+        inputs.trySend { suspendProcessInputEvent(event) }
     }
 
     private suspend fun suspendProcessInputEvent(event: InputEvent) {

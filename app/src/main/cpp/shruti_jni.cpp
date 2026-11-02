@@ -53,24 +53,28 @@ Java_org_stypox_dicio_io_input_shruti_Needle_lastError(JNIEnv* env, jobject) {
 
 JNIEXPORT jstring JNICALL
 Java_org_stypox_dicio_io_input_shruti_Needle_transcribe(
-    JNIEnv* env, jobject, jfloatArray pcm, jint samples, jstring keywords) {
+    JNIEnv* env, jobject, jfloatArray pcm, jint samples, jstring language, jstring keywords) {
     std::vector<char> out(OUT_CAPACITY, 0);
+    const std::string spoken = text(env, language);
     const std::string words = text(env, keywords);
     jfloat* audio = env->GetFloatArrayElements(pcm, nullptr);
     const int result = needle_transcribe(
-        audio, samples, nullptr, words.empty() ? nullptr : words.c_str(), 0, out.data(), OUT_CAPACITY);
+        audio, samples, spoken.empty() ? nullptr : spoken.c_str(), words.empty() ? nullptr : words.c_str(),
+        0, out.data(), OUT_CAPACITY);
     env->ReleaseFloatArrayElements(pcm, audio, JNI_ABORT);
     return result < 0 ? nullptr : json(env, out);
 }
 
 JNIEXPORT jstring JNICALL
 Java_org_stypox_dicio_io_input_shruti_Needle_streamProcess(
-    JNIEnv* env, jobject, jfloatArray pcm, jint samples, jstring keywords) {
+    JNIEnv* env, jobject, jfloatArray pcm, jint samples, jstring language, jstring keywords) {
     std::vector<char> out(OUT_CAPACITY, 0);
+    const std::string spoken = text(env, language);
     const std::string words = text(env, keywords);
     jfloat* audio = env->GetFloatArrayElements(pcm, nullptr);
     const int result = needle_stream_transcribe_process(
-        audio, samples, nullptr, words.empty() ? nullptr : words.c_str(), out.data(), OUT_CAPACITY);
+        audio, samples, spoken.empty() ? nullptr : spoken.c_str(), words.empty() ? nullptr : words.c_str(),
+        out.data(), OUT_CAPACITY);
     env->ReleaseFloatArrayElements(pcm, audio, JNI_ABORT);
     return result < 0 ? nullptr : json(env, out);
 }

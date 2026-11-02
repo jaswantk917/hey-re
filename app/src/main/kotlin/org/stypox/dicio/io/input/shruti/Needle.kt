@@ -23,10 +23,10 @@ internal object Needle {
     external fun lastError(): String
 
     /** JSON {"text": ..., "language": ...} for the whole clip, or null on failure. */
-    external fun transcribe(pcm: FloatArray, samples: Int, keywords: String?): String?
+    external fun transcribe(pcm: FloatArray, samples: Int, language: String?, keywords: String?): String?
 
     /** JSON {"text": newly committed words, "pending": the unconfirmed tail}, or null. */
-    external fun streamProcess(pcm: FloatArray, samples: Int, keywords: String?): String?
+    external fun streamProcess(pcm: FloatArray, samples: Int, language: String?, keywords: String?): String?
 
     /** Ends the live transcription, so the next [streamProcess] starts a new one. */
     external fun streamStop(): String?

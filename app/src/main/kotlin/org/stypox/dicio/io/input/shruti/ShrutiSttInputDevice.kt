@@ -154,7 +154,7 @@ class ShrutiSttInputDevice(
                 // that arrives meanwhile
                 if (endpointer.speechBegan && heard.size - fed >= STREAM_SAMPLES) {
                     val passStartedAt = SystemClock.elapsedRealtime()
-                    val json = Needle.streamProcess(heard.from(fed), heard.size - fed, keywords)
+                    val json = Needle.streamProcess(heard.from(fed), heard.size - fed, LANGUAGE, keywords)
                     Log.i(TAG, "Live pass over ${heard.size * 1000L / SAMPLE_RATE} ms took ${SystemClock.elapsedRealtime() - passStartedAt} ms")
                     fed = heard.size
                     if (json != null && !cancelled) {
@@ -181,7 +181,7 @@ class ShrutiSttInputDevice(
         }
         _uiState.value = SttState.WaitingForResult
         val startedAt = SystemClock.elapsedRealtime()
-        val result = Needle.transcribe(heard.from(0), heard.size, keywords)?.let { JSONObject(it) }
+        val result = Needle.transcribe(heard.from(0), heard.size, LANGUAGE, keywords)?.let { JSONObject(it) }
         Log.i(TAG, "Transcribed ${heard.size * 1000L / SAMPLE_RATE} ms of audio in " +
                 "${SystemClock.elapsedRealtime() - startedAt} ms, language=${result?.optString("language")}, " +
                 "ttft=${result?.optDouble("ttft_ms")} tps=${result?.optDouble("decode_tps")}")
@@ -224,6 +224,9 @@ class ShrutiSttInputDevice(
     companion object {
         private val TAG = ShrutiSttInputDevice::class.simpleName
         private const val MODEL = "shruti/shruti.cact"
+        // left to guess, a Hinglish sentence opening with "hello" was taken for English and
+        // "kya haal samachar" heard as "kiah also sir"; Hindi still writes English words in English
+        private const val LANGUAGE = "hi"
         private const val SAMPLE_RATE = 16_000
         private const val FRAME_SAMPLES = SAMPLE_RATE / 10
         private const val STREAM_SAMPLES = SAMPLE_RATE

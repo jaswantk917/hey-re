@@ -71,6 +71,7 @@ import org.stypox.dicio.ui.home.HomeScreenViewModel
 import org.stypox.dicio.ui.home.LoadingAnswerCard
 import org.stypox.dicio.history.RestoredAnswer
 import org.stypox.dicio.ui.home.SttHaptics
+import org.stypox.dicio.ui.home.TypingOrListening
 import org.stypox.dicio.ui.home.UserBubble
 import org.stypox.dicio.ui.home.orbMood
 import org.stypox.dicio.ui.home.revealLastItem
@@ -110,6 +111,7 @@ fun AssistSheet(
 
     val isHappy = rememberHappyOnNewAnswer(interactionLog)
     SttHaptics(sttState)
+    TypingOrListening(sttState, typedText, { typedText = it }, viewModel.sttInputDevice::cancelListening)
     val imagePickers = rememberImagePickers(viewModel.skillEvaluator::processImage)
     val chatMode by viewModel.skillEvaluator.chatMode.collectAsState()
 

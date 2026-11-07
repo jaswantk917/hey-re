@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -109,6 +110,7 @@ fun HomeScreen(
         onDeleteChat = { viewModel.skillEvaluator.deleteChat(it.id) },
         chatMode = chatMode.value,
         onChatModeChange = viewModel.skillEvaluator::setChatMode,
+        onCancelListening = viewModel.sttInputDevice::cancelListening,
     )
 }
 
@@ -138,6 +140,7 @@ fun HomeScreen(
     onDeleteChat: (SavedChat) -> Unit = {},
     chatMode: Boolean = false,
     onChatModeChange: (Boolean) -> Unit = {},
+    onCancelListening: () -> Unit = {},
 ) {
     // null while talking, the text being typed while in typing mode
     var typedText by rememberSaveable { mutableStateOf<String?>(null) }
@@ -157,16 +160,7 @@ fun HomeScreen(
     SttHaptics(sttState)
     val imagePickers = rememberImagePickers(onImage)
 
-    // listening (the gesture or the wake word while typing): the orb, not the composer
-    val keyboard = LocalSoftwareKeyboardController.current
-    val focusManager = LocalFocusManager.current
-    LaunchedEffect(sttState == SttState.Listening) {
-        if (sttState == SttState.Listening && typedText != null) {
-            focusManager.clearFocus()
-            keyboard?.hide()
-            typedText = null
-        }
-    }
+    TypingOrListening(sttState, typedText, { typedText = it }, onCancelListening)
 
     // closing the keyboard on an empty composer goes back to the orb
     val imeVisible = WindowInsets.isImeVisible
@@ -317,6 +311,38 @@ fun HomeScreen(
             },
             onDismiss = { showSkillsSheet = false },
         )
+    }
+}
+
+/**
+ * Never typing and listening at once. Opening the keyboard drops what the microphone was hearing;
+ * listening again (the gesture or the wake word) on an empty composer closes it for the orb, while
+ * a half-typed message stays and the microphone is let go instead.
+ */
+@Composable
+internal fun TypingOrListening(
+    sttState: SttState?,
+    typedText: String?,
+    onTypedTextChange: (String?) -> Unit,
+    onCancelListening: () -> Unit,
+) {
+    val keyboard = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    val currentSttState by rememberUpdatedState(sttState)
+    val currentTypedText by rememberUpdatedState(typedText)
+    LaunchedEffect(typedText != null) {
+        if (typedText != null && currentSttState == SttState.Listening) onCancelListening()
+    }
+    LaunchedEffect(sttState == SttState.Listening) {
+        val text = currentTypedText
+        if (sttState != SttState.Listening || text == null) return@LaunchedEffect
+        if (text.isBlank()) {
+            focusManager.clearFocus()
+            keyboard?.hide()
+            onTypedTextChange(null)
+        } else {
+            onCancelListening()
+        }
     }
 }
 

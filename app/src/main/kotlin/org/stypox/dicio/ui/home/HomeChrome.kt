@@ -55,7 +55,7 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AddComment
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material3.FilledIconToggleButton
@@ -144,12 +144,13 @@ fun HomeTopBar(
             )
         }
         Spacer(modifier = Modifier.weight(1f))
-        ChatModeButton(chatMode, onChatModeChange)
+        // first in the row, so popping in and out never shifts the buttons beside it
         TopBarAction(visible = canStartNewChat) {
             IconButton(onClick = onNewChat, shapes = IconButtonDefaults.shapes()) {
-                Icon(Icons.Outlined.AddComment, contentDescription = stringResource(R.string.history_new_chat))
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.history_new_chat))
             }
         }
+        ChatModeButton(chatMode, onChatModeChange)
         TopBarAction(visible = hasHistory) {
             IconButton(onClick = onShowHistory, shapes = IconButtonDefaults.shapes()) {
                 Icon(Icons.Outlined.History, contentDescription = stringResource(R.string.history_open))
